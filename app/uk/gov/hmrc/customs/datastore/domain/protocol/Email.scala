@@ -18,7 +18,7 @@ package uk.gov.hmrc.customs.datastore.domain.protocol
 
 import play.api.libs.json.Json
 
-case class Email(value: String)
+case class Email(value: String) extends AnyVal
 
 object Email {
   implicit val jsonFormat = Json.format[Email]
