@@ -18,7 +18,7 @@ package uk.gov.hmrc.customs.datastore.domain.protocol
 
 import play.api.libs.json.Json
 
-case class Eori(value: String)
+case class Eori(value: String) extends AnyVal
 
 object Eori {
   implicit val jsonFormat = Json.format[Eori]

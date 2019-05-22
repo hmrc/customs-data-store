@@ -17,11 +17,9 @@
 package uk.gov.hmrc.customs.datastore.services
 
 import javax.inject.Inject
-import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
-import uk.gov.hmrc.customs.datastore.domain.TraderData._
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.customs.datastore.domain.protocol.{Email, Eori}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
