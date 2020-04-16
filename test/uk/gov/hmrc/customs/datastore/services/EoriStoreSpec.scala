@@ -107,29 +107,29 @@ class EoriStoreSpec extends WordSpec with MustMatchers with MongoSpecSupport wit
 
     //TODO: replace with simple scenario(s)/test(s) or rename test to reflect purpose
     "Complex email upsert test with preloaded data" in {
-      val emails = Option(NotificationEmail(Option("a.b@mail.com"), None))
+      val noEmail = None
       await(for {
         _ <- eoriStore.upsertByEori(EoriPeriod(period1.eori, None,None),Some(NotificationEmail(Some("a.b@mail.com"),None)))
         _ <- eoriStore.updateHistoricEoris(Seq(period1, period2))
         _ <- eoriStore.updateHistoricEoris(Seq(period5, period6))
         eoris1 <- eoriStore.findByEori(period1.eori)
-        _ <- toFuture(eoris1 mustBe Some(TraderData(Seq(period1, period2), emails)))
+        _ <- toFuture(eoris1 mustBe Some(TraderData(Seq(period1, period2), noEmail)))
         eoris2 <- eoriStore.findByEori(period2.eori)
-        _ <- toFuture(eoris2 mustBe Some(TraderData(Seq(period1, period2), emails)))
+        _ <- toFuture(eoris2 mustBe Some(TraderData(Seq(period1, period2), noEmail)))
         _ <- eoriStore.updateHistoricEoris(Seq(period1, period3))
         eoris3 <- eoriStore.findByEori(period1.eori)
-        _ <- toFuture(eoris3 mustBe Some(TraderData(Seq(period1, period3), emails)))
+        _ <- toFuture(eoris3 mustBe Some(TraderData(Seq(period1, period3), noEmail)))
         eoris4 <- eoriStore.findByEori(period3.eori)
-        _ <- toFuture(eoris4 mustBe Some(TraderData(Seq(period1, period3), emails)))
+        _ <- toFuture(eoris4 mustBe Some(TraderData(Seq(period1, period3), noEmail)))
         _ <- eoriStore.updateHistoricEoris(Seq(period3, period4))
         eoris5 <- eoriStore.findByEori(period3.eori)
-        _ <- toFuture(eoris5 mustBe Some(TraderData(Seq(period3, period4), emails)))
+        _ <- toFuture(eoris5 mustBe Some(TraderData(Seq(period3, period4), noEmail)))
         eoris6 <- eoriStore.findByEori(period4.eori)
-        _ <- toFuture(eoris6 mustBe Some(TraderData(Seq(period3, period4), emails)))
+        _ <- toFuture(eoris6 mustBe Some(TraderData(Seq(period3, period4), noEmail)))
         eoris7 <- eoriStore.findByEori(period5.eori)
-        _ <- toFuture(eoris7 mustBe Some(TraderData(Seq(period5, period6), None)))
+        _ <- toFuture(eoris7 mustBe Some(TraderData(Seq(period5, period6), noEmail)))
         eoris8 <- eoriStore.findByEori(period6.eori)
-        _ <- toFuture(eoris8 mustBe Some(TraderData(Seq(period5, period6), None)))
+        _ <- toFuture(eoris8 mustBe Some(TraderData(Seq(period5, period6), noEmail)))
       } yield ())
 
     }
@@ -182,10 +182,22 @@ class EoriStoreSpec extends WordSpec with MustMatchers with MongoSpecSupport wit
 
   }
 
-    "insert eori with notification email and timestamp " in {
+    "insert eori with verified notification email" in {
       val eoriPeriod = EoriPeriod(eori1, Some("date1"), Some("date2"))
       val email = NotificationEmail(Some("test@email.uk"), Some("timestamp"))
       val expected = TraderData(Seq(EoriPeriod(eori1, Some("date1"), Some("date2"))), Some(NotificationEmail(Some("test@email.uk"), Some("timestamp"))))
+
+      await(for {
+        _ <- eoriStore.upsertByEori(eoriPeriod, Some(email))
+        r1 <- eoriStore.findByEori(eori1)
+        _ <- toFuture(r1.get mustBe expected)
+      } yield ())
+    }
+
+    "insert eori with unverified notification email" in {
+      val eoriPeriod = EoriPeriod(eori1, Some("date1"), Some("date2"))
+      val email = NotificationEmail(Some("test@email.uk"), None)
+      val expected = TraderData(Seq(EoriPeriod(eori1, Some("date1"), Some("date2"))), None)
 
       await(for {
         _ <- eoriStore.upsertByEori(eoriPeriod, Some(email))
