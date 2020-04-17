@@ -42,7 +42,7 @@ Updating/Inserting an EORI with an email and timestamp:
 ```json
 {"query" : "mutation {byEori(eoriHistory:{eori:\"EORI11223344\" validFrom:\"20180101\" validUntil:\"20200101\"}, notificationEmail: {address: \"someemail@mail.com\", timestamp: \"timestamp\"} )}" }
 ```
-
+  
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
