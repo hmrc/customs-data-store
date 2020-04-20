@@ -138,5 +138,4 @@ class EoriStore @Inject()(mongoComponent: ReactiveMongoComponent, appConfig: App
       result <- updateEmailAndLastUpdated(eoriPeriod.eori, email)
     } yield result
   }
-
 }

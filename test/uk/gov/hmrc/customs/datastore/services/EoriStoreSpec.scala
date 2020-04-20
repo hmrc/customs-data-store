@@ -226,5 +226,4 @@ class EoriStoreSpec extends WordSpec with MustMatchers with MongoSpecSupport wit
     }
 
   }
-
 }
