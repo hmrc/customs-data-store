@@ -108,9 +108,8 @@ An endpoint to populate the historic EORI's for a given EORI
 If you want to run [customs-data-store](https://github.com/hmrc/customs-data-store) locally then you also have to run [customs-financials-hods-stub](https://github.com/hmrc/customs-financials-hods-stub) so that it can retrieve historic Eoris from there.  
 To start the service from sbt: `sbt "run 9893" ` or from service manager: `sm --start CUSTOMS_DATA_STORE CUSTOMS_FINANCIALS_HODS_STUB -f`  
 In Postman
-1. Create a **POST** request to http://localhost:9893/customs-data-store/graphql
+1. Send in any of above requests to http://localhost:9893/customs-data-store/
 2. Add and `Authorization` header and set it's value to whatever is in `application.conf  ` under the key `server-token`
-3. Send in any of the requests in the following section to play around. If you want to retrieve actual data, you should insert it first (mutation).
 
 ### License
 

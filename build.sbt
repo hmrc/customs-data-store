@@ -21,8 +21,6 @@ lazy val microservice = Project(appName, file("."))
 val compileDeps = Seq(
 
   "uk.gov.hmrc"             %% "simple-reactivemongo"     % "7.30.0-play-26",
-  "org.sangria-graphql"     %% "sangria"                  % "1.4.2",
-  "org.sangria-graphql"     %% "sangria-play-json"        % "1.0.3",
   "uk.gov.hmrc"             %% "bootstrap-backend-play-26"        % "3.0.0"
 )
 

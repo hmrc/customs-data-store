@@ -1,7 +1,5 @@
 # microservice specific routes
 
-POST       /graphql                        uk.gov.hmrc.customs.datastore.controllers.GraphQLController.handleRequest
-
 GET        /eori/:eori/verified-email      uk.gov.hmrc.customs.datastore.controllers.VerifiedEmailController.getVerifiedEmail(eori: String)
 POST       /update-email                   uk.gov.hmrc.customs.datastore.controllers.VerifiedEmailController.updateVerifiedEmail()
 
