@@ -25,15 +25,13 @@ import play.api.{Logger, LoggerLike}
 import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.customs.datastore.domain.onwire.HistoricEoriResponse
 import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod}
-import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.Authorization
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse,HttpClient}
+import scala.concurrent.{ExecutionContext,Future}
 import scala.util.{Failure, Success, Try}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
-class EoriHistoryService @Inject()(appConfig: AppConfig, http: HttpClient, metricsReporter: MetricsReporterService) {
+class EoriHistoryService @Inject()(appConfig: AppConfig, http: HttpClient, metricsReporter: MetricsReporterService)(implicit ec: ExecutionContext) {
 
   val log: LoggerLike = Logger(this.getClass)
 
@@ -59,14 +57,14 @@ class EoriHistoryService @Inject()(appConfig: AppConfig, http: HttpClient, metri
     }
   }
 
-  def testSub21(eori: String)(implicit hc: HeaderCarrier, reads: HttpReads[HttpResponse], ec: ExecutionContext): Future[JsValue] = {
+  def testSub21(eori: String)(implicit hc: HeaderCarrier, reads: HttpReads[HttpResponse]): Future[JsValue] = {
 
     val hci: HeaderCarrier = hc
     val mdgUrl = appConfig.eoriHistoryUrl + eori
     log.info(s"This is a test MDG endpoint : $mdgUrl")
 
-    log.info("MDG request headers: " + hci.headers)
-    http.GET[HttpResponse](mdgUrl)(reads, hci, ec).map(a => Json.parse(a.body))
+    log.info("MDG request headers: " + hci.headers _)
+    http.GET[HttpResponse](mdgUrl)(reads, hci, implicitly).map(a => Json.parse(a.body))
 
   }
 

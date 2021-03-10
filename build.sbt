@@ -8,8 +8,8 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .settings(
     majorVersion                     := 0,
-    libraryDependencies              ++= compileDeps ++ testDeps,
-    dependencyOverrides ++= overrides
+    scalaVersion                     := "2.12.11",
+    libraryDependencies              ++= compileDeps ++ testDeps
   )
   .settings(publishingSettings: _*)
   .configs(IntegrationTest)
@@ -20,25 +20,14 @@ lazy val microservice = Project(appName, file("."))
 
 val compileDeps = Seq(
 
-  "uk.gov.hmrc"             %% "simple-reactivemongo"     % "7.30.0-play-26",
-  "uk.gov.hmrc"             %% "bootstrap-backend-play-26"        % "3.0.0"
+  "uk.gov.hmrc"             %% "simple-reactivemongo"     % "8.0.0-play-27",
+  "uk.gov.hmrc"             %% "bootstrap-backend-play-27"        % "3.4.0"
 )
 
 val testDeps = Seq(
   "org.scalatest"           %% "scalatest"                % "3.0.8"                 % "test",
   "com.typesafe.play"       %% "play-test"                % currentPlayVersion      % "test",
   "org.pegdown"             %  "pegdown"                  % "1.6.0"                 % "test, it",
-  "org.scalatestplus.play"  %% "scalatestplus-play"       % "3.1.0"                 % "test, it",
+  "org.scalatestplus.play"  %% "scalatestplus-play"       % "4.0.3"                 % "test, it",
   "org.mockito"             %  "mockito-all"              % "1.10.19"                % "test,it"
-)
-
-val akkaVersion = "2.5.23"
-val akkaHttpVersion = "10.0.15"
-
-val overrides = Set(
-  "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-  "com.typesafe.akka" %% "akka-protobuf" % akkaVersion,
-  "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-  "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
 )

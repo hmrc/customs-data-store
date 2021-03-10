@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.customs.datastore.controllers
 
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-
+import uk.gov.hmrc.http.HttpClient
 
 class CustomAuthConnectorSpec extends PlaySpec with MockitoSugar {
 

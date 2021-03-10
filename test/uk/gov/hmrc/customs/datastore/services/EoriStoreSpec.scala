@@ -200,7 +200,6 @@ class EoriStoreSpec extends SpecBase {
 
     "insert eori with no address as an unverified notification email" in {
       val eoriPeriod = EoriPeriod(eori1, Some("date1"), Some("date2"))
-      val email = unverifiedEmailNoAddress
       val expected = TraderData(Seq(EoriPeriod(eori1, Some("date1"), Some("date2"))), noEmail)
 
       await(for {
@@ -212,7 +211,6 @@ class EoriStoreSpec extends SpecBase {
 
     "insert eori with no timestamp as an unverified notification email" in {
       val eoriPeriod = EoriPeriod(eori1, Some("date1"), Some("date2"))
-      val email = unverifiedEmailNoTimestamp
       val expected = TraderData(Seq(EoriPeriod(eori1, Some("date1"), Some("date2"))), noEmail)
 
       await(for {
@@ -224,7 +222,6 @@ class EoriStoreSpec extends SpecBase {
 
     "insert eori with no address and no timestamp as an unverified notification email" in {
       val eoriPeriod = EoriPeriod(eori1, Some("date1"), Some("date2"))
-      val email = unverifiedEmailNoAddressNoTimeStamp
       val expected = TraderData(Seq(EoriPeriod(eori1, Some("date1"), Some("date2"))), noEmail)
 
       await(for {
@@ -237,7 +234,6 @@ class EoriStoreSpec extends SpecBase {
 
     "upsert the validFrom, validUntil, email and timestamp fields " in {
       val eoriPeriod = EoriPeriod(eori1, Some("date1"), Some("date2"))
-      val email = NotificationEmail(Some("original@email.uk"), Some("timestamp1"))
       val expectedTraderDataAfterInsert = TraderData(Seq(EoriPeriod(eori1, Some("date1"), Some("date2"))), verifiedEmail)
 
       val updatedEoriPeriod = EoriPeriod(eori1, Some("date3"), Some("date4"))

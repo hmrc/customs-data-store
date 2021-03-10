@@ -24,8 +24,7 @@ import play.api.test.Helpers.running
 import uk.gov.hmrc.customs.datastore.domain.onwire.{MdgSub09DataModel, Sub09Response}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 import uk.gov.hmrc.http.{HeaderCarrier, ServiceUnavailableException}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-
+import uk.gov.hmrc.http.HttpClient
 import scala.concurrent.Future
 
 

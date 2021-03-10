@@ -15,12 +15,12 @@
  */
 
 package uk.gov.hmrc.customs.datastore.utils
-
-import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, MustMatchers, OptionValues, WordSpec}
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.customs.datastore.services.MongoSpecSupport
+
 
 class SpecBase extends WordSpec with MongoSpecSupport with MockitoSugar with MustMatchers with FutureAwaits with DefaultAwaitTimeout with OptionValues with BeforeAndAfterEach {
 
