@@ -17,12 +17,12 @@
 package uk.gov.hmrc.customs.datastore.services
 
 import java.time.OffsetDateTime
-
 import com.codahale.metrics.{Histogram, MetricRegistry}
 import com.kenshoo.play.metrics.Metrics
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
 import play.api.http.Status
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import services.DateTimeService
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
@@ -102,10 +102,10 @@ class MetricsReporterServiceSpec extends SpecBase {
         }
 
         "log 5xx error call metrics" in {
-          assertThrows[Upstream5xxResponse] {
+          assertThrows[UpstreamErrorResponse] {
             await {
               metricsReporterService.withResponseTimeLogging("bar") {
-                Future.failed(new Upstream5xxResponse("boom", Status.SERVICE_UNAVAILABLE, Status.NOT_IMPLEMENTED))
+                Future.failed(UpstreamErrorResponse("boom", Status.SERVICE_UNAVAILABLE, Status.NOT_IMPLEMENTED))
               }
             }
           }
@@ -114,10 +114,10 @@ class MetricsReporterServiceSpec extends SpecBase {
         }
 
         "log 4xx error call metrics" in {
-          assertThrows[Upstream4xxResponse] {
+          assertThrows[UpstreamErrorResponse] {
             await {
               metricsReporterService.withResponseTimeLogging("bar") {
-                Future.failed(new Upstream4xxResponse("boom", Status.FORBIDDEN, Status.NOT_IMPLEMENTED))
+                Future.failed(UpstreamErrorResponse("boom", Status.FORBIDDEN, Status.NOT_IMPLEMENTED))
               }
             }
           }

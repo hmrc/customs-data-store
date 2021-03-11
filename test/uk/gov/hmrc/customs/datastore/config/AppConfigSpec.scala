@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.customs.datastore.config
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-class AppConfigSpec extends FlatSpec with MustMatchers {
+class AppConfigSpec extends AnyFlatSpec with Matchers {
 
   class AppConfigScenario {
     val env = Environment.simple()

@@ -15,14 +15,15 @@
  */
 
 package uk.gov.hmrc.customs.datastore.utils
-import org.scalatest.{BeforeAndAfterEach, MustMatchers, OptionValues, WordSpec}
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.{BeforeAndAfterEach,  OptionValues}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.customs.datastore.services.MongoSpecSupport
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-
-class SpecBase extends WordSpec with MongoSpecSupport with MockitoSugar with MustMatchers with FutureAwaits with DefaultAwaitTimeout with OptionValues with BeforeAndAfterEach {
+class SpecBase extends AnyWordSpecLike with MongoSpecSupport with MockitoSugar with Matchers with FutureAwaits with DefaultAwaitTimeout with OptionValues with BeforeAndAfterEach {
 
   def application = new GuiceApplicationBuilder()
     .configure("metrics.enabled" -> "false")
