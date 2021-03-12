@@ -18,24 +18,26 @@ package uk.gov.hmrc.customs.datastore.services
 
 import java.time.LocalDate
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.test.Helpers.running
 import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.customs.datastore.domain._
 import uk.gov.hmrc.customs.datastore.domain.onwire._
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier, HttpResponse, UpstreamErrorResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
+import uk.gov.hmrc.http.HttpReads.Implicits._
+
+import scala.util.Failure
 
 
 class EoriHistoryServiceSpec extends SpecBase {
@@ -85,7 +87,7 @@ class EoriHistoryServiceSpec extends SpecBase {
       val actualURL: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
 
       when(mockHttp.GET[HttpResponse](actualURL.capture())(any(), any(), any()))
-        .thenReturn(Future.successful(HttpResponse(200, Some(Json.toJson(generateResponse(List(someEori)))))))
+        .thenReturn(Future.successful(HttpResponse(200, Json.toJson(generateResponse(List(someEori))),Map.empty[String, Seq[String]])))
 
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
@@ -140,7 +142,7 @@ class EoriHistoryServiceSpec extends SpecBase {
       val mockHttp = mock[HttpClient]
 
       when(mockHttp.GET[HttpResponse](any())(any(), any(), any()))
-        .thenReturn(Future.successful(HttpResponse(200, Some(Json.parse(jsonResponse).as[JsObject]))))
+        .thenReturn(Future.successful(HttpResponse(200, jsonResponse)))
 
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
@@ -168,7 +170,7 @@ class EoriHistoryServiceSpec extends SpecBase {
       val actualHeaderCarrier: ArgumentCaptor[HeaderCarrier] = ArgumentCaptor.forClass(classOf[HeaderCarrier])
 
       when(mockHttp.GET[HttpResponse](any())(any(), actualHeaderCarrier.capture(), any()))
-        .thenReturn(Future.successful(HttpResponse(200, Some(Json.toJson(generateResponse(List(someEori)))))))
+        .thenReturn(Future.successful(HttpResponse(200, Json.toJson(generateResponse(List(someEori))).toString())))
 
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
@@ -199,7 +201,7 @@ class EoriHistoryServiceSpec extends SpecBase {
 
       val mockHttp = mock[HttpClient]
 
-      val httpResponse = HttpResponse(403, None, Map.empty, Some(errorResponse))
+      val httpResponse = HttpResponse(403, errorResponse, Map.empty[String, Seq[String]])
       when(mockHttp.GET[HttpResponse](any())(any(), any(), any()))
         .thenReturn(Future.successful(httpResponse))
 
@@ -211,25 +213,16 @@ class EoriHistoryServiceSpec extends SpecBase {
 
       running(app) {
         val response = Await.ready(service.getHistory(someEori), 2 seconds)
-        response.onFailure {
-          case ex: UpstreamErrorResponse => ex.statusCode mustBe 403
+        response.onComplete {
+          case Failure(ex:UpstreamErrorResponse) => ex.statusCode mustBe 403
+          case _ =>
         }
       }
     }
 
     "recover when Throwable occurs" in new ETMPScenario {
-      val errorResponse =
-        """<html>
-          |<head><title>Error Error 400 BadRequest - MDG-WAF 15671#15671: *1445924/Blocked - MDG-WAF:: Empty Uri</title></head>
-          |<body bgcolor="white">
-          |<center><h1>400 BadRequest</h1></center>
-          |<hr><center>nginx</center>
-          |</body>
-          |</html>""".stripMargin
-
       val mockHttp = mock[HttpClient]
 
-      val httpResponse = HttpResponse(400, None, Map.empty, Some(errorResponse))
       when(mockHttp.GET[HttpResponse](any())(any(), any(), any()))
         .thenReturn(Future.failed(new Throwable("Boom")))
 
@@ -241,8 +234,9 @@ class EoriHistoryServiceSpec extends SpecBase {
 
       running(app) {
         val response = Await.ready(service.getHistory(someEori), 2 seconds)
-        response.onFailure {
-          case ex: UpstreamErrorResponse => ex.statusCode mustBe 400
+        response.onComplete {
+          case Failure(ex:UpstreamErrorResponse) => ex.statusCode mustBe 400
+          case _ =>
         }
       }
     }

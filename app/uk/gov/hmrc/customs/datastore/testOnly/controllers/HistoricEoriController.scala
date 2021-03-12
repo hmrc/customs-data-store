@@ -22,7 +22,7 @@ import uk.gov.hmrc.auth.core.AuthorisedFunctions
 import uk.gov.hmrc.customs.datastore.controllers.CustomAuthConnector
 import uk.gov.hmrc.customs.datastore.services.EoriHistoryService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import scala.concurrent.ExecutionContext
 
 @Singleton()

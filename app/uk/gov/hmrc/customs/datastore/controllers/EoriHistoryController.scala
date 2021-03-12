@@ -18,13 +18,14 @@ package uk.gov.hmrc.customs.datastore.controllers
 
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod, TraderData}
+import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod}
 import uk.gov.hmrc.customs.datastore.services.{EoriHistoryService, EoriStore}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 class EoriHistoryController @Inject()(eoriStore: EoriStore,
                                       historyService: EoriHistoryService,

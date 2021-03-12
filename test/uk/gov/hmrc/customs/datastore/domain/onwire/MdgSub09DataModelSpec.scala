@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.customs.datastore.domain.onwire
 
-import org.scalatest.{MustMatchers, WordSpec}
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.customs.datastore.domain.Eori
+import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
-class MdgSub09DataModelSpec extends WordSpec with MustMatchers {
+class MdgSub09DataModelSpec extends SpecBase {
 
   val EORI1 = "GB0000000001"
 

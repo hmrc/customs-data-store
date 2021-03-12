@@ -26,11 +26,11 @@ import uk.gov.hmrc.customs.datastore.domain.Eori
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-
+import uk.gov.hmrc.http.HttpClient
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Random
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 class SubscriptionInfoService @Inject()(appConfig: AppConfig, http: HttpClient, metricsReporter: MetricsReporterService) {
   val log: LoggerLike = Logger(this.getClass)

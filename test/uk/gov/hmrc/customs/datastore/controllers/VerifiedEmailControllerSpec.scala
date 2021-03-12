@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.customs.datastore.controllers
 
-import org.mockito.ArgumentMatcher
-import org.mockito.Matchers.{any, argThat}
-import org.mockito.Mockito.{verifyZeroInteractions, when}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{verifyNoInteractions, when}
 import play.api.inject
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
@@ -83,7 +82,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
         val result = route(app, request).value
         status(result) mustBe 200
         contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> testTime.toString)
-        verifyZeroInteractions(mockSubscriptionInfoService)
+        verifyNoInteractions(mockSubscriptionInfoService)
       }
     }
 

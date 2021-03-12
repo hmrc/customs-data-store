@@ -20,7 +20,7 @@ import javax.inject.Inject
 import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.http.CorePost
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 
 class CustomAuthConnector @Inject()(appConfig: AppConfig, httpPost: HttpClient) extends PlayAuthConnector {
   override val serviceUrl: String = appConfig.authUrl
