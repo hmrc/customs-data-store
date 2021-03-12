@@ -1,4 +1,4 @@
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, integrationTestSettings}
+import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, integrationTestSettings, scalaSettings}
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import play.core.PlayVersion.{current => currentPlayVersion}
 
@@ -11,6 +11,7 @@ lazy val microservice = Project(appName, file("."))
     scalaVersion                     := "2.12.11",
     libraryDependencies              ++= compileDeps ++ testDeps
   )
+  .settings(scalaSettings: _*)
   .settings(publishingSettings: _*)
   .configs(IntegrationTest)
   .settings(integrationTestSettings(): _*)
