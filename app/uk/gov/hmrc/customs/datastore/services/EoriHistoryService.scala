@@ -25,7 +25,7 @@ import play.api.{Logger, LoggerLike}
 import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.customs.datastore.domain.onwire.HistoricEoriResponse
 import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod}
-import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.http.Authorization
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse,HttpClient}
 import scala.concurrent.{ExecutionContext,Future}
 import scala.util.{Failure, Success, Try}

@@ -29,7 +29,7 @@ import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.customs.datastore.domain._
 import uk.gov.hmrc.customs.datastore.domain.onwire._
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
-import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.http.Authorization
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import scala.annotation.tailrec
@@ -85,8 +85,7 @@ class EoriHistoryServiceSpec extends SpecBase {
 
       val mockHttp = mock[HttpClient]
       val actualURL: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
-
-      when(mockHttp.GET[HttpResponse](actualURL.capture())(any(), any(), any()))
+      when(mockHttp.GET[HttpResponse](actualURL.capture(),any(),any())(any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(200, Json.toJson(generateResponse(List(someEori))),Map.empty[String, Seq[String]])))
 
       private val app: Application = new GuiceApplicationBuilder().overrides(
@@ -141,7 +140,7 @@ class EoriHistoryServiceSpec extends SpecBase {
 
       val mockHttp = mock[HttpClient]
 
-      when(mockHttp.GET[HttpResponse](any())(any(), any(), any()))
+      when(mockHttp.GET[HttpResponse](any(),any(),any())(any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(200, jsonResponse)))
 
       private val app: Application = new GuiceApplicationBuilder().overrides(
@@ -169,7 +168,7 @@ class EoriHistoryServiceSpec extends SpecBase {
       val mockHttp = mock[HttpClient]
       val actualHeaderCarrier: ArgumentCaptor[HeaderCarrier] = ArgumentCaptor.forClass(classOf[HeaderCarrier])
 
-      when(mockHttp.GET[HttpResponse](any())(any(), actualHeaderCarrier.capture(), any()))
+      when(mockHttp.GET[HttpResponse](any(),any(),any())(any(), actualHeaderCarrier.capture(), any()))
         .thenReturn(Future.successful(HttpResponse(200, Json.toJson(generateResponse(List(someEori))).toString())))
 
       private val app: Application = new GuiceApplicationBuilder().overrides(
@@ -182,8 +181,7 @@ class EoriHistoryServiceSpec extends SpecBase {
 
         await(service.getHistory(someEori))
 
-        val expectedHeaderCarrier = implicitHeaderCarrier.copy(authorization = Some(Authorization("Bearer secret-token")))
-        actualHeaderCarrier.getValue mustBe expectedHeaderCarrier
+        actualHeaderCarrier.getValue.authorization mustBe Some(Authorization("Bearer secret-token"))
       }
     }
   }
@@ -202,7 +200,7 @@ class EoriHistoryServiceSpec extends SpecBase {
       val mockHttp = mock[HttpClient]
 
       val httpResponse = HttpResponse(403, errorResponse, Map.empty[String, Seq[String]])
-      when(mockHttp.GET[HttpResponse](any())(any(), any(), any()))
+      when(mockHttp.GET[HttpResponse](any(),any(),any())(any(), any(), any()))
         .thenReturn(Future.successful(httpResponse))
 
       private val app: Application = new GuiceApplicationBuilder().overrides(
@@ -223,7 +221,7 @@ class EoriHistoryServiceSpec extends SpecBase {
     "recover when Throwable occurs" in new ETMPScenario {
       val mockHttp = mock[HttpClient]
 
-      when(mockHttp.GET[HttpResponse](any())(any(), any(), any()))
+      when(mockHttp.GET[HttpResponse](any(),any(),any())(any(), any(), any()))
         .thenReturn(Future.failed(new Throwable("Boom")))
 
       private val app: Application = new GuiceApplicationBuilder().overrides(
