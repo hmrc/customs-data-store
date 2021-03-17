@@ -44,7 +44,7 @@ class SubscriptionInfoServiceSpec extends SpecBase {
     "return None when the timestamp is not available" in new Setup {
       val mockHttp = mock[HttpClient]
 
-      when(mockHttp.GET[MdgSub09DataModel](any(),any(),any())(any(), any(), any()))
+      when(mockHttp.GET[MdgSub09DataModel](any())(any(), any(), any()))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))))
 
       private val app = application.overrides(
@@ -61,7 +61,7 @@ class SubscriptionInfoServiceSpec extends SpecBase {
     "return Some, when the timestamp is available" in new Setup {
       val mockHttp = mock[HttpClient]
 
-      when(mockHttp.GET[MdgSub09DataModel](any(),any(),any())(any(), any(), any()))
+      when(mockHttp.GET[MdgSub09DataModel](any())(any(), any(), any()))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailAndTimestamp(testEori))))
 
       private val app = application.overrides(
@@ -79,7 +79,7 @@ class SubscriptionInfoServiceSpec extends SpecBase {
 
       val mockHttp = mock[HttpClient]
 
-      when(mockHttp.GET[MdgSub09DataModel](any(),any(),any())(any(), any(), any()))
+      when(mockHttp.GET[MdgSub09DataModel](any())(any(), any(), any()))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.noEmailNoTimestamp(testEori))))
 
       private val app = application.overrides(
@@ -96,7 +96,7 @@ class SubscriptionInfoServiceSpec extends SpecBase {
     "propagate ServiceUnavailableException" in new Setup {
       val mockHttp = mock[HttpClient]
 
-      when(mockHttp.GET[MdgSub09DataModel](any(),any(),any())(any(), any(), any()))
+      when(mockHttp.GET[MdgSub09DataModel](any())(any(), any(), any()))
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
 
       private val app = application.overrides(

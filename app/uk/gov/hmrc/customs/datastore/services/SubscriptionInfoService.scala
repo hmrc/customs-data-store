@@ -25,7 +25,7 @@ import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.customs.datastore.domain.Eori
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.Authorization
+import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.http.HttpClient
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
