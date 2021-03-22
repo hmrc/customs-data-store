@@ -26,10 +26,6 @@ class AppConfig @Inject()(val configuration: Configuration, servicesConfig: Serv
   val authUrl = servicesConfig.baseUrl("auth")
 
   val serverToken = "Bearer " + configuration.get[String]("server-token")
-  val bearerToken = "Bearer " + configuration.getOptional[String]("microservice.services.mdg.bearer-token").getOrElse("secret-token")
-
-  lazy val eoriHistoryUrl: String = servicesConfig.baseUrl("mdg") / configuration.getOptional[String]("microservice.services.mdg.historicEoriEndpoint").getOrElse("/")
-  lazy val companyInformationUrl: String = servicesConfig.baseUrl("mdg") / configuration.getOptional[String]("microservice.services.mdg.companyInformationEndpoint").getOrElse("/")
 
   private val DEFAULT_TIME_TO_LIVE: Int = 30 * 24 * 60 * 60
   val dbTimeToLiveInSeconds: Int = configuration.getOptional[Int]("mongodb.timeToLiveInSeconds").getOrElse(DEFAULT_TIME_TO_LIVE)
@@ -42,6 +38,25 @@ class AppConfig @Inject()(val configuration: Configuration, servicesConfig: Serv
 
     def removeLeadingSlash(in: String): String = if (in.head == '/') in.drop(1) else in
   }
+
+  lazy val sub21EORIHistoryEndpoint: String = servicesConfig.baseUrl("sub21") / configuration.getOptional[String]("microservice.services.sub21.historicEoriEndpoint").getOrElse("/")
+  lazy val sub21HostHeader: Option[String] = configuration.getOptional[String]("microservice.services.sub21.host-header")
+  lazy val sub21BearerToken: String = "Bearer " +configuration.getOptional[String]("microservice.services.sub21.bearer-token").getOrElse("secret-token")
+  lazy val sub21ServiceName = configuration.get[String]("microservice.services.sub21.serviceName")
+  lazy val sub21NumberOfCallsToSwitchCircuitBreaker = configuration.get[Int]("microservice.services.sub21.numberOfCallsToTriggerStateChange")
+  lazy val sub21UnavailablePeriodDuration = configuration.get[Int]("microservice.services.sub21.unavailablePeriodDuration")
+  lazy val sub21UnstablePeriodDuration = configuration.get[Int]("microservice.services.sub21.unstablePeriodDuration")
+
+
+  lazy val sub09GetSubscriptionsEndpoint: String = servicesConfig.baseUrl("sub09") / configuration.getOptional[String]("microservice.services.sub09.companyInformationEndpoint").getOrElse("/")
+  lazy val sub09HostHeader: Option[String] = configuration.getOptional[String]("microservice.services.sub09.host-header")
+  lazy val sub09BearerToken: String = "Bearer " +configuration.getOptional[String]("microservice.services.sub09.bearer-token").getOrElse("secret-token")
+  lazy val sub09serviceName = configuration.get[String]("microservice.services.sub09.serviceName")
+  lazy val numberOfCallsToSwitchCircuitBreakerSub09= configuration.get[Int]("microservice.services.sub09.numberOfCallsToTriggerStateChange")
+  lazy val unavailablePeriodDurationSub09 = configuration.get[Int]("microservice.services.sub09.unavailablePeriodDuration")
+  lazy val unstablePeriodDurationSub09 = configuration.get[Int]("microservice.services.sub09.unstablePeriodDuration")
+
+
 
 }
 

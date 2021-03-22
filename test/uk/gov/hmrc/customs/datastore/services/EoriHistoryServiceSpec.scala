@@ -97,7 +97,7 @@ class EoriHistoryServiceSpec extends SpecBase {
 
       running(app) {
         await(service.getHistory(someEori))
-        actualURL.getValue mustBe appConfig.eoriHistoryUrl + someEori
+        actualURL.getValue mustBe appConfig.sub21EORIHistoryEndpoint + someEori
       }
 
     }

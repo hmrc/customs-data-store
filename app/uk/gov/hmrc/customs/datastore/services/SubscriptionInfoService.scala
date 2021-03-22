@@ -18,19 +18,21 @@ package uk.gov.hmrc.customs.datastore.services
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
-
 import javax.inject.Inject
 import play.api.{Logger, LoggerLike}
 import uk.gov.hmrc.customs.datastore.config.AppConfig
+import uk.gov.hmrc.customs.datastore.controllers.CircuitBreakerProvider
 import uk.gov.hmrc.customs.datastore.domain.Eori
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
 import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.http.HttpClient
+
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.util.Random
 import uk.gov.hmrc.http.HttpReads.Implicits._
+
+import scala.concurrent.duration.Duration
 
 class SubscriptionInfoService @Inject()(appConfig: AppConfig, http: HttpClient, metricsReporter: MetricsReporterService) {
   val log: LoggerLike = Logger(this.getClass)
@@ -45,17 +47,32 @@ class SubscriptionInfoService @Inject()(appConfig: AppConfig, http: HttpClient, 
       ("X-Forwarded-Host" -> "MDTP"),
       ("Accept" -> "application/json"))
 
-    val hcWithExtraHeaders: HeaderCarrier = hc.copy(authorization = Some(Authorization(appConfig.bearerToken)), extraHeaders = hc.extraHeaders ++ headers)
+    val hcWithExtraHeaders: HeaderCarrier = hc.copy(authorization = Some(Authorization(appConfig.sub09BearerToken)), extraHeaders = hc.extraHeaders ++ headers)
 
     val acknowledgementReference = Random.alphanumeric.take(32).mkString
-    val uri = s"${appConfig.companyInformationUrl}?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
+    val uri = s"${appConfig.sub09GetSubscriptionsEndpoint}?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
 
     metricsReporter.withResponseTimeLogging("mdg.get.company-information") {
-      http.GET[MdgSub09DataModel](uri)(implicitly, hcWithExtraHeaders, implicitly)
+      Sub09CircuitBreaker.getSubscriptions(uri,hcWithExtraHeaders)
         .transform(
           s =>  if (s.verifiedTimestamp.isDefined) Some(s) else None,
           f => {log.error(s"Getting Subscriber Information failed with: ${f.getMessage}", f); f}
         )
+    }
+  }
+
+  object Sub09CircuitBreaker extends CircuitBreakerProvider {
+    val serviceName = appConfig.sub09serviceName
+    val numberOfCallsToTriggerStateChange = appConfig.numberOfCallsToSwitchCircuitBreakerSub09
+    val unavailablePeriodDuration = appConfig.unavailablePeriodDurationSub09
+    val unstablePeriodDuration = appConfig.unstablePeriodDurationSub09
+
+    def getSubscriptions(url: String,hcWithExtraHeaders: HeaderCarrier)(implicit hc: HeaderCarrier): Future[MdgSub09DataModel] = {
+      withCircuitBreaker {
+        val r= http.GET[MdgSub09DataModel](url)(implicitly, hcWithExtraHeaders, implicitly)
+        Await.ready(r,Duration.Inf)
+        r
+      }
     }
   }
 }
