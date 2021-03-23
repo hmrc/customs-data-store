@@ -24,15 +24,14 @@ import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.customs.datastore.controllers.CircuitBreakerProvider
 import uk.gov.hmrc.customs.datastore.domain.Eori
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.http.logging.Authorization
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import scala.util.Random
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
-import scala.concurrent.duration.Duration
 
 class SubscriptionInfoService @Inject()(appConfig: AppConfig, http: HttpClient, metricsReporter: MetricsReporterService) {
   val log: LoggerLike = Logger(this.getClass)
