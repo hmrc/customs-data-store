@@ -85,9 +85,8 @@ class EoriHistoryServiceSpec extends SpecBase {
 
       val mockHttp = mock[HttpClient]
       val actualURL: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
-      when(mockHttp.GET[HttpResponse](actualURL.capture())(any(), any(), any()))
-        .thenReturn(Future.successful(HttpResponse(200, Json.toJson(generateResponse(List(someEori))),Map.empty[String, Seq[String]])))
-
+      when(mockHttp.GET[HistoricEoriResponse](actualURL.capture())(any(), any(), any()))
+        .thenReturn(Future.successful(generateResponse(List(someEori))))
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
@@ -97,7 +96,7 @@ class EoriHistoryServiceSpec extends SpecBase {
 
       running(app) {
         await(service.getHistory(someEori))
-        actualURL.getValue mustBe appConfig.eoriHistoryUrl + someEori
+        actualURL.getValue mustBe appConfig.sub21EORIHistoryEndpoint + someEori
       }
 
     }
@@ -140,9 +139,8 @@ class EoriHistoryServiceSpec extends SpecBase {
 
       val mockHttp = mock[HttpClient]
 
-      when(mockHttp.GET[HttpResponse](any())(any(), any(), any()))
-        .thenReturn(Future.successful(HttpResponse(200, jsonResponse)))
-
+      when(mockHttp.GET[HistoricEoriResponse](any())(any(), any(), any()))
+        .thenReturn(Future.successful(Json.parse(jsonResponse).as[HistoricEoriResponse]))
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
@@ -168,9 +166,9 @@ class EoriHistoryServiceSpec extends SpecBase {
       val mockHttp = mock[HttpClient]
       val actualHeaderCarrier: ArgumentCaptor[HeaderCarrier] = ArgumentCaptor.forClass(classOf[HeaderCarrier])
 
-      when(mockHttp.GET[HttpResponse](any())(any(), actualHeaderCarrier.capture(), any()))
-        .thenReturn(Future.successful(HttpResponse(200, Json.toJson(generateResponse(List(someEori))).toString())))
 
+      when(mockHttp.GET[HistoricEoriResponse](any())(any(), actualHeaderCarrier.capture(), any()))
+        .thenReturn(Future.successful(generateResponse(List(someEori))))
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
