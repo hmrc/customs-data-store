@@ -17,6 +17,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(parallelExecution in Test := false)
   .settings(addTestReportOption(IntegrationTest, "int-test-reports"))
+  .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
 val compileDeps = Seq(
 
