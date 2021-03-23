@@ -69,9 +69,7 @@ class SubscriptionInfoService @Inject()(appConfig: AppConfig, http: HttpClient, 
 
     def getSubscriptions(url: String,hcWithExtraHeaders: HeaderCarrier)(implicit hc: HeaderCarrier): Future[MdgSub09DataModel] = {
       withCircuitBreaker {
-        val r= http.GET[MdgSub09DataModel](url)(implicitly, hcWithExtraHeaders, implicitly)
-        Await.ready(r,Duration.Inf)
-        r
+        http.GET[MdgSub09DataModel](url)(implicitly, hcWithExtraHeaders, implicitly)
       }
     }
   }
