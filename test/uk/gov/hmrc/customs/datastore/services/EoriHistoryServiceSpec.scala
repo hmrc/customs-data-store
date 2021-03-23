@@ -219,7 +219,7 @@ class EoriHistoryServiceSpec extends SpecBase {
     "recover when Throwable occurs" in new ETMPScenario {
       val mockHttp = mock[HttpClient]
 
-      when(mockHttp.GET[HttpResponse](any())(any(), any(), any()))
+      when(mockHttp.GET[HistoricEoriResponse](any())(any(), any(), any()))
         .thenReturn(Future.failed(new Throwable("Boom")))
 
       private val app: Application = new GuiceApplicationBuilder().overrides(
