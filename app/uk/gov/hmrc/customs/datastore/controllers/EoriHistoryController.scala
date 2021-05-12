@@ -19,6 +19,7 @@ package uk.gov.hmrc.customs.datastore.controllers
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod}
+import uk.gov.hmrc.customs.datastore.repositories.HistoricEoriRepository
 import uk.gov.hmrc.customs.datastore.services.{EoriHistoryService, EoriStore}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -28,6 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 class EoriHistoryController @Inject()(eoriStore: EoriStore,
+                                      historicEoriRepository: HistoricEoriRepository,
                                       historyService: EoriHistoryService,
                                       cc: ControllerComponents)(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
@@ -55,7 +57,7 @@ class EoriHistoryController @Inject()(eoriStore: EoriStore,
   private def retrieveAndStoreHistoricEoris(eori: Eori)(implicit hc: HeaderCarrier): Future[EoriHistoryResponse] = {
     for {
       eoriHistory <- historyService.getHistory(eori)
-      updateSucceeded <- eoriStore.updateHistoricEoris(eoriHistory)
+      updateSucceeded <- historicEoriRepository.set(eori, eoriHistory)
       maybeTraderData <- if (updateSucceeded) eoriStore.findByEori(eori) else throw new RuntimeException("Updating historic EORI's failed to update cache")
       result = maybeTraderData match {
         case Some(traderData) => EoriHistoryResponse(traderData.eoriHistory)

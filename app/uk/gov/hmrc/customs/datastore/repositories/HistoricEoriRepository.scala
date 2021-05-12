@@ -1,0 +1,88 @@
+/*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package uk.gov.hmrc.customs.datastore.repositories
+
+import play.api.Configuration
+import play.api.libs.json.Json
+import play.modules.reactivemongo.ReactiveMongoApi
+import reactivemongo.api.indexes.{Index, IndexType}
+import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
+import reactivemongo.play.json.collection.JSONCollection
+import uk.gov.hmrc.customs.datastore.domain.EoriPeriod
+
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
+
+object Schema {
+  val FieldEoriHistory = "eoriHistory"
+  val FieldEori = "eori"
+  val EoriSearchKey = s"$FieldEoriHistory.$FieldEori"
+  val FieldEoriValidFrom = "validFrom"
+  val FieldEoriValidUntil = "validUntil"
+  val FieldEmails = "notificationEmail"
+}
+
+class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: Configuration)(implicit executionContext: ExecutionContext) extends HistoricEoriRepository{
+
+  import Schema._
+
+  private val collectionName: String = "historic-eoris"
+  private val cacheTtl = config.get[Int]("mongodb.timeToLiveInSeconds")
+
+  private def collection: Future[JSONCollection] =
+    mongo.database.map(_.collection[JSONCollection](collectionName))
+
+  private val lastUpdatedIndex = Index(
+    key = Seq(EoriSearchKey -> IndexType.Ascending),
+    name = Some(FieldEoriHistory + FieldEori + "Index"),
+    unique = true,
+    sparse = true)
+
+  override val started: Future[Unit] =
+    collection.flatMap {
+      _.indexesManager.ensure(lastUpdatedIndex)
+    }.map(_ => ())
+
+  override def remove(id: String): Future[Boolean] =
+    collection.flatMap(_.delete.one(Json.obj("_id" -> id))).map(_.ok)
+
+  override def set(id: String, eoriHistory: Seq[EoriPeriod]): Future[Boolean] = {
+    val selector = Json.obj("_id" -> id)
+    val modifier = Json.obj("$set" -> eoriHistory)
+
+    collection.flatMap {
+      _.update(ordered = false)
+        .one(selector, modifier, upsert = true)
+        .map(lastError => lastError.ok)
+    }
+  }
+
+  override def get(id: String): Future[Option[Seq[EoriPeriod]]] =
+    collection.flatMap(_.find(Json.obj("_id" -> id), None).one[Seq[EoriPeriod]])
+
+}
+
+trait HistoricEoriRepository {
+
+  val started: Future[Unit]
+
+  def get(id: String): Future[Option[Seq[EoriPeriod]]]
+
+  def set(id: String, eoriHistory: Seq[EoriPeriod]) : Future[Boolean]
+
+  def remove(id: String): Future[Boolean]
+}

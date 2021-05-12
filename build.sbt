@@ -22,6 +22,7 @@ lazy val microservice = Project(appName, file("."))
 val compileDeps = Seq(
 
   "uk.gov.hmrc"             %% "simple-reactivemongo"      % "8.0.0-play-27",
+  "org.reactivemongo"       %% "play2-reactivemongo"       % "0.18.6-play27",
   "uk.gov.hmrc"             %% "bootstrap-backend-play-27" % "3.4.0",
   "uk.gov.hmrc"             %% "reactive-circuit-breaker"  % "3.5.0"
 )
