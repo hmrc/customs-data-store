@@ -22,7 +22,7 @@ import play.api.inject
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.customs.datastore.domain.{EoriHistory, EoriPeriod, TraderData}
+import uk.gov.hmrc.customs.datastore.domain.{EoriHistory, EoriPeriod}
 import uk.gov.hmrc.customs.datastore.repositories.HistoricEoriRepository
 import uk.gov.hmrc.customs.datastore.services.{EoriHistoryService, EoriStore}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase

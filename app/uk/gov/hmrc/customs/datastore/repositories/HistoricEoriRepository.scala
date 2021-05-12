@@ -23,7 +23,7 @@ import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
 import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.customs.datastore.domain.{EoriHistory, EoriPeriod, TraderData}
+import uk.gov.hmrc.customs.datastore.domain.{EoriHistory, EoriPeriod}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

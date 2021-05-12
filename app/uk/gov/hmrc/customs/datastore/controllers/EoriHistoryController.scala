@@ -20,15 +20,14 @@ import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod}
 import uk.gov.hmrc.customs.datastore.repositories.HistoricEoriRepository
-import uk.gov.hmrc.customs.datastore.services.{EoriHistoryService, EoriStore}
+import uk.gov.hmrc.customs.datastore.services.{EoriHistoryService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class EoriHistoryController @Inject()(eoriStore: EoriStore,
-                                      historicEoriRepository: HistoricEoriRepository,
+class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
                                       historyService: EoriHistoryService,
                                       cc: ControllerComponents)(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
@@ -37,16 +36,16 @@ class EoriHistoryController @Inject()(eoriStore: EoriStore,
       case Some(eoriHistory) if eoriHistory.eoriHistory.headOption.exists(_.definedDates) =>
         Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriHistory.eoriHistory))))
       case _ => retrieveAndStoreHistoricEoris(eori).map {
-        traderData => Ok(Json.toJson(traderData))
+        eoriHistoryResponse => Ok(Json.toJson(eoriHistoryResponse))
       }.recover {case _ => InternalServerError }
     }
   }
 
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
     (for {
-      updateEoriSucceeded <- eoriStore.upsertByEori(request.body, None)
+      updateEoriSucceeded <- historicEoriRepository.set(request.body.eori, Seq(request.body))
       eoriHistory <- if (updateEoriSucceeded) historyService.getHistory(request.body.eori) else throw new RuntimeException("Failed to update EoriStore with eori on updateEoriHistory")
-      updateEoriHistorySucceeded <- eoriStore.updateHistoricEoris(eoriHistory)
+      updateEoriHistorySucceeded <- historicEoriRepository.set(request.body.eori, eoriHistory)
     } yield {
       if (updateEoriHistorySucceeded) { NoContent } else { InternalServerError }
     }).recover{ case _ => InternalServerError}
