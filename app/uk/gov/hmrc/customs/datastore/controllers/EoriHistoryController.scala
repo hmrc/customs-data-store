@@ -26,7 +26,6 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HttpReads.Implicits._
 
 class EoriHistoryController @Inject()(eoriStore: EoriStore,
                                       historicEoriRepository: HistoricEoriRepository,
@@ -34,11 +33,11 @@ class EoriHistoryController @Inject()(eoriStore: EoriStore,
                                       cc: ControllerComponents)(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getEoriHistory(eori: String): Action[AnyContent] = Action.async { implicit request =>
-    eoriStore.findByEori(eori).flatMap {
-      case Some(traderData) if traderData.eoriHistory.headOption.exists(_.definedDates) =>
-        Future.successful(Ok(Json.toJson(EoriHistoryResponse(traderData.eoriHistory))))
+    historicEoriRepository.get(eori).flatMap {
+      case Some(eoriHistory) if eoriHistory.eoriHistory.headOption.exists(_.definedDates) =>
+        Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriHistory.eoriHistory))))
       case _ => retrieveAndStoreHistoricEoris(eori).map {
-        traderData => Ok(Json.toJson(EoriHistoryResponse(traderData.eoriHistory)))
+        traderData => Ok(Json.toJson(traderData))
       }.recover {case _ => InternalServerError }
     }
   }
@@ -58,9 +57,9 @@ class EoriHistoryController @Inject()(eoriStore: EoriStore,
     for {
       eoriHistory <- historyService.getHistory(eori)
       updateSucceeded <- historicEoriRepository.set(eori, eoriHistory)
-      maybeTraderData <- if (updateSucceeded) eoriStore.findByEori(eori) else throw new RuntimeException("Updating historic EORI's failed to update cache")
-      result = maybeTraderData match {
-        case Some(traderData) => EoriHistoryResponse(traderData.eoriHistory)
+      maybeEoriHistory <- if (updateSucceeded) historicEoriRepository.get(eori) else throw new RuntimeException("Updating historic EORI's failed to update cache")
+      result = maybeEoriHistory match {
+        case Some(eoriHistory) => EoriHistoryResponse(eoriHistory.eoriHistory)
         case None => throw new RuntimeException("Failed to retrieve trader data after updating cache")
       }
     } yield result

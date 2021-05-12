@@ -47,3 +47,9 @@ object NotificationEmail {
 
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]
 }
+
+case class EoriHistory(eoriHistory: Seq[EoriPeriod])
+
+object EoriHistory {
+  implicit val traderDataFormat: OFormat[EoriHistory] = Json.format[EoriHistory]
+}

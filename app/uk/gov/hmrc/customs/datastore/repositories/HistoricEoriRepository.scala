@@ -20,9 +20,10 @@ import play.api.Configuration
 import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.indexes.{Index, IndexType}
+import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
 import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.customs.datastore.domain.EoriPeriod
+import uk.gov.hmrc.customs.datastore.domain.{EoriHistory, EoriPeriod, TraderData}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,8 +39,6 @@ object Schema {
 
 class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: Configuration)(implicit executionContext: ExecutionContext) extends HistoricEoriRepository{
 
-  import Schema._
-
   private val collectionName: String = "historic-eoris"
   private val cacheTtl = config.get[Int]("mongodb.timeToLiveInSeconds")
 
@@ -47,10 +46,10 @@ class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: C
     mongo.database.map(_.collection[JSONCollection](collectionName))
 
   private val lastUpdatedIndex = Index(
-    key = Seq(EoriSearchKey -> IndexType.Ascending),
-    name = Some(FieldEoriHistory + FieldEori + "Index"),
-    unique = true,
-    sparse = true)
+    key = Seq("lastUpdated" -> IndexType.Ascending),
+    name = Some(collectionName + "-last-updated-index"),
+    options = BSONDocument("expireAfterSeconds" -> cacheTtl)
+  )
 
   override val started: Future[Unit] =
     collection.flatMap {
@@ -62,7 +61,7 @@ class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: C
 
   override def set(id: String, eoriHistory: Seq[EoriPeriod]): Future[Boolean] = {
     val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj("$set" -> eoriHistory)
+    val modifier = Json.obj("$set" -> EoriHistory(eoriHistory))
 
     collection.flatMap {
       _.update(ordered = false)
@@ -71,8 +70,8 @@ class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: C
     }
   }
 
-  override def get(id: String): Future[Option[Seq[EoriPeriod]]] =
-    collection.flatMap(_.find(Json.obj("_id" -> id), None).one[Seq[EoriPeriod]])
+  override def get(id: String): Future[Option[EoriHistory]] =
+    collection.flatMap(_.find(Json.obj("_id" -> id), None).one[EoriHistory])
 
 }
 
@@ -80,7 +79,7 @@ trait HistoricEoriRepository {
 
   val started: Future[Unit]
 
-  def get(id: String): Future[Option[Seq[EoriPeriod]]]
+  def get(id: String): Future[Option[EoriHistory]]
 
   def set(id: String, eoriHistory: Seq[EoriPeriod]) : Future[Boolean]
 
