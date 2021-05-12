@@ -26,6 +26,8 @@ import uk.gov.hmrc.customs.datastore.utils.SpecBase
 import uk.gov.hmrc.http.{HeaderCarrier, ServiceUnavailableException}
 import uk.gov.hmrc.http.HttpClient
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import scala.concurrent.Future
 
 
@@ -71,7 +73,7 @@ class SubscriptionInfoServiceSpec extends SpecBase {
       val service = app.injector.instanceOf[SubscriptionInfoService]
 
       running(app) {
-        await(service.getSubscriberInformation(testEori)) mustBe Some(MdgSub09DataModel(Some("mickey.mouse@disneyland.com"), Some("2019-09-06T12:30:59Z")))
+        await(service.getSubscriberInformation(testEori)) mustBe Some(MdgSub09DataModel(Some("mickey.mouse@disneyland.com"), Some(LocalDateTime.parse("2019-09-06T12:30:59Z", DateTimeFormatter.ISO_DATE_TIME))))
       }
     }
 

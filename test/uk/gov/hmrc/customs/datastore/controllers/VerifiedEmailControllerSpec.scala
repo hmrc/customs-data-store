@@ -27,7 +27,7 @@ import uk.gov.hmrc.customs.datastore.domain.{NotificationEmail, TraderData}
 import uk.gov.hmrc.customs.datastore.services.{EoriStore, SubscriptionInfoService}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.Future
 
 
@@ -50,7 +50,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
       when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None))
       when(mockEoriStore.upsertByEori(any(),any())).thenReturn(Future.successful(false))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())(any()))
-        .thenReturn(Future.successful(Some(MdgSub09DataModel(Some(testAddress), Some(testTime.toString)))))
+        .thenReturn(Future.successful(Some(MdgSub09DataModel(Some(testAddress), Some(testTime)))))
 
       val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
 
@@ -64,7 +64,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
       when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None), Future.successful(None))
       when(mockEoriStore.upsertByEori(any(),any())).thenReturn(Future.successful(true))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())(any()))
-        .thenReturn(Future.successful(Some(MdgSub09DataModel(Some(testAddress), Some(testTime.toString)))))
+        .thenReturn(Future.successful(Some(MdgSub09DataModel(Some(testAddress), Some(testTime)))))
 
       val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
 
@@ -90,7 +90,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
       when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None), Future.successful(Some(testTraderData)))
       when(mockEoriStore.upsertByEori(any(),any())).thenReturn(Future.successful(true))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())(any()))
-        .thenReturn(Future.successful(Some(MdgSub09DataModel(Some(testAddress), Some(testTime.toString)))))
+        .thenReturn(Future.successful(Some(MdgSub09DataModel(Some(testAddress), Some(testTime)))))
 
       val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
 
@@ -147,10 +147,11 @@ class VerifiedEmailControllerSpec extends SpecBase {
     val mockEoriStore: EoriStore = mock[EoriStore]
     val mockSubscriptionInfoService: SubscriptionInfoService = mock[SubscriptionInfoService]
     val testEori = "GB12345678912"
-    val testTime = LocalDate.now()
+    val testTime1 = LocalDate.now()
+    val testTime = LocalDateTime.now()
     val testAddress = "test@email.com"
 
-    val testNotificationEmail = NotificationEmail(Some(testAddress), Some(testTime.toString))
+    val testNotificationEmail = NotificationEmail(Some(testAddress), Some(testTime))
     val testTraderData = TraderData(Seq.empty, Some(testNotificationEmail))
 
     lazy val app = application.overrides(

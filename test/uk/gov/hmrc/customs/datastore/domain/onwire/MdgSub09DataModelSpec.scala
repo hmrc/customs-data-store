@@ -20,6 +20,9 @@ import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.customs.datastore.domain.Eori
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 class MdgSub09DataModelSpec extends SpecBase {
 
   val EORI1 = "GB0000000001"
@@ -28,7 +31,7 @@ class MdgSub09DataModelSpec extends SpecBase {
     "parse message with email and a timestamp" in {
       val sub09Response = Sub09Response.withEmailAndTimestamp(EORI1)
       val result = MdgSub09DataModel.sub09Reads.reads(sub09Response).get
-      result mustBe MdgSub09DataModel(Some("mickey.mouse@disneyland.com"), Some("2019-09-06T12:30:59Z"))
+      result mustBe MdgSub09DataModel(Some("mickey.mouse@disneyland.com"), Some(LocalDateTime.parse("2019-09-06T12:30:59Z", DateTimeFormatter.ISO_DATE_TIME)))
     }
 
     "parse message with email and no timestamp" in {

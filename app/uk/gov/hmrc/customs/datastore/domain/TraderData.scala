@@ -19,6 +19,8 @@ package uk.gov.hmrc.customs.datastore.domain
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.customs.datastore.domain.request.UpdateVerifiedEmailRequest
 
+import java.time.LocalDateTime
+
 case class EoriPeriod(eori: Eori,
                       validFrom: Option[String],
                       validUntil: Option[String]) {
@@ -30,7 +32,7 @@ object EoriPeriod {
 }
 
 case class NotificationEmail(address: Option[EmailAddress],
-                             timestamp: Option[Timestamp])
+                             timestamp: Option[LocalDateTime])
 
 
 case class TraderData(eoriHistory: Seq[EoriPeriod],

@@ -24,6 +24,8 @@ import uk.gov.hmrc.customs.datastore.domain._
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 import uk.gov.hmrc.mongo.MongoConnector
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -42,10 +44,11 @@ class EoriStoreSpec extends SpecBase {
   ).build()
 
   val eoriStore = app.injector.instanceOf[EoriStore]
+  val timeStamp = LocalDateTime.parse("2000-01-20T00:00:00Z", DateTimeFormatter.ISO_DATE_TIME)
 
-  val verifiedEmail = Some(NotificationEmail(Some("test@email.uk"), Some("timestamp")))
+  val verifiedEmail = Some(NotificationEmail(Some("test@email.uk"), Some(timeStamp)))
   val unverifiedEmailNoTimestamp = Some(NotificationEmail(Some("test@email.uk"), None))
-  val unverifiedEmailNoAddress = Some(NotificationEmail(None, Some("timestamp")))
+  val unverifiedEmailNoAddress = Some(NotificationEmail(None, Some(timeStamp)))
   val unverifiedEmailNoAddressNoTimeStamp: Option[NotificationEmail] = Some(NotificationEmail(None, None))
   val noEmail = None
 
@@ -236,8 +239,9 @@ class EoriStoreSpec extends SpecBase {
       val eoriPeriod = EoriPeriod(eori1, Some("date1"), Some("date2"))
       val expectedTraderDataAfterInsert = TraderData(Seq(EoriPeriod(eori1, Some("date1"), Some("date2"))), verifiedEmail)
 
+      val timeStamp2 = LocalDateTime.parse("2010-01-20T00:00:00Z", DateTimeFormatter.ISO_DATE_TIME)
       val updatedEoriPeriod = EoriPeriod(eori1, Some("date3"), Some("date4"))
-      val updatedEmail = NotificationEmail(Some("updated@email.uk"), Some("timestamp2"))
+      val updatedEmail = NotificationEmail(Some("updated@email.uk"), Some(timeStamp2))
       val expectedTraderDataAfterUpdate = TraderData(Seq(EoriPeriod(eori1, Some("date3"), Some("date4"))), Some(updatedEmail))
 
       await(for {
