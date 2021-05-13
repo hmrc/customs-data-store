@@ -17,7 +17,7 @@
 package uk.gov.hmrc.customs.datastore.domain.onwire
 
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{JsPath, Reads}
+import play.api.libs.json.{Format, JsPath, Json, Reads}
 import uk.gov.hmrc.customs.datastore.domain.EmailAddress
 
 import java.time.LocalDateTime
@@ -36,5 +36,7 @@ object MdgSub09DataModel {
   //  "emailVerificationTimestamp": "2019-09-06T12:30:59Z"
 
   implicit val sub09Reads: Reads[MdgSub09DataModel] =
-    ((JsPath \\ "emailAddress").readNullable[String] and (JsPath \\ "emailVerificationTimestamp").readNullable[LocalDateTime])(MdgSub09DataModel.apply _)
+  ((JsPath \\ "emailAddress").readNullable[String] and (JsPath \\ "emailVerificationTimestamp").readNullable[LocalDateTime])(MdgSub09DataModel.apply _)
+
+  implicit val sub09Format: Format[MdgSub09DataModel] = Json.format[MdgSub09DataModel]
 }
