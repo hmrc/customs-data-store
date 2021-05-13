@@ -19,7 +19,6 @@ package uk.gov.hmrc.customs.datastore.repositories
 import org.scalatest.Assertion
 import play.api.Application
 import play.modules.reactivemongo.ReactiveMongoApi
-import reactivemongo.api.MongoConnection
 import uk.gov.hmrc.customs.datastore.domain._
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
