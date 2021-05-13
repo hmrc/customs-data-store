@@ -59,6 +59,8 @@ class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: C
   override def remove(id: String): Future[Boolean] =
     collection.flatMap(_.delete.one(Json.obj("eoriHistory.eori" -> id))).map(_.ok)
 
+  def removeAll(eoris: Seq[String]): Future[Boolean] =
+    collection.flatMap(_.delete.one(Json.obj("eoriHistory.eori" -> Json.obj("$in" -> eoris)))).map(_.ok)
 
 
   override def set(eoriHistory: Seq[EoriPeriod]): Future[Boolean] = {
@@ -86,4 +88,6 @@ trait HistoricEoriRepository {
   def set(eoriHistory: Seq[EoriPeriod]) : Future[Boolean]
 
   def remove(id: String): Future[Boolean]
+
+  def removeAll(id: Seq[String]): Future[Boolean]
 }

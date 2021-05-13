@@ -33,12 +33,16 @@ class HistoricEoriRepositorySpec extends SpecBase {
   app.injector.instanceOf[ReactiveMongoApi]
 
  override def beforeEach: Unit = {
-    repository.remove(period1.eori)
+  /*  repository.remove(period1.eori)
      repository.remove(period2.eori)
      repository.remove(period3.eori)
      repository.remove(period4.eori)
      repository.remove(period5.eori)
-     repository.remove(period6.eori)
+     repository.remove(period6.eori)*/
+
+
+
+
    }
 
   val eori1: Eori = "EORI00000001"
@@ -47,6 +51,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
   val eori4: Eori = "EORI00000004"
   val eori5: Eori = "EORI00000005"
   val eori6: Eori = "EORI00000006"
+  val eoris = List(period1.eori,period2.eori,period3.eori,period4.eori,period5.eori,period6.eori)
 
   val period1 = EoriPeriod(eori1, Some("2001-01-20T00:00:00Z"), None)
   val period2 = EoriPeriod(eori2, Some("2002-01-20T00:00:00Z"), None)
@@ -78,6 +83,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
         _ <- toFuture(t1.get.eoriHistory mustBe history.eoriHistory)
         _ <- toFuture(t2.get.eoriHistory mustBe history.eoriHistory)
       } yield ())
+      repository.removeAll(eoris)
     }
 
     "retrieve trader information by the latest historic eori" in {
@@ -86,6 +92,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
         eoris <- repository.get(period1.eori)
         _ <- toFuture(eoris.get.eoriHistory mustBe Seq(period1, period3))
       } yield {})
+      repository.removeAll(eoris)
     }
 
     "retrieve trader information by the earliest historic eori" in {
@@ -94,6 +101,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
         eoris <- repository.get(period3.eori)
         _ <- toFuture(eoris.get.eoriHistory mustBe Seq(period1, period3))
       } yield {})
+      repository.removeAll(eoris)
     }
 
     "not retrieve trader information for eoris that are not historic eoris" in {
@@ -103,6 +111,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
         eoris2 <- repository.get(period6.eori)
         _ <- toFuture(eoris2 mustBe None)
       } yield {})
+      repository.removeAll(eoris)
     }
   }
 }
