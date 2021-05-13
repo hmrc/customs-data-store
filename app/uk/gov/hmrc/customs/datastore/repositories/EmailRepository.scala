@@ -18,6 +18,7 @@ package uk.gov.hmrc.customs.datastore.repositories
 
 import play.api.Configuration
 import play.modules.reactivemongo.ReactiveMongoApi
+import uk.gov.hmrc.customs.datastore.domain.NotificationEmail
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 
 import javax.inject.Inject
@@ -27,7 +28,7 @@ class EmailRepository @Inject()(
                                override val mongo: ReactiveMongoApi,
                                override val config: Configuration,
                                override implicit val ec: ExecutionContext
-                               ) extends CacheRepository[MdgSub09DataModel] {
+                               ) extends CacheRepository[NotificationEmail] {
 
   override val collectionName: String = "email-verification"
 

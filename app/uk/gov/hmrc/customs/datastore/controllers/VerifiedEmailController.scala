@@ -18,9 +18,11 @@ package uk.gov.hmrc.customs.datastore.controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.customs.datastore.domain.request.UpdateVerifiedEmailRequest
-import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod, NotificationEmail}
-import uk.gov.hmrc.customs.datastore.services.{EoriStore, SubscriptionInfoService}
+import uk.gov.hmrc.customs.datastore.domain.{Eori, NotificationEmail}
+import uk.gov.hmrc.customs.datastore.repositories.EmailRepository
+import uk.gov.hmrc.customs.datastore.services.SubscriptionInfoService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -28,17 +30,14 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class VerifiedEmailController @Inject()(
-                                         eoriStore: EoriStore,
+                                         emailRepo: EmailRepository,
                                          subscriptionInfoService: SubscriptionInfoService,
                                          cc: ControllerComponents
-                                       )(implicit executionContext: ExecutionContext) extends BackendController(cc) {
+                                       )( implicit executionContext: ExecutionContext ) extends BackendController(cc) {
 
-  def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async { implicit request =>
+  def getVerifiedEmail( eori: String ): Action[AnyContent] = Action.async { implicit request =>
     val emailData = for {
-      maybeEmailData <- eoriStore.findByEori(eori).map {
-        case Some(traderData) => traderData.notificationEmail
-        case None => None
-      }
+      maybeEmailData <- emailRepo.get(eori)
       emailData <- if (maybeEmailData.isDefined) Future.successful(maybeEmailData) else retrieveAndStoreCustomerInformation(eori)
     } yield emailData
 
@@ -48,27 +47,35 @@ class VerifiedEmailController @Inject()(
     }.recover { case _ => InternalServerError }
   }
 
-  def updateVerifiedEmail(): Action[UpdateVerifiedEmailRequest] = Action.async(parse.json[UpdateVerifiedEmailRequest]) { implicit request =>
-    eoriStore.upsertByEori(
-      EoriPeriod(request.body.eori, None, None),
-      Some(NotificationEmail.fromEmailRequest(request.body))
-    ).map { updateSucceeded => if (updateSucceeded) NoContent else InternalServerError }
+  def updateVerifiedEmail( ): Action[UpdateVerifiedEmailRequest] = Action.async(parse.json[UpdateVerifiedEmailRequest]) {
+    implicit request =>
+      emailRepo.set(
+        request.body.eori,
+        NotificationEmail(Some(request.body.address), Some(request.body.timestamp))
+      ).map {
+          updateSucceeded => if (updateSucceeded) NoContent else InternalServerError
+      }
   }
 
-  private def retrieveAndStoreCustomerInformation(eori: Eori)(implicit hc: HeaderCarrier): Future[Option[NotificationEmail]] = {
-    subscriptionInfoService.getSubscriberInformation(eori).flatMap {
-      case None => Future.successful(None)
-      case Some(sub09DataModel) =>
-        eoriStore.upsertByEori(EoriPeriod(eori, None, None), Some(NotificationEmail(sub09DataModel.emailAddress, sub09DataModel.verifiedTimestamp))).flatMap { writeSucceeded =>
-          if (writeSucceeded) {
-            eoriStore.findByEori(eori).map {
-              case Some(traderData) => traderData.notificationEmail
-              case None => throw new RuntimeException("Failed to retrieve email after updating cache")
-            }
-          } else {
-            throw new RuntimeException("Failed to to update cache")
-          }
-        }
+  private def getUpdated( eori: String ) = emailRepo.get(eori) map {
+    case Some(v) => Some(v)
+    case None => throw new RuntimeException("Failed to retrieve email after updating cache")
+  }
+
+  private def writeMsg( eori: String, msg: MdgSub09DataModel ): Future[Option[NotificationEmail]] = {
+    emailRepo.set(
+      eori,
+      NotificationEmail(msg.emailAddress, msg.verifiedTimestamp)
+    ).flatMap {
+      writeSucceeded => if (writeSucceeded) getUpdated(eori) else throw new RuntimeException("Failed to to update cache")
     }
   }
+
+  private def retrieveAndStoreCustomerInformation( eori: Eori )( implicit hc: HeaderCarrier ) = {
+    subscriptionInfoService.getSubscriberInformation(eori).flatMap {
+      case None => Future.successful(None)
+      case Some(sub09) => writeMsg(eori, sub09)
+    }
+  }
+
 }
