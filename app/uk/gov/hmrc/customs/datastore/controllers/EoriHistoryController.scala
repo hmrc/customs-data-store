@@ -43,9 +43,9 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
 
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
     (for {
-      updateEoriSucceeded <- historicEoriRepository.set(request.body.eori, Seq(request.body))
+      updateEoriSucceeded <- historicEoriRepository.set(Seq(request.body))
       eoriHistory <- if (updateEoriSucceeded) historyService.getHistory(request.body.eori) else throw new RuntimeException("Failed to update EoriStore with eori on updateEoriHistory")
-      updateEoriHistorySucceeded <- historicEoriRepository.set(request.body.eori, eoriHistory)
+      updateEoriHistorySucceeded <- historicEoriRepository.set(eoriHistory)
     } yield {
       if (updateEoriHistorySucceeded) { NoContent } else { InternalServerError }
     }).recover{ case _ => InternalServerError}
@@ -55,7 +55,7 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
   private def retrieveAndStoreHistoricEoris(eori: Eori)(implicit hc: HeaderCarrier): Future[EoriHistoryResponse] = {
     for {
       eoriHistory <- historyService.getHistory(eori)
-      updateSucceeded <- historicEoriRepository.set(eori, eoriHistory)
+      updateSucceeded <- historicEoriRepository.set(eoriHistory)
       maybeEoriHistory <- if (updateSucceeded) historicEoriRepository.get(eori) else throw new RuntimeException("Updating historic EORI's failed to update cache")
       result = maybeEoriHistory match {
         case Some(eoriHistory) => EoriHistoryResponse(eoriHistory.eoriHistory)

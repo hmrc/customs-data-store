@@ -48,7 +48,7 @@ class EoriHistoryControllerSpec extends SpecBase {
 
     "return historic EORI's and call SUB21 if the trader data has no eori history" in new Setup {
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(None), Future.successful(Some(eoriHistory)))
-      when(mockHistoricEoriRepository.set(any(), any())).thenReturn(Future.successful(true))
+      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(true))
       when(mockHistoryService.getHistory(any())(any())).thenReturn(Future.successful(Seq.empty))
 
       val request = FakeRequest(GET, routes.EoriHistoryController.getEoriHistory(testEori).url)
@@ -64,7 +64,7 @@ class EoriHistoryControllerSpec extends SpecBase {
 
     "return internal server error if the update to historic eori's failed" in new Setup {
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(None), Future.successful(Some(eoriHistory)))
-      when(mockHistoricEoriRepository.set(any(), any())).thenReturn(Future.successful(false))
+      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(false))
       when(mockHistoryService.getHistory(any())(any())).thenReturn(Future.successful(Seq.empty))
 
       val request = FakeRequest(GET, routes.EoriHistoryController.getEoriHistory(testEori).url)
@@ -77,7 +77,7 @@ class EoriHistoryControllerSpec extends SpecBase {
 
     "return internal server error if the trader cannot be found after updating the historic eori's" in new Setup {
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(None), Future.successful(None))
-      when(mockHistoricEoriRepository.set(any(), any())).thenReturn(Future.successful(true))
+      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(true))
       when(mockHistoryService.getHistory(any())(any())).thenReturn(Future.successful(Seq.empty))
 
       val request = FakeRequest(GET, routes.EoriHistoryController.getEoriHistory(testEori).url)
