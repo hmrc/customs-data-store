@@ -32,15 +32,14 @@ class HistoricEoriRepositorySpec extends SpecBase {
   val repository = app.injector.instanceOf[HistoricEoriRepository]
   app.injector.instanceOf[ReactiveMongoApi]
 
-
- /* override def beforeEach: Unit = {
-   repository.remove(period1.eori)
-    repository.remove(period2.eori)
-    repository.remove(period3.eori)
-    repository.remove(period4.eori)
-    repository.remove(period5.eori)
-    repository.remove(period6.eori)
-  }*/
+ override def beforeEach: Unit = {
+    repository.remove(period1.eori)
+     repository.remove(period2.eori)
+     repository.remove(period3.eori)
+     repository.remove(period4.eori)
+     repository.remove(period5.eori)
+     repository.remove(period6.eori)
+   }
 
   val eori1: Eori = "EORI00000001"
   val eori2: Eori = "EORI00000002"
@@ -60,66 +59,50 @@ class HistoricEoriRepositorySpec extends SpecBase {
 
   "HistoricEoriRepository" should {
 
-   /* "not retrieve trader information when the store is empty" in {
-
+    "not retrieve trader information when the store is empty" in {
       await(for {
         eoris1 <- repository.get(period1.eori)
         _ <- toFuture(eoris1 mustBe None)
         eoris2 <- repository.get(period2.eori)
         _ <- toFuture(eoris2 mustBe None)
       } yield {})
+    }
 
+    "retrieve eori history with any of its historic eoris" in {
+      val history = EoriHistory(Seq(period1, period2))
+      await(for {
+        _ <- repository.set(Seq(period1, period2))
+        _ <- repository.set(Seq(period5, period6))
+        t1 <- repository.get(period1.eori)
+        t2 <- repository.get(period2.eori)
+        _ <- toFuture(t1.get.eoriHistory mustBe history.eoriHistory)
+        _ <- toFuture(t2.get.eoriHistory mustBe history.eoriHistory)
+      } yield ())
+    }
 
-    }*/
+    "retrieve trader information by the latest historic eori" in {
+      await(for {
+        _ <- repository.set(Seq(period1, period3))
+        eoris <- repository.get(period1.eori)
+        _ <- toFuture(eoris.get.eoriHistory mustBe Seq(period1, period3))
+      } yield {})
+    }
 
-      "retrieve eori history with any of its historic eoris" in {
-          val history = EoriHistory(Seq(period1, period2))
-          await(for {
-            _ <- repository.set(Seq(period1, period2))
-            _ <- repository.set(Seq(period5, period6))
-            t1 <- repository.get(period1.eori)
-            t2 <- repository.get(period2.eori)
-            _ <- toFuture(t1.get.eoriHistory mustBe history.eoriHistory)
-            _ <- toFuture(t2.get.eoriHistory mustBe history.eoriHistory)
-            _ <- repository.remove(period1.eori)
-            _ <- repository.remove(period2.eori)
-            _ <- repository.remove(period5.eori)
-            _ <- repository.remove(period6.eori)
-          } yield ())
-        }
+    "retrieve trader information by the earliest historic eori" in {
+      await(for {
+        _ <- repository.set(Seq(period1, period3))
+        eoris <- repository.get(period3.eori)
+        _ <- toFuture(eoris.get.eoriHistory mustBe Seq(period1, period3))
+      } yield {})
+    }
 
-      "retrieve trader information by the latest historic eori" in {
-        await(for {
-          _ <- repository.set(Seq(period1, period3))
-          eoris <- repository.get(period1.eori)
-          _ <- toFuture(eoris.get.eoriHistory mustBe Seq(period1,period3))
-          _ <- repository.remove(period1.eori)
-          _ <- repository.remove(period3.eori)
-        } yield {})
-      }
-
-      "retrieve trader information by the earliest historic eori" in {
-        await(for {
-          _ <- repository.set(Seq(period1, period3))
-          eoris <- repository.get(period3.eori)
-          _ <- toFuture(eoris.get.eoriHistory mustBe Seq(period1,period3))
-          _ <- repository.remove(period1.eori)
-          _ <- repository.remove(period3.eori)
-        } yield {})
-      }
-
-      "not retrieve trader information for eoris that are not historic eoris" in {
-        await(for {
-          eoris1 <- repository.get(period5.eori)
-          _ <- toFuture(eoris1 mustBe None)
-          eoris2 <- repository.get(period6.eori)
-          _ <- toFuture(eoris2 mustBe None)
-          _ <- repository.remove(period5.eori)
-          _ <- repository.remove(period6.eori)
-        } yield {})
-      }
-
-
-
+    "not retrieve trader information for eoris that are not historic eoris" in {
+      await(for {
+        eoris1 <- repository.get(period5.eori)
+        _ <- toFuture(eoris1 mustBe None)
+        eoris2 <- repository.get(period6.eori)
+        _ <- toFuture(eoris2 mustBe None)
+      } yield {})
+    }
   }
 }
