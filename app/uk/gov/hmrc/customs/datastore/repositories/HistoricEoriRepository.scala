@@ -60,7 +60,7 @@ class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: C
     collection.flatMap(_.delete.one(Json.obj("_id" -> id))).map(_.ok)
 
   override def set(id: String, eoriHistory: Seq[EoriPeriod]): Future[Boolean] = {
-    val selector = Json.obj("_id" -> id)
+    val selector = Json.obj("eoriHistory.eori" -> Json.obj("$in" -> eoriHistory.map(_.eori)))
     val modifier = Json.obj("$set" -> EoriHistory(eoriHistory))
 
     collection.flatMap {
@@ -71,7 +71,7 @@ class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: C
   }
 
   override def get(id: String): Future[Option[EoriHistory]] =
-    collection.flatMap(_.find(Json.obj("_id" -> id), None).one[EoriHistory])
+    collection.flatMap(_.find(Json.obj("eoriHistory.eori" -> id), None).one[EoriHistory])
 
 }
 
