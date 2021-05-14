@@ -44,7 +44,7 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
     (for {
       updateEoriSucceeded <- historicEoriRepository.set(Seq(request.body))
-      eoriHistory <- if (updateEoriSucceeded) historyService.getHistory(request.body.eori) else throw new RuntimeException("Failed to update EoriStore with eori on updateEoriHistory")
+      eoriHistory <- if (updateEoriSucceeded) historyService.getHistory(request.body.eori) else throw FailedToUpdateCache
       updateEoriHistorySucceeded <- historicEoriRepository.set(eoriHistory)
     } yield {
       if (updateEoriHistorySucceeded) { NoContent } else { InternalServerError }
@@ -56,10 +56,10 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
     for {
       eoriHistory <- historyService.getHistory(eori)
       updateSucceeded <- historicEoriRepository.set(eoriHistory)
-      maybeEoriHistory <- if (updateSucceeded) historicEoriRepository.get(eori) else throw new RuntimeException("Updating historic EORI's failed to update cache")
+      maybeEoriHistory <- if (updateSucceeded) historicEoriRepository.get(eori) else throw FailedToUpdateCache
       result = maybeEoriHistory match {
         case Some(eoriHistory) => EoriHistoryResponse(eoriHistory.eoriHistory)
-        case None => throw new RuntimeException("Failed to retrieve trader data after updating cache")
+        case None => throw FaileToRetrieveEoriHistoryFromCache
       }
     } yield result
   }
@@ -69,4 +69,8 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
   object EoriHistoryResponse {
     implicit val format: OFormat[EoriHistoryResponse] = Json.format[EoriHistoryResponse]
   }
+
 }
+
+case object FailedToUpdateCache extends Exception("Failed to update EoriStore with eori on updateEoriHistory")
+case object FaileToRetrieveEoriHistoryFromCache extends Exception("Failed to retrieve eori history after upadting cache")

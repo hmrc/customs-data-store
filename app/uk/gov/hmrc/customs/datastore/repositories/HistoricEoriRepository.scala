@@ -28,15 +28,6 @@ import uk.gov.hmrc.customs.datastore.domain.{EoriHistory, EoriPeriod}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-object Schema {
-  val FieldEoriHistory = "eoriHistory"
-  val FieldEori = "eori"
-  val EoriSearchKey = s"$FieldEoriHistory.$FieldEori"
-  val FieldEoriValidFrom = "validFrom"
-  val FieldEoriValidUntil = "validUntil"
-  val FieldEmails = "notificationEmail"
-}
-
 class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: Configuration)(implicit executionContext: ExecutionContext) extends HistoricEoriRepository{
 
   private val collectionName: String = "historic-eoris"
