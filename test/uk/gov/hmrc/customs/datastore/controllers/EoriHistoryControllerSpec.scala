@@ -22,7 +22,8 @@ import play.api.inject
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.customs.datastore.domain.{EoriPeriod, TraderData}
+import uk.gov.hmrc.customs.datastore.domain.{EoriHistory, EoriPeriod}
+import uk.gov.hmrc.customs.datastore.repositories.HistoricEoriRepository
 import uk.gov.hmrc.customs.datastore.services.{EoriHistoryService, EoriStore}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
@@ -33,7 +34,7 @@ class EoriHistoryControllerSpec extends SpecBase {
 
   "getEoriHistory" should {
     "return historic EORI's and not call SUB21 if the trader data has eori history defined" in new Setup {
-      when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(Some(traderData)))
+      when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Some(eoriHistory)))
       val request = FakeRequest(GET, routes.EoriHistoryController.getEoriHistory(testEori).url)
 
       running(app){
@@ -44,10 +45,10 @@ class EoriHistoryControllerSpec extends SpecBase {
         ))
       }
     }
-    
+
     "return historic EORI's and call SUB21 if the trader data has no eori history" in new Setup {
-      when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None), Future.successful(Some(traderData)))
-      when(mockEoriStore.updateHistoricEoris(any())).thenReturn(Future.successful(true))
+      when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(None), Future.successful(Some(eoriHistory)))
+      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(true))
       when(mockHistoryService.getHistory(any())(any())).thenReturn(Future.successful(Seq.empty))
 
       val request = FakeRequest(GET, routes.EoriHistoryController.getEoriHistory(testEori).url)
@@ -62,8 +63,8 @@ class EoriHistoryControllerSpec extends SpecBase {
     }
 
     "return internal server error if the update to historic eori's failed" in new Setup {
-      when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None), Future.successful(Some(traderData)))
-      when(mockEoriStore.updateHistoricEoris(any())).thenReturn(Future.successful(false))
+      when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(None), Future.successful(Some(eoriHistory)))
+      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(false))
       when(mockHistoryService.getHistory(any())(any())).thenReturn(Future.successful(Seq.empty))
 
       val request = FakeRequest(GET, routes.EoriHistoryController.getEoriHistory(testEori).url)
@@ -75,8 +76,8 @@ class EoriHistoryControllerSpec extends SpecBase {
     }
 
     "return internal server error if the trader cannot be found after updating the historic eori's" in new Setup {
-      when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None), Future.successful(None))
-      when(mockEoriStore.updateHistoricEoris(any())).thenReturn(Future.successful(true))
+      when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(None), Future.successful(None))
+      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(true))
       when(mockHistoryService.getHistory(any())(any())).thenReturn(Future.successful(Seq.empty))
 
       val request = FakeRequest(GET, routes.EoriHistoryController.getEoriHistory(testEori).url)
@@ -90,14 +91,16 @@ class EoriHistoryControllerSpec extends SpecBase {
 
   trait Setup {
     val mockEoriStore = mock[EoriStore]
+    val mockHistoricEoriRepository = mock[HistoricEoriRepository]
     val mockHistoryService = mock[EoriHistoryService]
     val testEori = "GB32165498778"
     val date = LocalDate.now().toString
 
-    val traderData = TraderData(Seq(EoriPeriod("GB12345678912", Some(date), Some(date))), None)
+    val eoriHistory = EoriHistory(Seq(EoriPeriod("GB12345678912", Some(date), Some(date))))
 
     val app = application.overrides(
       inject.bind[EoriStore].toInstance(mockEoriStore),
+      inject.bind[HistoricEoriRepository].toInstance(mockHistoricEoriRepository),
       inject.bind[EoriHistoryService].toInstance(mockHistoryService)
     ).build()
   }

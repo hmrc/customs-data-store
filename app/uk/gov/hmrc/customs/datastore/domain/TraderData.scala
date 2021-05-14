@@ -17,9 +17,12 @@
 package uk.gov.hmrc.customs.datastore.domain
 
 import org.joda.time.DateTime
-import play.api.libs.json.{Format, JodaReads, JodaWrites, Json, OFormat}
+import play.api.libs.functional.syntax.{unlift, _}
+import play.api.libs.json._
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.customs.datastore.domain.request.UpdateVerifiedEmailRequest
+
+import java.time.LocalDateTime
 
 case class EoriPeriod(eori: Eori,
                       validFrom: Option[String],
@@ -54,4 +57,21 @@ object NotificationEmail {
   import play.api.libs.json.JodaReads._
   import play.api.libs.json.JodaWrites._
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]
+}
+
+case class EoriHistory(eoriPeriods: Seq[EoriPeriod], lastUpdated: LocalDateTime = LocalDateTime.now)
+
+object EoriHistory {
+  implicit lazy val writes: OWrites[EoriHistory] = {
+    (
+      (__ \ "eoriHistory").write[Seq[EoriPeriod]] and
+        (__ \ "lastUpdated").write(MongoDateTimeFormats.localDateTimeWrite)
+      ) (unlift(EoriHistory.unapply))
+  }
+  implicit lazy val reads: Reads[EoriHistory] = {
+    (
+      (__ \ "eoriHistory").read[Seq[EoriPeriod]] and
+        (__ \ "lastUpdated").read(MongoDateTimeFormats.localDateTimeRead)
+      ) (EoriHistory.apply _)
+  }
 }

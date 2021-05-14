@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.customs.datastore.domain
 
-import play.api.libs.json.{JsValue, Json, Reads, Writes, __}
+import play.api.libs.json._
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 

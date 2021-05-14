@@ -19,47 +19,51 @@ package uk.gov.hmrc.customs.datastore.controllers
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod}
-import uk.gov.hmrc.customs.datastore.services.{EoriHistoryService, EoriStore}
+import uk.gov.hmrc.customs.datastore.repositories.HistoricEoriRepository
+import uk.gov.hmrc.customs.datastore.services.EoriHistoryService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HttpReads.Implicits._
 
-class EoriHistoryController @Inject()(eoriStore: EoriStore,
+class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
                                       historyService: EoriHistoryService,
                                       cc: ControllerComponents)(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getEoriHistory(eori: String): Action[AnyContent] = Action.async { implicit request =>
-    eoriStore.findByEori(eori).flatMap {
-      case Some(traderData) if traderData.eoriHistory.headOption.exists(_.definedDates) =>
-        Future.successful(Ok(Json.toJson(EoriHistoryResponse(traderData.eoriHistory))))
+    historicEoriRepository.get(eori).flatMap {
+      case Some(eoriHistory) if eoriHistory.eoriPeriods.headOption.exists(_.definedDates) =>
+        Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriHistory.eoriPeriods))))
       case _ => retrieveAndStoreHistoricEoris(eori).map {
-        traderData => Ok(Json.toJson(EoriHistoryResponse(traderData.eoriHistory)))
-      }.recover {case _ => InternalServerError }
+        eoriHistoryResponse => Ok(Json.toJson(eoriHistoryResponse))
+      }.recover { case _ => InternalServerError }
     }
   }
 
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
     (for {
-      updateEoriSucceeded <- eoriStore.upsertByEori(request.body, None)
-      eoriHistory <- if (updateEoriSucceeded) historyService.getHistory(request.body.eori) else throw new RuntimeException("Failed to update EoriStore with eori on updateEoriHistory")
-      updateEoriHistorySucceeded <- eoriStore.updateHistoricEoris(eoriHistory)
+      updateEoriSucceeded <- historicEoriRepository.set(Seq(request.body))
+      eoriHistory <- if (updateEoriSucceeded) historyService.getHistory(request.body.eori) else throw FailedToUpdateCache
+      updateEoriHistorySucceeded <- historicEoriRepository.set(eoriHistory)
     } yield {
-      if (updateEoriHistorySucceeded) { NoContent } else { InternalServerError }
-    }).recover{ case _ => InternalServerError}
+      if (updateEoriHistorySucceeded) {
+        NoContent
+      } else {
+        InternalServerError
+      }
+    }).recover { case _ => InternalServerError }
   }
 
 
   private def retrieveAndStoreHistoricEoris(eori: Eori)(implicit hc: HeaderCarrier): Future[EoriHistoryResponse] = {
     for {
       eoriHistory <- historyService.getHistory(eori)
-      updateSucceeded <- eoriStore.updateHistoricEoris(eoriHistory)
-      maybeTraderData <- if (updateSucceeded) eoriStore.findByEori(eori) else throw new RuntimeException("Updating historic EORI's failed to update cache")
-      result = maybeTraderData match {
-        case Some(traderData) => EoriHistoryResponse(traderData.eoriHistory)
-        case None => throw new RuntimeException("Failed to retrieve trader data after updating cache")
+      updateSucceeded <- historicEoriRepository.set(eoriHistory)
+      maybeEoriHistory <- if (updateSucceeded) historicEoriRepository.get(eori) else throw FailedToUpdateCache
+      result = maybeEoriHistory match {
+        case Some(eoriHistory) => EoriHistoryResponse(eoriHistory.eoriPeriods)
+        case None => throw FaileToRetrieveEoriHistoryFromCache
       }
     } yield result
   }
@@ -69,4 +73,9 @@ class EoriHistoryController @Inject()(eoriStore: EoriStore,
   object EoriHistoryResponse {
     implicit val format: OFormat[EoriHistoryResponse] = Json.format[EoriHistoryResponse]
   }
+
 }
+
+case object FailedToUpdateCache extends Exception("Failed to update EoriStore with eori on updateEoriHistory")
+
+case object FaileToRetrieveEoriHistoryFromCache extends Exception("Failed to retrieve eori history after upadting cache")
