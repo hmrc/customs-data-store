@@ -16,46 +16,50 @@
 
 package uk.gov.hmrc.customs.datastore.repositories
 
-import play.api.Configuration
-import play.api.libs.json.{Format, Json}
+import akka.http.scaladsl.model.DateTime
+import play.api.libs.functional.syntax.{unlift, _}
+import play.api.libs.json.{Json, OWrites, Reads, __}
 import play.modules.reactivemongo.ReactiveMongoApi
-import uk.gov.hmrc.customs.datastore.domain.NotificationEmail
 import reactivemongo.play.json.collection.Helpers.idWrites
+import reactivemongo.play.json.collection.JSONCollection
+import uk.gov.hmrc.customs.datastore.domain.{MongoDateTimeFormats, NotificationEmail}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class EmailRepository @Inject()(
-                               override val mongo: ReactiveMongoApi,
-                               override val config: Configuration,
-                               override implicit val ec: ExecutionContext
-                               ) extends CacheRepository[NotificationEmail] {
+class DefaultEmailRepository @Inject()(
+                                        mongo: ReactiveMongoApi
+                                      )(implicit executionContext: ExecutionContext) extends EmailRepository {
 
-  override val collectionName: String = "email-verification"
+  private val collectionName: String = "email-verification"
 
-  override def set(id: String, value: NotificationEmail)(implicit format: Format[NotificationEmail]): Future[Boolean] = {
-    val selector = Json.obj(
-      "_id" -> id
-    )
+  private def collection: Future[JSONCollection] =
+    mongo.database.map(_.collection[JSONCollection](collectionName))
 
-    val modifier = Json.obj(
-      "$set" -> Json.obj("notificationEmail" ->  value)
-    )
+  val started: Future[Unit] = collection.map(_ => ())
+
+  def get(id: String): Future[Option[NotificationEmail]] = {
+    val query = Json.obj("_id" -> id)
+    for {
+      col <- collection
+      result <- col.find(query, None).one[NotificationEmail]
+    } yield result
+  }
+
+  def set(id: String, notificationEmail: NotificationEmail): Future[Boolean] = {
+    val selector = Json.obj("_id" -> id)
+    val modifier = Json.obj("$set" -> notificationEmail)
 
     collection.flatMap {
       _.update(ordered = false)
-        .one(selector, modifier, upsert = true).map {
-        lastError => lastError.ok
-      }
+        .one(selector, modifier, upsert = true)
+        .map(lastError => lastError.ok)
     }
   }
+}
 
-  //TODO: NOT WORKING!
-  // cmd line works: db.getCollection('email-verification').find({"_id":"GB222222213"},{"_id":0,"notificationEmail":1}).pretty()
-  override def get(id: String)(implicit format: Format[NotificationEmail]): Future[Option[NotificationEmail]] = {
-    val selector = Json.obj("_id" -> id)
-    val projection = Some(Json.obj("_id" -> false, "notificationEmail" -> true))
-    collection.flatMap(_.find(selector, projection).one[NotificationEmail])
-  }
-
+trait EmailRepository {
+  val started: Future[Unit]
+  def get(id: String): Future[Option[NotificationEmail]]
+  def set(id: String, notificationEmail: NotificationEmail): Future[Boolean]
 }

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.customs.datastore.services
 
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.inject.bind
@@ -73,7 +74,9 @@ class SubscriptionInfoServiceSpec extends SpecBase {
       val service = app.injector.instanceOf[SubscriptionInfoService]
 
       running(app) {
-        await(service.getSubscriberInformation(testEori)) mustBe Some(MdgSub09DataModel(Some("mickey.mouse@disneyland.com"), Some(LocalDateTime.parse("2019-09-06T12:30:59Z", DateTimeFormatter.ISO_DATE_TIME))))
+        val result = await(service.getSubscriberInformation(testEori)).value
+        result.emailAddress.value mustBe "mickey.mouse@disneyland.com"
+        result.verifiedTimestamp.value.toString mustBe "2019-09-06T13:30:59.000+01:00"
       }
     }
 

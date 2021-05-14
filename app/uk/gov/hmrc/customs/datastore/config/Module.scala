@@ -17,13 +17,11 @@
 package uk.gov.hmrc.customs.datastore.config
 
 import com.google.inject.AbstractModule
-import uk.gov.hmrc.customs.datastore.domain.NotificationEmail
-import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
-import uk.gov.hmrc.customs.datastore.repositories.{CacheRepository, EmailRepository}
+import uk.gov.hmrc.customs.datastore.repositories.{DefaultEmailRepository, EmailRepository}
 
 class Module extends AbstractModule {
 
   override def configure(): Unit = {
-    bind(classOf[CacheRepository[NotificationEmail]]).to(classOf[EmailRepository]).asEagerSingleton()
+    bind(classOf[EmailRepository]).to(classOf[DefaultEmailRepository]).asEagerSingleton()
   }
 }

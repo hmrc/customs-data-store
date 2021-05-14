@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.customs.datastore.domain.onwire
 
+import org.joda.time.DateTime
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsPath, Json, Reads}
+import play.api.libs.json.{Format, JodaReads, JodaWrites, JsPath, Reads}
 import uk.gov.hmrc.customs.datastore.domain.EmailAddress
-
-import java.time.LocalDateTime
 
 /*
  * on the wire format data models for the MDG Sub 09 request (Subscription Request)
@@ -28,15 +27,14 @@ import java.time.LocalDateTime
  */
 case class MdgSub09DataModel(
                               emailAddress: Option[EmailAddress],
-                              verifiedTimestamp: Option[LocalDateTime]   //TODO You can remove the Option once ETMP updates it's api
+                              verifiedTimestamp: Option[DateTime]
                             )
 
 object MdgSub09DataModel {
   //  "emailAddress": "mickey.mouse@disneyland.com",
   //  "emailVerificationTimestamp": "2019-09-06T12:30:59Z"
+  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.DefaultJodaDateTimeReads, JodaWrites.JodaDateTimeWrites)
 
   implicit val sub09Reads: Reads[MdgSub09DataModel] =
-  ((JsPath \\ "emailAddress").readNullable[String] and (JsPath \\ "emailVerificationTimestamp").readNullable[LocalDateTime])(MdgSub09DataModel.apply _)
-
-  implicit val sub09Format: Format[MdgSub09DataModel] = Json.format[MdgSub09DataModel]
+    ((JsPath \\ "emailAddress").readNullable[String] and (JsPath \\ "emailVerificationTimestamp").readNullable[DateTime])(MdgSub09DataModel.apply _)
 }
