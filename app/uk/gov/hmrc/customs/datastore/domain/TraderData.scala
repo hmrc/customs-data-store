@@ -18,6 +18,7 @@ package uk.gov.hmrc.customs.datastore.domain
 
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, JodaReads, JodaWrites, Json, OFormat}
+import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.customs.datastore.domain.request.UpdateVerifiedEmailRequest
 
 case class EoriPeriod(eori: Eori,
@@ -45,6 +46,11 @@ object NotificationEmail {
   def fromEmailRequest(updateVerifiedEmailRequest: UpdateVerifiedEmailRequest): NotificationEmail = {
     NotificationEmail(Some(updateVerifiedEmailRequest.address), Some(updateVerifiedEmailRequest.timestamp))
   }
+  def fromMdgSub09Model(mdgSub09DataModel: MdgSub09DataModel): NotificationEmail = {
+    NotificationEmail(mdgSub09DataModel.emailAddress, mdgSub09DataModel.verifiedTimestamp)
+  }
+
+
   import play.api.libs.json.JodaReads._
   import play.api.libs.json.JodaWrites._
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]

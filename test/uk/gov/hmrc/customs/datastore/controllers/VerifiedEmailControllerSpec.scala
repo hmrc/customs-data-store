@@ -61,6 +61,15 @@ class VerifiedEmailControllerSpec extends SpecBase {
     }
 
     "return the email and call SUB09 if the data is not stored in the cache and also store the response into the cache" in new Setup {
+      when(mockEmailRepository.get(any()))
+        .thenReturn(Future.successful(None))
+        .thenReturn(Future.successful(Some(NotificationEmail(Some(testAddress), Some(testTime)))))
+      when(mockSubscriptionInfoService.getSubscriberInformation(any())(any())).thenReturn(Future.successful(
+        Some(MdgSub09DataModel(Some(testAddress), Some(testTime)))
+      ))
+      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(true))
+
+
       val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
       running(app) {
         val result = route(app, request).value
@@ -123,7 +132,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
     val testNotificationEmail = NotificationEmail(Some(testAddress), Some(testTime))
     val testTraderData = TraderData(Seq.empty, Some(testNotificationEmail))
 
-    lazy val app = application.overrides(
+    def app = application.overrides(
       inject.bind[EoriStore].toInstance(mockEoriStore),
       inject.bind[EmailRepository].toInstance(mockEmailRepository),
       inject.bind[SubscriptionInfoService].toInstance(mockSubscriptionInfoService)
