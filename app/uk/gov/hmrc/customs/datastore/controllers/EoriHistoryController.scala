@@ -33,8 +33,8 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
 
   def getEoriHistory(eori: String): Action[AnyContent] = Action.async { implicit request =>
     historicEoriRepository.get(eori).flatMap {
-      case Some(eoriHistory) if eoriHistory.eoriHistory.headOption.exists(_.definedDates) =>
-        Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriHistory.eoriHistory))))
+      case Some(eoriHistory) if eoriHistory.eoriPeriods.headOption.exists(_.definedDates) =>
+        Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriHistory.eoriPeriods))))
       case _ => retrieveAndStoreHistoricEoris(eori).map {
         eoriHistoryResponse => Ok(Json.toJson(eoriHistoryResponse))
       }.recover {case _ => InternalServerError }
@@ -58,7 +58,7 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
       updateSucceeded <- historicEoriRepository.set(eoriHistory)
       maybeEoriHistory <- if (updateSucceeded) historicEoriRepository.get(eori) else throw FailedToUpdateCache
       result = maybeEoriHistory match {
-        case Some(eoriHistory) => EoriHistoryResponse(eoriHistory.eoriHistory)
+        case Some(eoriHistory) => EoriHistoryResponse(eoriHistory.eoriPeriods)
         case None => throw FaileToRetrieveEoriHistoryFromCache
       }
     } yield result

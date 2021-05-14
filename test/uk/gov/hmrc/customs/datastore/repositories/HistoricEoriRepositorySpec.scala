@@ -65,8 +65,8 @@ class HistoricEoriRepositorySpec extends SpecBase {
         _ <- repository.set(Seq(period5, period6))
         t1 <- repository.get(period1.eori)
         t2 <- repository.get(period2.eori)
-        _ <- toFuture(t1.get.eoriHistory mustBe history.eoriHistory)
-        _ <- toFuture(t2.get.eoriHistory mustBe history.eoriHistory)
+        _ <- toFuture(t1.get.eoriPeriods mustBe history.eoriPeriods)
+        _ <- toFuture(t2.get.eoriPeriods mustBe history.eoriPeriods)
         - <- repository.removeAll(Seq(period1.eori, period2.eori, period5.eori, period6.eori))
       } yield ())
     }
@@ -75,7 +75,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
       await(for {
         _ <- repository.set(Seq(period1, period3))
         eoris <- repository.get(period1.eori)
-        _ <- toFuture(eoris.get.eoriHistory mustBe Seq(period1, period3))
+        _ <- toFuture(eoris.get.eoriPeriods mustBe Seq(period1, period3))
         _ <- repository.removeAll(Seq(period1.eori, period3.eori))
       } yield {})
     }
@@ -84,7 +84,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
       await(for {
         _ <- repository.set(Seq(period1, period3))
         eoris <- repository.get(period3.eori)
-        _ <- toFuture(eoris.get.eoriHistory mustBe Seq(period1, period3))
+        _ <- toFuture(eoris.get.eoriPeriods mustBe Seq(period1, period3))
         _ <- repository.removeAll(Seq(period1.eori, period3.eori))
       } yield {})
     }

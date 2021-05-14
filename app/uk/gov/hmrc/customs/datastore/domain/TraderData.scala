@@ -51,7 +51,7 @@ object NotificationEmail {
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]
 }
 
-case class EoriHistory(eoriHistory: Seq[EoriPeriod], lastUpdated: LocalDateTime = LocalDateTime.now)
+case class EoriHistory(eoriPeriods: Seq[EoriPeriod], lastUpdated: LocalDateTime = LocalDateTime.now)
 
 object EoriHistory {
   implicit lazy val writes: OWrites[EoriHistory] = {
