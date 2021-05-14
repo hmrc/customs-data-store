@@ -17,12 +17,13 @@
 package uk.gov.hmrc.customs.datastore.repositories
 
 import play.api.Configuration
+import play.api.libs.json.{Format, Json}
 import play.modules.reactivemongo.ReactiveMongoApi
 import uk.gov.hmrc.customs.datastore.domain.NotificationEmail
-import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
+import reactivemongo.play.json.collection.Helpers.idWrites
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class EmailRepository @Inject()(
                                override val mongo: ReactiveMongoApi,
@@ -31,5 +32,30 @@ class EmailRepository @Inject()(
                                ) extends CacheRepository[NotificationEmail] {
 
   override val collectionName: String = "email-verification"
+
+  override def set(id: String, value: NotificationEmail)(implicit format: Format[NotificationEmail]): Future[Boolean] = {
+    val selector = Json.obj(
+      "_id" -> id
+    )
+
+    val modifier = Json.obj(
+      "$set" -> Json.obj("notificationEmail" ->  value)
+    )
+
+    collection.flatMap {
+      _.update(ordered = false)
+        .one(selector, modifier, upsert = true).map {
+        lastError => lastError.ok
+      }
+    }
+  }
+
+  //TODO: NOT WORKING!
+  // cmd line works: db.getCollection('email-verification').find({"_id":"GB222222213"},{"_id":0,"notificationEmail":1}).pretty()
+  override def get(id: String)(implicit format: Format[NotificationEmail]): Future[Option[NotificationEmail]] = {
+    val selector = Json.obj("_id" -> id)
+    val projection = Some(Json.obj("_id" -> false, "notificationEmail" -> true))
+    collection.flatMap(_.find(selector, projection).one[NotificationEmail])
+  }
 
 }
