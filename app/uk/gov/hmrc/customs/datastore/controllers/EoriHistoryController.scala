@@ -20,7 +20,7 @@ import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod}
 import uk.gov.hmrc.customs.datastore.repositories.HistoricEoriRepository
-import uk.gov.hmrc.customs.datastore.services.{EoriHistoryService}
+import uk.gov.hmrc.customs.datastore.services.EoriHistoryService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -37,7 +37,7 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
         Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriHistory.eoriPeriods))))
       case _ => retrieveAndStoreHistoricEoris(eori).map {
         eoriHistoryResponse => Ok(Json.toJson(eoriHistoryResponse))
-      }.recover {case _ => InternalServerError }
+      }.recover { case _ => InternalServerError }
     }
   }
 
@@ -47,8 +47,12 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
       eoriHistory <- if (updateEoriSucceeded) historyService.getHistory(request.body.eori) else throw FailedToUpdateCache
       updateEoriHistorySucceeded <- historicEoriRepository.set(eoriHistory)
     } yield {
-      if (updateEoriHistorySucceeded) { NoContent } else { InternalServerError }
-    }).recover{ case _ => InternalServerError}
+      if (updateEoriHistorySucceeded) {
+        NoContent
+      } else {
+        InternalServerError
+      }
+    }).recover { case _ => InternalServerError }
   }
 
 
@@ -73,4 +77,5 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
 }
 
 case object FailedToUpdateCache extends Exception("Failed to update EoriStore with eori on updateEoriHistory")
+
 case object FaileToRetrieveEoriHistoryFromCache extends Exception("Failed to retrieve eori history after upadting cache")
