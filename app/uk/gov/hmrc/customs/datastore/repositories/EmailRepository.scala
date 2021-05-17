@@ -20,7 +20,7 @@ import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.play.json.collection.Helpers.idWrites
 import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.customs.datastore.domain.{MongoDateTimeFormats, NotificationEmail, UndeliverableInformation}
+import uk.gov.hmrc.customs.datastore.domain.{NotificationEmail, UndeliverableInformation}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
