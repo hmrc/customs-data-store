@@ -97,8 +97,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
     }
 
     "return 400 with malformed request" in new Setup {
-      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(true))
-
       val request = FakeRequest(POST, routes.VerifiedEmailController.updateVerifiedEmail().url).withJsonBody(
         Json.obj("invalidKey" -> testEori, "address" -> testAddress)
       )
