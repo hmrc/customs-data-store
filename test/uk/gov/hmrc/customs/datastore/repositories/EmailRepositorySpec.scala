@@ -55,4 +55,21 @@ class EmailRepositorySpec extends SpecBase {
       _ <- dropData()
     } yield {})
   }
+
+  "remove the undeliverable object when setting a new email address" in {
+    val eori = "someEori"
+    val notificationEmail = NotificationEmail(Some("some@email.com"), Some(DateTime.now()))
+    val undeliverableInformation = UndeliverableInformation("EORINumber", eori, "some2@email.com", "some event", DateTime.now(), None, None)
+
+    await(for {
+      _ <- repository.set(eori, notificationEmail)
+      _ <- repository.update(undeliverableInformation)
+      firstResult <- repository.get(eori)
+      _ = firstResult mustBe Some(notificationEmail.copy(undeliverable = Some(undeliverableInformation)))
+      _ <- repository.set(eori, notificationEmail)
+      secondResult <- repository.get(eori)
+      _ = secondResult mustBe Some(notificationEmail)
+      _ <- dropData()
+    } yield {})
+  }
 }
