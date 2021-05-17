@@ -44,12 +44,15 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-        status(result) mustBe 404
+        status(result) mustBe 200
       }
     }
 
     "return the email and not call SUB09 if the data is stored in the cache" in new Setup {
       when(mockEmailRepository.get(any())).thenReturn(Future.successful(Some(NotificationEmail(Some(testAddress), Some(testTime)))))
+      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(true))
+      when(mockSubscriptionInfoService.getSubscriberInformation(any())(any())).thenReturn(Future.successful(None))
+
       val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
 
       running(app) {
