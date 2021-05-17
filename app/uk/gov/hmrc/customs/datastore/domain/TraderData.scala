@@ -35,7 +35,8 @@ object EoriPeriod {
 }
 
 case class NotificationEmail(address: Option[EmailAddress],
-                             timestamp: Option[DateTime])
+                             timestamp: Option[DateTime],
+                             undeliverable: Option[UndeliverableInformation] = None)
 
 
 case class TraderData(eoriHistory: Seq[EoriPeriod],
