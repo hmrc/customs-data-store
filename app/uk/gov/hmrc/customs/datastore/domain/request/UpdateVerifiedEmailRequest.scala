@@ -16,10 +16,15 @@
 
 package uk.gov.hmrc.customs.datastore.domain.request
 
-import play.api.libs.json.{Json, OFormat}
+import org.joda.time.DateTime
+import play.api.libs.json._
+import play.api.libs.json.JodaReads._
+import play.api.libs.json.JodaWrites._
 
-case class UpdateVerifiedEmailRequest(eori: String, address: String, timestamp: String)
+
+case class UpdateVerifiedEmailRequest(eori: String, address: String, timestamp: DateTime)
 
 object UpdateVerifiedEmailRequest {
+
   implicit val format: OFormat[UpdateVerifiedEmailRequest] = Json.format[UpdateVerifiedEmailRequest]
 }

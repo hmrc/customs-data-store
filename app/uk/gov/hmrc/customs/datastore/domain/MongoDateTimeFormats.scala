@@ -33,6 +33,7 @@ trait MongoDateTimeFormats {
       "$date" -> dateTime.atZone(ZoneOffset.UTC).toInstant.toEpochMilli
     )
   }
+
 }
 
 object MongoDateTimeFormats extends MongoDateTimeFormats

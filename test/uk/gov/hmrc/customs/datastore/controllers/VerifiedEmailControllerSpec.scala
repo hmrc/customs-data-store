@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.customs.datastore.controllers
 
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verifyNoInteractions, when}
 import play.api.inject
@@ -24,6 +25,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.customs.datastore.domain.{NotificationEmail, TraderData}
+import uk.gov.hmrc.customs.datastore.repositories.EmailRepository
 import uk.gov.hmrc.customs.datastore.services.{EoriStore, SubscriptionInfoService}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
@@ -35,50 +37,25 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
   "getVerifiedEmail" should {
     "return Not Found if no data is found in the cache and SUB09 returns no email" in new Setup {
-      when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None))
+      when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())(any())).thenReturn(Future.successful(None))
 
       val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
 
-      running(app){
+      running(app) {
         val result = route(app, request).value
         status(result) mustBe 404
       }
     }
 
-    "return InternalServerError if the updating of trader data fails" in new Setup {
-      when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None))
-      when(mockEoriStore.upsertByEori(any(),any())).thenReturn(Future.successful(false))
-      when(mockSubscriptionInfoService.getSubscriberInformation(any())(any()))
-        .thenReturn(Future.successful(Some(MdgSub09DataModel(Some(testAddress), Some(testTime.toString)))))
-
-      val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
-
-      running(app){
-        val result = route(app, request).value
-        status(result) mustBe 500
-      }
-    }
-
-    "return InternalServerError if the retrieving of the trader's data fails after updating the cache with the SUB09 data" in new Setup {
-      when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None), Future.successful(None))
-      when(mockEoriStore.upsertByEori(any(),any())).thenReturn(Future.successful(true))
-      when(mockSubscriptionInfoService.getSubscriberInformation(any())(any()))
-        .thenReturn(Future.successful(Some(MdgSub09DataModel(Some(testAddress), Some(testTime.toString)))))
-
-      val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
-
-      running(app){
-        val result = route(app, request).value
-        status(result) mustBe 500
-      }
-    }
-
     "return the email and not call SUB09 if the data is stored in the cache" in new Setup {
-      when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(Some(testTraderData)))
+      when(mockEmailRepository.get(any())).thenReturn(Future.successful(Some(NotificationEmail(Some(testAddress), Some(testTime)))))
+      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(true))
+      when(mockSubscriptionInfoService.getSubscriberInformation(any())(any())).thenReturn(Future.successful(None))
+
       val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
 
-      running(app){
+      running(app) {
         val result = route(app, request).value
         status(result) mustBe 200
         contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> testTime.toString)
@@ -87,14 +64,17 @@ class VerifiedEmailControllerSpec extends SpecBase {
     }
 
     "return the email and call SUB09 if the data is not stored in the cache and also store the response into the cache" in new Setup {
-      when(mockEoriStore.findByEori(any())).thenReturn(Future.successful(None), Future.successful(Some(testTraderData)))
-      when(mockEoriStore.upsertByEori(any(),any())).thenReturn(Future.successful(true))
-      when(mockSubscriptionInfoService.getSubscriberInformation(any())(any()))
-        .thenReturn(Future.successful(Some(MdgSub09DataModel(Some(testAddress), Some(testTime.toString)))))
+      when(mockEmailRepository.get(any()))
+        .thenReturn(Future.successful(None))
+        .thenReturn(Future.successful(Some(NotificationEmail(Some(testAddress), Some(testTime)))))
+      when(mockSubscriptionInfoService.getSubscriberInformation(any())(any())).thenReturn(Future.successful(
+        Some(MdgSub09DataModel(Some(testAddress), Some(testTime)))
+      ))
+      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(true))
+
 
       val request = FakeRequest(GET, routes.VerifiedEmailController.getVerifiedEmail(testEori).url)
-
-      running(app){
+      running(app) {
         val result = route(app, request).value
         status(result) mustBe 200
         contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> testTime.toString)
@@ -104,13 +84,13 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
   "updateVerifiedEmail" should {
     "return internal server error if the update failed to populate the cache" in new Setup {
-      when(mockEoriStore.upsertByEori(any(), any())).thenReturn(Future.successful(false))
+      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(false))
 
       val request = FakeRequest(POST, routes.VerifiedEmailController.updateVerifiedEmail().url).withJsonBody(
         Json.obj("eori" -> testEori, "address" -> testAddress, "timestamp" -> testTime.toString)
       )
 
-      running(app){
+      running(app) {
         val result = route(app, request).value
         status(result) mustBe 500
       }
@@ -123,20 +103,20 @@ class VerifiedEmailControllerSpec extends SpecBase {
         Json.obj("invalidKey" -> testEori, "address" -> testAddress)
       )
 
-      running(app){
+      running(app) {
         val result = route(app, request).value
         status(result) mustBe 400
       }
     }
 
     "return 204 if the update was successful with a timestamp present" in new Setup {
-      when(mockEoriStore.upsertByEori(any(), any())).thenReturn(Future.successful(true))
+      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(true))
 
       val request = FakeRequest(POST, routes.VerifiedEmailController.updateVerifiedEmail().url).withJsonBody(
         Json.obj("eori" -> testEori, "address" -> testAddress, "timestamp" -> testTime.toString)
       )
 
-      running(app){
+      running(app) {
         val result = route(app, request).value
         status(result) mustBe 204
       }
@@ -145,16 +125,19 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
   trait Setup {
     val mockEoriStore: EoriStore = mock[EoriStore]
+    val mockEmailRepository: EmailRepository = mock[EmailRepository]
     val mockSubscriptionInfoService: SubscriptionInfoService = mock[SubscriptionInfoService]
     val testEori = "GB12345678912"
-    val testTime = LocalDate.now()
+    val testTime1 = LocalDate.now()
+    val testTime = DateTime.now()
     val testAddress = "test@email.com"
 
-    val testNotificationEmail = NotificationEmail(Some(testAddress), Some(testTime.toString))
+    val testNotificationEmail = NotificationEmail(Some(testAddress), Some(testTime))
     val testTraderData = TraderData(Seq.empty, Some(testNotificationEmail))
 
-    lazy val app = application.overrides(
+    def app = application.overrides(
       inject.bind[EoriStore].toInstance(mockEoriStore),
+      inject.bind[EmailRepository].toInstance(mockEmailRepository),
       inject.bind[SubscriptionInfoService].toInstance(mockSubscriptionInfoService)
     ).build()
   }

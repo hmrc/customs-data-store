@@ -18,7 +18,7 @@ package uk.gov.hmrc.customs.datastore.services
 
 import javax.inject._
 import org.joda.time.{DateTime, DateTimeZone}
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, JodaReads, JodaWrites, Json}
 import play.api.libs.json.Json._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.{Index, IndexType}
@@ -85,6 +85,8 @@ class EoriStore @Inject()(mongoComponent: ReactiveMongoComponent, appConfig: App
   private def lastUpdatedChangeSet() = FieldLastUpdated -> toJsFieldJsValueWrapper(DateTime.now(DateTimeZone.UTC))(ReactiveMongoFormats.dateTimeWrite)
 
   private def emailChangeSet(email: Option[NotificationEmail]) = {
+    implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.DefaultJodaDateTimeReads, JodaWrites.JodaDateTimeWrites)
+
     val changeSet = for {
       emailAddress <- email.flatMap(_.address)
       timeStamp <- email.flatMap(_.timestamp)

@@ -16,8 +16,10 @@
 
 package uk.gov.hmrc.customs.datastore.domain
 
+import org.joda.time.DateTime
 import play.api.libs.functional.syntax.{unlift, _}
 import play.api.libs.json._
+import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.customs.datastore.domain.request.UpdateVerifiedEmailRequest
 
 import java.time.LocalDateTime
@@ -33,7 +35,7 @@ object EoriPeriod {
 }
 
 case class NotificationEmail(address: Option[EmailAddress],
-                             timestamp: Option[Timestamp])
+                             timestamp: Option[DateTime])
 
 
 case class TraderData(eoriHistory: Seq[EoriPeriod],
@@ -47,7 +49,13 @@ object NotificationEmail {
   def fromEmailRequest(updateVerifiedEmailRequest: UpdateVerifiedEmailRequest): NotificationEmail = {
     NotificationEmail(Some(updateVerifiedEmailRequest.address), Some(updateVerifiedEmailRequest.timestamp))
   }
+  def fromMdgSub09Model(mdgSub09DataModel: MdgSub09DataModel): NotificationEmail = {
+    NotificationEmail(mdgSub09DataModel.emailAddress, mdgSub09DataModel.verifiedTimestamp)
+  }
 
+
+  import play.api.libs.json.JodaReads._
+  import play.api.libs.json.JodaWrites._
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]
 }
 

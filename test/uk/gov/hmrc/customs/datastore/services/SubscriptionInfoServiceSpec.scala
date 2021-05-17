@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.customs.datastore.services
 
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.inject.bind
@@ -26,6 +27,8 @@ import uk.gov.hmrc.customs.datastore.utils.SpecBase
 import uk.gov.hmrc.http.{HeaderCarrier, ServiceUnavailableException}
 import uk.gov.hmrc.http.HttpClient
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import scala.concurrent.Future
 
 
@@ -71,7 +74,9 @@ class SubscriptionInfoServiceSpec extends SpecBase {
       val service = app.injector.instanceOf[SubscriptionInfoService]
 
       running(app) {
-        await(service.getSubscriberInformation(testEori)) mustBe Some(MdgSub09DataModel(Some("mickey.mouse@disneyland.com"), Some("2019-09-06T12:30:59Z")))
+        val result = await(service.getSubscriberInformation(testEori)).value
+        result.emailAddress.value mustBe "mickey.mouse@disneyland.com"
+        result.verifiedTimestamp.nonEmpty mustBe true
       }
     }
 

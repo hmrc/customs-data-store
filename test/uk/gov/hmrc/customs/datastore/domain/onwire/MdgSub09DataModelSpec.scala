@@ -28,7 +28,8 @@ class MdgSub09DataModelSpec extends SpecBase {
     "parse message with email and a timestamp" in {
       val sub09Response = Sub09Response.withEmailAndTimestamp(EORI1)
       val result = MdgSub09DataModel.sub09Reads.reads(sub09Response).get
-      result mustBe MdgSub09DataModel(Some("mickey.mouse@disneyland.com"), Some("2019-09-06T12:30:59Z"))
+      result.verifiedTimestamp.nonEmpty mustBe true
+      result.emailAddress.get mustBe "mickey.mouse@disneyland.com"
     }
 
     "parse message with email and no timestamp" in {

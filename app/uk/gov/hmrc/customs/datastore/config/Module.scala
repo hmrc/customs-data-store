@@ -17,11 +17,12 @@
 package uk.gov.hmrc.customs.datastore.config
 
 import com.google.inject.AbstractModule
-import uk.gov.hmrc.customs.datastore.repositories.{DefaultHistoricEoriRepository, HistoricEoriRepository}
+import uk.gov.hmrc.customs.datastore.repositories.{DefaultEmailRepository, EmailRepository, DefaultHistoricEoriRepository, HistoricEoriRepository}
 
 class Module extends AbstractModule {
 
   override def configure(): Unit = {
+    bind(classOf[EmailRepository]).to(classOf[DefaultEmailRepository]).asEagerSingleton()
     bind(classOf[HistoricEoriRepository]).to(classOf[DefaultHistoricEoriRepository]).asEagerSingleton()
   }
 }
