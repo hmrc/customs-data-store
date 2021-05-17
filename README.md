@@ -7,8 +7,9 @@ This repository contains the code for a persistent cache holding customs related
 | ---------------------------------  | ---------------------------------------------------- |
 | GET /customs-data-store/eori/:eori/verified-email | Retrieve the verified email address for a given EORI either from the cache or SUB09|
 | GET /customs-data-store/eori/:eori/eori-history | Retrieves the historic eori's for a given EORI either from the cache or SUB21        |
-| POST /customs-data-store/update-email | Populates a new verified email address in the cache | 
+| POST /customs-data-store/update-email | Populates a new verified email address in the cache and removes undeliverable information | 
 | POST /customs-data-store/update-eori-history | Updates the eori history for a given EORI in the cache |
+| POST /update-undeliverable-email | Updates undeliverable information for a given enrolmentValue |
 
 ## GET /eori/:eori/verified-email
 
@@ -33,7 +34,7 @@ An endpoint to retrieve a verified email address for a given EORI
 
 ## POST /update-email
 
-An endpoint to update the verified email address for a given EORI
+An endpoint to update the verified email address for a given EORI and removes undeliverable information
 
 ### Example request
 
@@ -102,6 +103,32 @@ An endpoint to populate the historic EORI's for a given EORI
 | 500 | An unexpected failure happened in the service |
 
 
+## POST /update-undeliverable-email
+
+An endpoint to update undeliverable information for an enrolmentValue
+
+### Example request
+
+```json
+{
+  "enrolmentIdentifier": "EORINumber",
+  "enrolmentValue": "GB744638982000",
+  "emailAddress": "email@email.com",
+  "event": "someEvent",
+  "detected": "2021-05-14T10:59:45.811+01:00",
+  "code": 12,
+  "reason": "Inbox full"
+}
+```
+
+### Response codes
+
+| Status                               | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- |
+| 204 | Successfully updated undeliverable information for enrolmentValue  |
+| 404 | If not able to find a record associated to that enrolmentValue |
+| 400 | If enrolmentIdentifier is not equal to 'EORINumber' |
+| 500 | An unexpected failure happened in the service |
 
 ## Running and testing on localhost:
 If you want to run [customs-data-store](https://github.com/hmrc/customs-data-store) locally then you also have to run [customs-financials-hods-stub](https://github.com/hmrc/customs-financials-hods-stub) so that it can retrieve historic Eoris from there.  

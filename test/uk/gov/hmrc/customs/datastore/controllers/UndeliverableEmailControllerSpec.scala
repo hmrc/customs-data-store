@@ -23,7 +23,6 @@ import play.api.inject
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.customs.datastore.domain.NotificationEmail
 import uk.gov.hmrc.customs.datastore.repositories.EmailRepository
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
