@@ -18,7 +18,7 @@ package uk.gov.hmrc.customs.datastore.repositories
 
 import akka.http.scaladsl.model.DateTime
 import play.api.libs.functional.syntax.{unlift, _}
-import play.api.libs.json.{Json, OWrites, Reads, __}
+import play.api.libs.json.{JsString, Json, OWrites, Reads, __}
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.play.json.collection.Helpers.idWrites
 import reactivemongo.play.json.collection.JSONCollection
@@ -48,7 +48,7 @@ class DefaultEmailRepository @Inject()(
 
   def set(id: String, notificationEmail: NotificationEmail): Future[Boolean] = {
     val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj("$set" -> notificationEmail)
+    val modifier = Json.obj("$set" -> notificationEmail, "$unset" -> Json.obj("undeliverable" -> ""))
 
     collection.flatMap {
       _.update(ordered = false)
