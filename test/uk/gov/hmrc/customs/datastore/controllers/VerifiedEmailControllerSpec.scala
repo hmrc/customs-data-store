@@ -29,7 +29,7 @@ import uk.gov.hmrc.customs.datastore.repositories.EmailRepository
 import uk.gov.hmrc.customs.datastore.services.{EoriStore, SubscriptionInfoService}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.LocalDate
 import scala.concurrent.Future
 
 
@@ -44,7 +44,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-        status(result) mustBe 200
+        status(result) mustBe 404
       }
     }
 
