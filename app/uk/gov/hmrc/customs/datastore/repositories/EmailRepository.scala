@@ -20,7 +20,7 @@ import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.play.json.collection.Helpers.idWrites
 import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.customs.datastore.domain.NotificationEmail
+import uk.gov.hmrc.customs.datastore.domain.{MongoDateTimeFormats, NotificationEmail, UndeliverableInformation}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -54,10 +54,30 @@ class DefaultEmailRepository @Inject()(
         .map(lastError => lastError.ok)
     }
   }
+
+  def update(undeliverableInformation: UndeliverableInformation): Future[Boolean] = {
+    val selector = Json.obj("_id" -> undeliverableInformation.enrolmentValue)
+    val modifier = Json.obj("$set" -> Json.obj("undeliverable" -> undeliverableInformation))
+    collection.flatMap {
+      _.update(ordered = false)
+        .one(selector, modifier)
+        .map(updateResult =>
+          if (!updateResult.ok) {
+            throw new RuntimeException("Failed to update record")
+          } else {
+            updateResult.n == 1
+          }
+        )
+    }
+  }
 }
 
 trait EmailRepository {
   val started: Future[Unit]
+
   def get(id: String): Future[Option[NotificationEmail]]
+
   def set(id: String, notificationEmail: NotificationEmail): Future[Boolean]
+
+  def update(undeliverableInformation: UndeliverableInformation): Future[Boolean]
 }
