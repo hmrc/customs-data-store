@@ -26,7 +26,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.customs.datastore.domain.{NotificationEmail, TraderData}
 import uk.gov.hmrc.customs.datastore.repositories.EmailRepository
-import uk.gov.hmrc.customs.datastore.services.{EoriStore, SubscriptionInfoService}
+import uk.gov.hmrc.customs.datastore.services.{SubscriptionInfoService}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
 import java.time.LocalDate
@@ -97,7 +97,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
     }
 
     "return 400 with malformed request" in new Setup {
-      when(mockEoriStore.upsertByEori(any(), any())).thenReturn(Future.successful(true))
+      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(true))
 
       val request = FakeRequest(POST, routes.VerifiedEmailController.updateVerifiedEmail().url).withJsonBody(
         Json.obj("invalidKey" -> testEori, "address" -> testAddress)
@@ -124,7 +124,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
   }
 
   trait Setup {
-    val mockEoriStore: EoriStore = mock[EoriStore]
     val mockEmailRepository: EmailRepository = mock[EmailRepository]
     val mockSubscriptionInfoService: SubscriptionInfoService = mock[SubscriptionInfoService]
     val testEori = "GB12345678912"
@@ -136,7 +135,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
     val testTraderData = TraderData(Seq.empty, Some(testNotificationEmail))
 
     def app = application.overrides(
-      inject.bind[EoriStore].toInstance(mockEoriStore),
       inject.bind[EmailRepository].toInstance(mockEmailRepository),
       inject.bind[SubscriptionInfoService].toInstance(mockSubscriptionInfoService)
     ).build()

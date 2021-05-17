@@ -16,13 +16,11 @@
 
 package uk.gov.hmrc.customs.datastore.repositories
 
-import akka.http.scaladsl.model.DateTime
-import play.api.libs.functional.syntax.{unlift, _}
-import play.api.libs.json.{Json, OWrites, Reads, __}
+import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.play.json.collection.Helpers.idWrites
 import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.customs.datastore.domain.{MongoDateTimeFormats, NotificationEmail}
+import uk.gov.hmrc.customs.datastore.domain.NotificationEmail
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
