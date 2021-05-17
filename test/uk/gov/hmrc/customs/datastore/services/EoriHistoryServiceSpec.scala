@@ -35,7 +35,6 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorR
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.util.Failure
 
