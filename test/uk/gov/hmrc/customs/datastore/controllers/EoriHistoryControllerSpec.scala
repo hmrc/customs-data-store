@@ -24,7 +24,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.customs.datastore.domain.{EoriHistory, EoriPeriod}
 import uk.gov.hmrc.customs.datastore.repositories.HistoricEoriRepository
-import uk.gov.hmrc.customs.datastore.services.{EoriHistoryService}
+import uk.gov.hmrc.customs.datastore.services.EoriHistoryService
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
 import java.time.LocalDate
