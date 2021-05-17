@@ -48,12 +48,13 @@ class EmailRepositorySpec extends SpecBase {
     await(for {
       _ <- repository.set(eori, notificationEmail)
       currentNotification <- repository.get(eori)
-      _ = currentNotification mustBe Some(notificationEmail)
       _ <- repository.update(undeliverableInformation)
       newNotification <- repository.get(eori)
-      _ = newNotification mustBe Some(notificationEmail.copy(undeliverable = Some(undeliverableInformation)))
       _ <- dropData()
-    } yield {})
+    } yield {
+      currentNotification mustBe Some(notificationEmail)
+      newNotification mustBe Some(notificationEmail.copy(undeliverable = Some(undeliverableInformation)))
+    })
   }
 
   "return 'false' if no update performed" in {
@@ -67,8 +68,27 @@ class EmailRepositorySpec extends SpecBase {
       result <- repository.update(undeliverableInformation)
       _ = result mustBe false
       record <- repository.get(eori)
-      _ = record mustBe None
       _ <- dropData()
-    } yield {})
+    } yield {
+      record mustBe None
+    })
+  }
+
+  "remove the undeliverable object when setting a new email address" in {
+    val eori = "someEori"
+    val notificationEmail = NotificationEmail(Some("some@email.com"), Some(DateTime.now()))
+    val undeliverableInformation = UndeliverableInformation("EORINumber", eori, "some2@email.com", "some event", DateTime.now(), None, None)
+
+    await(for {
+      _ <- repository.set(eori, notificationEmail)
+      _ <- repository.update(undeliverableInformation)
+      firstResult <- repository.get(eori)
+      _ <- repository.set(eori, notificationEmail)
+      secondResult <- repository.get(eori)
+      _ <- dropData()
+    } yield {
+      firstResult mustBe Some(notificationEmail.copy(undeliverable = Some(undeliverableInformation)))
+      secondResult mustBe Some(notificationEmail)
+    })
   }
 }
