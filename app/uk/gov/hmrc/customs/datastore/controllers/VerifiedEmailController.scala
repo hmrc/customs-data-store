@@ -38,9 +38,11 @@ class VerifiedEmailController @Inject()(
     def retrieveNotificationEmail(maybeCachedEmail: Option[NotificationEmail]): Future[Option[NotificationEmail]] = {
       maybeCachedEmail match {
         case Some(cachedEmail) => Future.successful(Some(cachedEmail))
-        case None => subscriptionInfoService.getSubscriberInformation(eori).map(
-          _.map(NotificationEmail.fromMdgSub09Model)
-        )
+        case None => subscriptionInfoService.getSubscriberInformation(eori).flatMap{ response =>
+          val notificationEmail = response.map(NotificationEmail.fromMdgSub09Model)
+          notificationEmail.map(emailRepo.set(eori, _))
+          Future.successful(notificationEmail)
+        }
       }
     }
 
@@ -48,9 +50,7 @@ class VerifiedEmailController @Inject()(
       maybeCachedEmailData <- emailRepo.get(eori)
       maybeNotificationEmail <- retrieveNotificationEmail(maybeCachedEmailData)
       result <- maybeNotificationEmail match {
-        case Some(notificationEmail) => emailRepo.set(eori, notificationEmail).map { writeSucceeded =>
-          if (writeSucceeded) Ok(Json.toJson(notificationEmail)) else InternalServerError
-        }
+        case Some(notificationEmail) => Future.successful(Ok(Json.toJson(notificationEmail)))
         case None => Future.successful(NotFound)
       }
     } yield result
