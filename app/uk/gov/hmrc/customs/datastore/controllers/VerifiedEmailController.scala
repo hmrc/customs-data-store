@@ -17,7 +17,7 @@
 package uk.gov.hmrc.customs.datastore.controllers
 
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.customs.datastore.domain.NotificationEmail
 import uk.gov.hmrc.customs.datastore.domain.request.UpdateVerifiedEmailRequest
 import uk.gov.hmrc.customs.datastore.repositories.EmailRepository
@@ -35,26 +35,28 @@ class VerifiedEmailController @Inject()(
 
   def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async { implicit request =>
 
-    def retrieveNotificationEmail(maybeCachedEmail: Option[NotificationEmail]): Future[Option[NotificationEmail]] = {
-      maybeCachedEmail match {
-        case Some(cachedEmail) => Future.successful(Some(cachedEmail))
-        case None => subscriptionInfoService.getSubscriberInformation(eori).flatMap{ response =>
-          val notificationEmail = response.map(NotificationEmail.fromMdgSub09Model)
-          notificationEmail.map(emailRepo.set(eori, _))
-          Future.successful(notificationEmail)
+    def storeDataResult(maybeNotificationEmail: Option[NotificationEmail]): Future[Result] =
+      maybeNotificationEmail match {
+        case Some(value) => emailRepo.set(eori, value).map { writeSucceeded =>
+          if (writeSucceeded) Ok(Json.toJson(value)) else InternalServerError
         }
-      }
-    }
-
-    for {
-      maybeCachedEmailData <- emailRepo.get(eori)
-      maybeNotificationEmail <- retrieveNotificationEmail(maybeCachedEmailData)
-      result <- maybeNotificationEmail match {
-        case Some(notificationEmail) => Future.successful(Ok(Json.toJson(notificationEmail)))
         case None => Future.successful(NotFound)
       }
-    } yield result
+
+    def retrieveNotificationEmail: Future[Result] =
+      for {
+        sub09Response <- subscriptionInfoService.getSubscriberInformation(eori)
+        notificationEmail = sub09Response.map(NotificationEmail.fromMdgSub09Model)
+        result <- storeDataResult(notificationEmail)
+      } yield result
+
+
+    emailRepo.get(eori).flatMap {
+      case Some(value) => Future.successful(Ok(Json.toJson(value)))
+      case None => retrieveNotificationEmail
+    }
   }
+
 
   def updateVerifiedEmail(): Action[UpdateVerifiedEmailRequest] = Action.async(parse.json[UpdateVerifiedEmailRequest]) {
     implicit request =>
