@@ -107,14 +107,6 @@ An endpoint to populate the historic EORI's for a given EORI
 
 An endpoint to update undeliverable information for an enrolmentValue
 
-enrolmentIdentifier: String,
-enrolmentValue: String,
-emailAddress: String,
-event: String,
-detected: DateTime,
-code: Option[Int],
-reason: Option[String]
-
 ###Request parameters
 | Param                               | Type                                          | Optional/Mandatory|
 | ---------------------------------  | ---------------------------------------------------- | --- |
