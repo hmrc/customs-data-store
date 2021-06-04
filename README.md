@@ -107,7 +107,7 @@ An endpoint to populate the historic EORI's for a given EORI
 
 An endpoint to update undeliverable information for an enrolmentValue
 
-###Request parameters
+### Request parameters
 | Param                               | Type                                          | Optional/Mandatory|
 | ---------------------------------  | ---------------------------------------------------- | --- |
 | enrolmentIdentifier | String       | Mandatory |
