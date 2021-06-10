@@ -18,7 +18,6 @@ package uk.gov.hmrc.customs.datastore.repositories
 
 import org.scalatest.Assertion
 import play.api.Application
-import play.modules.reactivemongo.ReactiveMongoApi
 import uk.gov.hmrc.customs.datastore.domain._
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
@@ -28,8 +27,7 @@ import scala.concurrent.Future
 class HistoricEoriRepositorySpec extends SpecBase {
 
   private val app: Application = application.build()
-  val repository = app.injector.instanceOf[HistoricEoriRepository]
-  app.injector.instanceOf[ReactiveMongoApi]
+  val repository = app.injector.instanceOf[DefaultHistoricEoriRepository]
 
   val eori1: Eori = "EORI00000001"
   val eori2: Eori = "EORI00000002"
@@ -65,9 +63,9 @@ class HistoricEoriRepositorySpec extends SpecBase {
         _ <- repository.set(Seq(period5, period6))
         t1 <- repository.get(period1.eori)
         t2 <- repository.get(period2.eori)
-        _ <- toFuture(t1.get.eoriPeriods mustBe history.eoriPeriods)
-        _ <- toFuture(t2.get.eoriPeriods mustBe history.eoriPeriods)
-        - <- repository.removeAll(Seq(period1.eori, period2.eori, period5.eori, period6.eori))
+        _ <- toFuture(t1.get mustBe history.eoriPeriods)
+        _ <- toFuture(t2.get mustBe history.eoriPeriods)
+        _ <- repository.collection.drop().toFuture().map(_ => ())
       } yield ())
     }
 
@@ -75,8 +73,8 @@ class HistoricEoriRepositorySpec extends SpecBase {
       await(for {
         _ <- repository.set(Seq(period1, period3))
         eoris <- repository.get(period1.eori)
-        _ <- toFuture(eoris.get.eoriPeriods mustBe Seq(period1, period3))
-        _ <- repository.removeAll(Seq(period1.eori, period3.eori))
+        _ <- toFuture(eoris.get mustBe Seq(period1, period3))
+        _ <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
 
@@ -84,8 +82,8 @@ class HistoricEoriRepositorySpec extends SpecBase {
       await(for {
         _ <- repository.set(Seq(period1, period3))
         eoris <- repository.get(period3.eori)
-        _ <- toFuture(eoris.get.eoriPeriods mustBe Seq(period1, period3))
-        _ <- repository.removeAll(Seq(period1.eori, period3.eori))
+        _ <- toFuture(eoris.get mustBe Seq(period1, period3))
+        _ <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
 
@@ -95,7 +93,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
         _ <- toFuture(eoris1 mustBe None)
         eoris2 <- repository.get(period6.eori)
         _ <- toFuture(eoris2 mustBe None)
-        _ <- repository.removeAll(Seq(period5.eori, period6.eori))
+        _ <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
   }

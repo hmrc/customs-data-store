@@ -16,69 +16,73 @@
 
 package uk.gov.hmrc.customs.datastore.repositories
 
+import com.mongodb.client.model.Indexes.ascending
+import org.mongodb.scala.model.Filters.{equal, in}
+import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions, Updates}
 import play.api.Configuration
-import play.api.libs.json.Json
-import play.modules.reactivemongo.ReactiveMongoApi
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
-import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.customs.datastore.domain.{EoriHistory, EoriPeriod}
+import play.api.libs.functional.syntax.{unlift, _}
+import play.api.libs.json.{Format, Json, OWrites, Reads, __}
+import uk.gov.hmrc.customs.datastore.domain.EoriPeriod
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
+import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
-class DefaultHistoricEoriRepository @Inject()(mongo: ReactiveMongoApi, config: Configuration)(implicit executionContext: ExecutionContext) extends HistoricEoriRepository{
+class DefaultHistoricEoriRepository @Inject()()(
+  mongoComponent: MongoComponent,
+  config: Configuration
+)(implicit executionContext: ExecutionContext)
+  extends PlayMongoRepository[EoriHistory](
+    collectionName = "historic-eoris",
+    mongoComponent = mongoComponent,
+    domainFormat = EoriHistory.format,
+    indexes = Seq(
+      IndexModel(
+        ascending("lastUpdated"),
+        IndexOptions().name("historic-eoris-last-updated-index")
+          .expireAfter(config.get[Int]("mongodb.timeToLiveInSeconds"), TimeUnit.SECONDS)
+      ))
+  ) with HistoricEoriRepository {
 
-  private val collectionName: String = "historic-eoris"
-  private val cacheTtl = config.get[Int]("mongodb.timeToLiveInSeconds")
-
-  private def collection: Future[JSONCollection] =
-    mongo.database.map(_.collection[JSONCollection](collectionName))
-
-  private val lastUpdatedIndex = Index(
-    key = Seq("lastUpdated" -> IndexType.Ascending),
-    name = Some(collectionName + "-last-updated-index"),
-    options = BSONDocument("expireAfterSeconds" -> cacheTtl)
-  )
-
-  override val started: Future[Unit] =
-    collection.flatMap {
-      _.indexesManager.ensure(lastUpdatedIndex)
-    }.map(_ => ())
-
-  override def remove(id: String): Future[Boolean] =
-    collection.flatMap(_.delete.one(Json.obj("eoriHistory.eori" -> id))).map(_.ok)
-
-  def removeAll(eoris: Seq[String]): Future[Boolean] =
-    collection.flatMap(_.delete.one(Json.obj("eoriHistory.eori" -> Json.obj("$in" -> eoris)))).map(_.ok)
-
+  override def get(id: String): Future[Option[Seq[EoriPeriod]]] =
+    collection.find(equal("eoriHistory.eori", id)).toFuture().map(_.headOption.map(_.eoriPeriods))
 
   override def set(eoriHistory: Seq[EoriPeriod]): Future[Boolean] = {
-    val selector = Json.obj("eoriHistory.eori" -> Json.obj("$in" -> eoriHistory.map(_.eori)))
-    val modifier = Json.obj("$set" -> EoriHistory(eoriHistory))
+    val query = in("eoriHistory.eori", eoriHistory.map(_.eori): _*)
 
-    collection.flatMap {
-      _.update(ordered = false)
-        .one(selector, modifier, upsert = true)
-        .map(lastError => lastError.ok)
-    }
+    val update = Updates.combine(
+      Updates.set("eoriHistory", eoriHistory.map(Codecs.toBson(_))),
+      Updates.set("lastUpdated", LocalDateTime.now())
+    )
+
+    collection.updateMany(query, update, UpdateOptions().upsert(true)).toFuture().map(v => v.wasAcknowledged())
   }
 
-  override def get(id: String): Future[Option[EoriHistory]] =
-    collection.flatMap(_.find(Json.obj("eoriHistory.eori" -> id), None).one[EoriHistory])
-
+  override def remove(id: String): Future[Boolean] =
+    collection.deleteOne(equal("eoriHistory.eori", id)).toFuture.map(_.wasAcknowledged())
 }
 
 trait HistoricEoriRepository {
+  def get(id: String): Future[Option[Seq[EoriPeriod]]]
 
-  val started: Future[Unit]
-
-  def get(id: String): Future[Option[EoriHistory]]
-
-  def set(eoriHistory: Seq[EoriPeriod]) : Future[Boolean]
+  def set(eoriHistory: Seq[EoriPeriod]): Future[Boolean]
 
   def remove(id: String): Future[Boolean]
+}
 
-  def removeAll(id: Seq[String]): Future[Boolean]
+case class EoriHistory(eoriPeriods: Seq[EoriPeriod], lastUpdated: LocalDateTime = LocalDateTime.now)
+
+object EoriHistory {
+  implicit lazy val reads: Reads[EoriHistory] = {
+    (
+      (__ \ "eoriHistory").read[Seq[EoriPeriod]] and
+        (__ \ "lastUpdated").read(MongoJavatimeFormats.localDateTimeReads)
+      ) (EoriHistory.apply _)
+  }
+  implicit val format: Format[EoriHistory] = Format(reads, Json.writes[EoriHistory])
 }

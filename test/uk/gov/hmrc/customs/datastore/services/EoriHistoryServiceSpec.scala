@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.customs.datastore.services
 
-import java.time.LocalDate
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -29,13 +28,12 @@ import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.customs.datastore.domain._
 import uk.gov.hmrc.customs.datastore.domain.onwire._
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
-import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
+import java.time.LocalDate
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-
 import scala.util.Failure
 
 

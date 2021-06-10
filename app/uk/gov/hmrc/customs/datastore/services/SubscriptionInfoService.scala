@@ -22,8 +22,7 @@ import uk.gov.hmrc.customs.datastore.controllers.CircuitBreakerProvider
 import uk.gov.hmrc.customs.datastore.domain.Eori
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient}
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
@@ -66,10 +65,10 @@ class SubscriptionInfoService @Inject()(appConfig: AppConfig, http: HttpClient, 
     val unavailablePeriodDuration = appConfig.unavailablePeriodDurationSub09
     val unstablePeriodDuration = appConfig.unstablePeriodDurationSub09
 
-    def getSubscriptions(url: String,hcWithExtraHeaders: HeaderCarrier)(implicit hc: HeaderCarrier): Future[MdgSub09DataModel] = {
+    def getSubscriptions(url: String,hcWithExtraHeaders: HeaderCarrier): Future[MdgSub09DataModel] = {
       withCircuitBreaker {
         http.GET[MdgSub09DataModel](url)(implicitly, hcWithExtraHeaders, implicitly)
-      }
+      } (hcWithExtraHeaders)
     }
   }
 }

@@ -16,65 +16,46 @@
 
 package uk.gov.hmrc.customs.datastore.repositories
 
-import play.api.libs.json.Json
-import play.modules.reactivemongo.ReactiveMongoApi
-import reactivemongo.play.json.collection.Helpers.idWrites
-import reactivemongo.play.json.collection.JSONCollection
+import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model.{ReplaceOptions, Updates}
 import uk.gov.hmrc.customs.datastore.domain.{NotificationEmail, UndeliverableInformation}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultEmailRepository @Inject()(
-                                        mongo: ReactiveMongoApi
-                                      )(implicit executionContext: ExecutionContext) extends EmailRepository {
+                                        mongoComponent: MongoComponent
+                                      )(implicit executionContext: ExecutionContext)
+extends PlayMongoRepository[NotificationEmail](
+  collectionName = "email-verification",
+  mongoComponent = mongoComponent,
+  domainFormat = NotificationEmail.emailFormat,
+  indexes = Seq()
+) with EmailRepository {
 
-  private val collectionName: String = "email-verification"
+  override def get(id: String): Future[Option[NotificationEmail]] =
+    collection.find(equal("_id", id)).toSingle.toFutureOption
 
-  private def collection: Future[JSONCollection] =
-    mongo.database.map(_.collection[JSONCollection](collectionName))
-
-  val started: Future[Unit] = collection.map(_ => ())
-
-  def get(id: String): Future[Option[NotificationEmail]] = {
-    val query = Json.obj("_id" -> id)
-    for {
-      col <- collection
-      result <- col.find(query, None).one[NotificationEmail]
-    } yield result
+  override def set(id: String, notificationEmail: NotificationEmail): Future[Boolean] = {
+    collection.replaceOne(
+      equal("_id", id),
+      notificationEmail,
+      ReplaceOptions().upsert(true)
+    ).toFuture().map(_.wasAcknowledged())
   }
 
-  def set(id: String, notificationEmail: NotificationEmail): Future[Boolean] = {
-    val selector = Json.obj("_id" -> id)
-    val modifier = Json.obj("$set" -> notificationEmail, "$unset" -> Json.obj("undeliverable" -> ""))
-
-    collection.flatMap {
-      _.update(ordered = false)
-        .one(selector, modifier, upsert = true)
-        .map(lastError => lastError.ok)
-    }
-  }
-
-  def update(undeliverableInformation: UndeliverableInformation): Future[Boolean] = {
-    val selector = Json.obj("_id" -> undeliverableInformation.enrolmentValue)
-    val modifier = Json.obj("$set" -> Json.obj("undeliverable" -> undeliverableInformation))
-    collection.flatMap {
-      _.update(ordered = false)
-        .one(selector, modifier)
-        .map(updateResult =>
-          if (!updateResult.ok) {
-            throw new RuntimeException("Failed to update record")
-          } else {
-            updateResult.n == 1
-          }
-        )
-    }
+  override def update(undeliverableInformation: UndeliverableInformation): Future[Boolean] = {
+    val update = Updates.set("undeliverable", Codecs.toBson(undeliverableInformation))
+    collection.updateOne(
+      equal("_id", undeliverableInformation.enrolmentValue),
+      update
+    ).toFuture().map(_.getModifiedCount == 1)
   }
 }
 
 trait EmailRepository {
-  val started: Future[Unit]
-
   def get(id: String): Future[Option[NotificationEmail]]
 
   def set(id: String, notificationEmail: NotificationEmail): Future[Boolean]

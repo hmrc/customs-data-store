@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.customs.datastore.services
 
-import javax.inject.Inject
 import play.api.{Logger, LoggerLike}
 import uk.gov.hmrc.customs.datastore.config.AppConfig
 import uk.gov.hmrc.customs.datastore.controllers.CircuitBreakerProvider
 import uk.gov.hmrc.customs.datastore.domain.onwire.HistoricEoriResponse
 import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod}
-import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient}
+
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 
 class EoriHistoryService @Inject()(appConfig: AppConfig, http: HttpClient, metricsReporter: MetricsReporterService)(implicit ec: ExecutionContext) {
@@ -56,10 +56,10 @@ class EoriHistoryService @Inject()(appConfig: AppConfig, http: HttpClient, metri
     val unavailablePeriodDuration = appConfig.sub21UnavailablePeriodDuration
     val unstablePeriodDuration = appConfig.sub21UnstablePeriodDuration
 
-    def getEORIHistory(url: String, hcWithExtraHeaders: HeaderCarrier)(implicit hc: HeaderCarrier): Future[HistoricEoriResponse] = {
+    def getEORIHistory(url: String, hcWithExtraHeaders: HeaderCarrier): Future[HistoricEoriResponse] = {
       withCircuitBreaker {
         http.GET[HistoricEoriResponse](url)(implicitly, hcWithExtraHeaders, implicitly)
-      }
+      } (hcWithExtraHeaders)
     }
   }
 

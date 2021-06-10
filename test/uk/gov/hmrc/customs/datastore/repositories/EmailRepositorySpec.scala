@@ -18,8 +18,6 @@ package uk.gov.hmrc.customs.datastore.repositories
 
 import org.joda.time.DateTime
 import play.api.Application
-import play.modules.reactivemongo.ReactiveMongoApi
-import reactivemongo.play.json.collection.JSONCollection
 import uk.gov.hmrc.customs.datastore.domain.{NotificationEmail, UndeliverableInformation}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
@@ -29,15 +27,10 @@ import scala.concurrent.Future
 class EmailRepositorySpec extends SpecBase {
 
   private val app: Application = application.build()
-  val repository = app.injector.instanceOf[EmailRepository]
-  val reactiveMongoAPi = app.injector.instanceOf[ReactiveMongoApi]
-
+  val repository = app.injector.instanceOf[DefaultEmailRepository]
 
   def dropData(): Future[Unit] = {
-    for {
-      col <- reactiveMongoAPi.database.map(_.collection[JSONCollection]("email-verification"))
-      _ <- col.drop(false)
-    } yield ()
+    repository.collection.drop().toFuture().map(_ => ())
   }
 
   "return 'true' if an update has been performed on a record" in {
