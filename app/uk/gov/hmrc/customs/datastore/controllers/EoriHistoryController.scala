@@ -18,9 +18,9 @@ package uk.gov.hmrc.customs.datastore.controllers
 
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.customs.datastore.connectors.EoriHistoryConnector
 import uk.gov.hmrc.customs.datastore.domain.{Eori, EoriPeriod}
 import uk.gov.hmrc.customs.datastore.repositories.HistoricEoriRepository
-import uk.gov.hmrc.customs.datastore.services.EoriHistoryService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -28,7 +28,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
-                                      historyService: EoriHistoryService,
+                                      historyService: EoriHistoryConnector,
                                       cc: ControllerComponents)(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getEoriHistory(eori: String): Action[AnyContent] = Action.async { implicit request =>

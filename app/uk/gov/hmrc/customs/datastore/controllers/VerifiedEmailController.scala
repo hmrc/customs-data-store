@@ -18,10 +18,10 @@ package uk.gov.hmrc.customs.datastore.controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import uk.gov.hmrc.customs.datastore.connectors.SubscriptionInfoConnector
 import uk.gov.hmrc.customs.datastore.domain.NotificationEmail
 import uk.gov.hmrc.customs.datastore.domain.request.UpdateVerifiedEmailRequest
 import uk.gov.hmrc.customs.datastore.repositories.EmailRepository
-import uk.gov.hmrc.customs.datastore.services.SubscriptionInfoService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class VerifiedEmailController @Inject()(
                                          emailRepo: EmailRepository,
-                                         subscriptionInfoService: SubscriptionInfoService,
+                                         subscriptionInfoService: SubscriptionInfoConnector,
                                          cc: ControllerComponents
                                        )(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 

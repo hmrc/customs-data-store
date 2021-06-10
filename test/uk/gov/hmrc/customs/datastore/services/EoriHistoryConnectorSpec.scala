@@ -25,6 +25,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.running
 import uk.gov.hmrc.customs.datastore.config.AppConfig
+import uk.gov.hmrc.customs.datastore.connectors.EoriHistoryConnector
 import uk.gov.hmrc.customs.datastore.domain._
 import uk.gov.hmrc.customs.datastore.domain.onwire._
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
@@ -37,7 +38,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Failure
 
 
-class EoriHistoryServiceSpec extends SpecBase {
+class EoriHistoryConnectorSpec extends SpecBase {
 
   protected def generateResponse(eoris: Seq[Eori]): HistoricEoriResponse = {
     HistoricEoriResponse(
@@ -88,7 +89,7 @@ class EoriHistoryServiceSpec extends SpecBase {
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[EoriHistoryService]
+      val service = app.injector.instanceOf[EoriHistoryConnector]
       val appConfig = app.injector.instanceOf[AppConfig]
 
       running(app) {
@@ -142,7 +143,7 @@ class EoriHistoryServiceSpec extends SpecBase {
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[EoriHistoryService]
+      val service = app.injector.instanceOf[EoriHistoryConnector]
 
       running(app) {
 
@@ -170,7 +171,7 @@ class EoriHistoryServiceSpec extends SpecBase {
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[EoriHistoryService]
+      val service = app.injector.instanceOf[EoriHistoryConnector]
 
       running(app) {
 
@@ -202,7 +203,7 @@ class EoriHistoryServiceSpec extends SpecBase {
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[EoriHistoryService]
+      val service = app.injector.instanceOf[EoriHistoryConnector]
 
       running(app) {
         val response = Await.ready(service.getHistory(someEori), 2 seconds)
@@ -223,7 +224,7 @@ class EoriHistoryServiceSpec extends SpecBase {
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[EoriHistoryService]
+      val service = app.injector.instanceOf[EoriHistoryConnector]
 
       running(app) {
         val response = Await.ready(service.getHistory(someEori), 2 seconds)

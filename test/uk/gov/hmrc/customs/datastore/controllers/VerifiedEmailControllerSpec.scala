@@ -23,10 +23,10 @@ import play.api.inject
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.customs.datastore.connectors.SubscriptionInfoConnector
 import uk.gov.hmrc.customs.datastore.domain.onwire.MdgSub09DataModel
 import uk.gov.hmrc.customs.datastore.domain.{NotificationEmail, TraderData}
 import uk.gov.hmrc.customs.datastore.repositories.EmailRepository
-import uk.gov.hmrc.customs.datastore.services.{SubscriptionInfoService}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
 import java.time.LocalDate
@@ -123,7 +123,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
   trait Setup {
     val mockEmailRepository: EmailRepository = mock[EmailRepository]
-    val mockSubscriptionInfoService: SubscriptionInfoService = mock[SubscriptionInfoService]
+    val mockSubscriptionInfoService: SubscriptionInfoConnector = mock[SubscriptionInfoConnector]
     val testEori = "GB12345678912"
     val testTime1 = LocalDate.now()
     val testTime = DateTime.now()
@@ -134,7 +134,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
     def app = application.overrides(
       inject.bind[EmailRepository].toInstance(mockEmailRepository),
-      inject.bind[SubscriptionInfoService].toInstance(mockSubscriptionInfoService)
+      inject.bind[SubscriptionInfoConnector].toInstance(mockSubscriptionInfoService)
     ).build()
   }
 }

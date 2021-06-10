@@ -22,9 +22,9 @@ import play.api.inject
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.customs.datastore.connectors.EoriHistoryConnector
 import uk.gov.hmrc.customs.datastore.domain.EoriPeriod
 import uk.gov.hmrc.customs.datastore.repositories.HistoricEoriRepository
-import uk.gov.hmrc.customs.datastore.services.EoriHistoryService
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 
 import java.time.LocalDate
@@ -91,7 +91,7 @@ class EoriHistoryControllerSpec extends SpecBase {
 
   trait Setup {
     val mockHistoricEoriRepository = mock[HistoricEoriRepository]
-    val mockHistoryService = mock[EoriHistoryService]
+    val mockHistoryService = mock[EoriHistoryConnector]
     val testEori = "GB32165498778"
     val date = LocalDate.now().toString
 
@@ -99,7 +99,7 @@ class EoriHistoryControllerSpec extends SpecBase {
 
     val app = application.overrides(
       inject.bind[HistoricEoriRepository].toInstance(mockHistoricEoriRepository),
-      inject.bind[EoriHistoryService].toInstance(mockHistoryService)
+      inject.bind[EoriHistoryConnector].toInstance(mockHistoryService)
     ).build()
   }
 }

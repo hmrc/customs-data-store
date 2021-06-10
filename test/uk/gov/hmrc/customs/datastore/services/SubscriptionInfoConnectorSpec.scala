@@ -20,15 +20,18 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.inject.bind
 import play.api.libs.json.JsValue
+import play.api.test.FakeRequest
 import play.api.test.Helpers.running
+import uk.gov.hmrc.customs.datastore.connectors.SubscriptionInfoConnector
 import uk.gov.hmrc.customs.datastore.domain.onwire.{MdgSub09DataModel, Sub09Response}
 import uk.gov.hmrc.customs.datastore.utils.SpecBase
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, ServiceUnavailableException}
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 
-class SubscriptionInfoServiceSpec extends SpecBase {
+class SubscriptionInfoConnectorSpec extends SpecBase {
 
 
 
@@ -50,7 +53,7 @@ class SubscriptionInfoServiceSpec extends SpecBase {
         bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[SubscriptionInfoService]
+      val service = app.injector.instanceOf[SubscriptionInfoConnector]
 
       running(app) {
         await(service.getSubscriberInformation(testEori)) mustBe None
@@ -67,7 +70,7 @@ class SubscriptionInfoServiceSpec extends SpecBase {
         bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[SubscriptionInfoService]
+      val service = app.injector.instanceOf[SubscriptionInfoConnector]
 
       running(app) {
         val result = await(service.getSubscriberInformation(testEori)).value
@@ -87,7 +90,7 @@ class SubscriptionInfoServiceSpec extends SpecBase {
         bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[SubscriptionInfoService]
+      val service = app.injector.instanceOf[SubscriptionInfoConnector]
 
       running(app) {
         await(service.getSubscriberInformation(testEori)) mustBe None
@@ -104,7 +107,7 @@ class SubscriptionInfoServiceSpec extends SpecBase {
         bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[SubscriptionInfoService]
+      val service = app.injector.instanceOf[SubscriptionInfoConnector]
 
       running(app) {
         assertThrows[ServiceUnavailableException](await(service.getSubscriberInformation(testEori)))
