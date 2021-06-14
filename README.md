@@ -138,7 +138,7 @@ An endpoint to update undeliverable information for an enrolmentValue
 | Status                               | Description                                          |
 | ---------------------------------  | ---------------------------------------------------- |
 | 204 | Successfully updated undeliverable information for enrolmentValue  |
-| 404 | If not able to find a record associated to that enrolmentValue |
+| 404 | No update was performed on a record either due to it not existing or already having the same undeliverable information present |
 | 400 | If enrolmentIdentifier is not equal to 'EORINumber' |
 | 500 | An unexpected failure happened in the service |
 
