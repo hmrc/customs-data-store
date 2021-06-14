@@ -27,7 +27,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
-                                      historyService: EoriHistoryConnector,
+                                      eoriHistoryConnector: EoriHistoryConnector,
                                       cc: ControllerComponents)(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getEoriHistory(eori: String): Action[AnyContent] = Action.async {
@@ -43,7 +43,7 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
     (for {
       updateEoriSucceeded <- historicEoriRepository.set(Seq(request.body))
-      eoriHistory <- if (updateEoriSucceeded) historyService.getHistory(request.body.eori) else throw FailedToUpdateCache
+      eoriHistory <- if (updateEoriSucceeded) eoriHistoryConnector.getHistory(request.body.eori) else throw FailedToUpdateCache
       updateEoriHistorySucceeded <- historicEoriRepository.set(eoriHistory)
     } yield {
       if (updateEoriHistorySucceeded) {
@@ -56,7 +56,7 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
 
   private def retrieveAndStoreHistoricEoris(eori: String): Future[EoriHistoryResponse] = {
     for {
-      eoriHistory <- historyService.getHistory(eori)
+      eoriHistory <- eoriHistoryConnector.getHistory(eori)
       updateSucceeded <- historicEoriRepository.set(eoriHistory)
       maybeEoriHistory <- if (updateSucceeded) historicEoriRepository.get(eori) else throw FailedToUpdateCache
       result = maybeEoriHistory match {

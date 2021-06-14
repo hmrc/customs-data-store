@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class VerifiedEmailController @Inject()(
                                          emailRepo: EmailRepository,
-                                         subscriptionInfoService: SubscriptionInfoConnector,
+                                         subscriptionInfoConnector: SubscriptionInfoConnector,
                                          cc: ControllerComponents
                                        )(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
@@ -44,7 +44,7 @@ class VerifiedEmailController @Inject()(
 
     def retrieveNotificationEmail: Future[Result] =
       for {
-        sub09Response <- subscriptionInfoService.getSubscriberInformation(eori)
+        sub09Response <- subscriptionInfoConnector.getSubscriberInformation(eori)
         notificationEmail = sub09Response.map(NotificationEmail.fromMdgSub09Model)
         result <- storeDataResult(notificationEmail)
       } yield result
