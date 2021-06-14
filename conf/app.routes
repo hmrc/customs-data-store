@@ -1,9 +1,9 @@
 # microservice specific routes
 
-GET        /eori/:eori/verified-email      uk.gov.hmrc.customs.datastore.controllers.VerifiedEmailController.getVerifiedEmail(eori: String)
-POST       /update-email                   uk.gov.hmrc.customs.datastore.controllers.VerifiedEmailController.updateVerifiedEmail()
-POST       /update-undeliverable-email     uk.gov.hmrc.customs.datastore.controllers.UndeliverableEmailController.makeUndeliverable()
+GET        /eori/:eori/verified-email      controllers.VerifiedEmailController.getVerifiedEmail(eori: String)
+POST       /update-email                   controllers.VerifiedEmailController.updateVerifiedEmail()
+POST       /update-undeliverable-email     controllers.UndeliverableEmailController.makeUndeliverable()
 
-GET        /eori/:eori/eori-history         uk.gov.hmrc.customs.datastore.controllers.EoriHistoryController.getEoriHistory(eori: String)
-POST       /update-eori-history             uk.gov.hmrc.customs.datastore.controllers.EoriHistoryController.updateEoriHistory()
+GET        /eori/:eori/eori-history         controllers.EoriHistoryController.getEoriHistory(eori: String)
+POST       /update-eori-history             controllers.EoriHistoryController.updateEoriHistory()
 
