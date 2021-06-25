@@ -20,7 +20,7 @@ import play.api.libs.json.{Json, OFormat}
 
 case class EORIHistory(EORI: String,
                        validFrom: Option[String],
-                       validUntil: Option[String])
+                       validTo: Option[String])
 
 object EORIHistory {
   implicit val eoriHistoryFormat: OFormat[EORIHistory] = Json.format[EORIHistory]
