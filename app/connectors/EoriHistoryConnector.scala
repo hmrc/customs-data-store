@@ -39,7 +39,7 @@ class EoriHistoryConnector @Inject()(appConfig: AppConfig,
       http.GET[HistoricEoriResponse](url, headers = headers).map {
         response =>
           response.getEORIHistoryResponse.responseDetail.EORIHistory
-            .map(history => EoriPeriod(history.EORI, history.validFrom, history.validUntil))
+            .map(history => EoriPeriod(history.EORI, history.validFrom, history.validTo))
       }
     }
   }
