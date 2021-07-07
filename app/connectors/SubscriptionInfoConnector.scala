@@ -17,6 +17,7 @@
 package connectors
 
 import config.AppConfig
+import models.NotificationEmail
 import models.responses.MdgSub09Response
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpReads.Implicits._
@@ -33,7 +34,7 @@ class SubscriptionInfoConnector @Inject()(appConfig: AppConfig,
                                           http: HttpClient,
                                           metricsReporter: MetricsReporterService)(implicit executionContext: ExecutionContext) {
 
-  def getSubscriberInformation(eori: String): Future[Option[MdgSub09Response]] = {
+  def getSubscriberInformation(eori: String): Future[Option[NotificationEmail]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
     val localDate = LocalDateTime.now().format(dateFormat)
@@ -50,7 +51,7 @@ class SubscriptionInfoConnector @Inject()(appConfig: AppConfig,
 
     metricsReporter.withResponseTimeLogging("mdg.get.company-information") {
       http.GET[MdgSub09Response](uri, headers = headers).map {
-        case e@MdgSub09Response(Some(_), Some(_)) => Some(e)
+        case MdgSub09Response(Some(email), Some(timestamp)) => Some(NotificationEmail(email, timestamp, None))
         case _ => None
       }
     }

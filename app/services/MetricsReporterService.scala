@@ -31,7 +31,7 @@ class MetricsReporterService @Inject()(metrics: com.kenshoo.play.metrics.Metrics
 
   def withResponseTimeLogging[T](resourceName: String)(future: Future[T])
                                 (implicit ec: ExecutionContext): Future[T] = {
-    val startTime = dateTimeService.getTimeStamp()
+    val startTime = dateTimeService.getTimeStamp
     future.andThen { case response =>
       val httpResponseCode = response match {
         case Success(_) => Status.OK
@@ -40,11 +40,11 @@ class MetricsReporterService @Inject()(metrics: com.kenshoo.play.metrics.Metrics
         case Failure(exception: UpstreamErrorResponse) => exception.statusCode
         case Failure(_) => Status.INTERNAL_SERVER_ERROR
       }
-      updateResponseTimeHistogram(resourceName, httpResponseCode, startTime, dateTimeService.getTimeStamp())
+      updateResponseTimeHistogram(resourceName, httpResponseCode, startTime, dateTimeService.getTimeStamp)
     }
   }
 
-  def updateResponseTimeHistogram(resourceName: String, httpResponseCode: Int,
+  private def updateResponseTimeHistogram(resourceName: String, httpResponseCode: Int,
                                   startTimestamp: OffsetDateTime, endTimestamp: OffsetDateTime): Unit = {
     val RESPONSE_TIMES_METRIC = "responseTimes"
     val histogramName = s"$RESPONSE_TIMES_METRIC.$resourceName.$httpResponseCode"

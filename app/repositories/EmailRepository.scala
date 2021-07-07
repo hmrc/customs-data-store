@@ -38,25 +38,31 @@ extends PlayMongoRepository[NotificationEmail](
   override def get(id: String): Future[Option[NotificationEmail]] =
     collection.find(equal("_id", id)).toSingle.toFutureOption
 
-  override def set(id: String, notificationEmail: NotificationEmail): Future[Boolean] = {
+  override def set(id: String, notificationEmail: NotificationEmail): Future[EmailRepositoryResult] = {
     collection.replaceOne(
       equal("_id", id),
       notificationEmail,
       ReplaceOptions().upsert(true)
-    ).toFuture().map(_.wasAcknowledged())
+    ).toFuture().map(v => if (v.wasAcknowledged()) SuccessfulEmail else FailedToRetrieveEmail)
   }
 
-  override def update(undeliverableInformation: UndeliverableInformation): Future[Boolean] = {
+  override def update(undeliverableInformation: UndeliverableInformation): Future[EmailRepositoryResult] = {
     val update = Updates.set("undeliverable", Codecs.toBson(undeliverableInformation))
     collection.updateOne(
       equal("_id", undeliverableInformation.enrolmentValue),
       update
-    ).toFuture().map(_.getModifiedCount == 1)
+    ).toFuture().map(v => if(v.getModifiedCount == 1) SuccessfulEmail else NoEmailDocumentsUpdated)
   }
 }
 
 trait EmailRepository {
   def get(id: String): Future[Option[NotificationEmail]]
-  def set(id: String, notificationEmail: NotificationEmail): Future[Boolean]
-  def update(undeliverableInformation: UndeliverableInformation): Future[Boolean]
+  def set(id: String, notificationEmail: NotificationEmail): Future[EmailRepositoryResult]
+  def update(undeliverableInformation: UndeliverableInformation): Future[EmailRepositoryResult]
 }
+
+sealed trait EmailRepositoryResult
+case object SuccessfulEmail extends EmailRepositoryResult
+case object FailedToRetrieveEmail extends EmailRepositoryResult
+case object NoEmailDocumentsUpdated extends EmailRepositoryResult
+

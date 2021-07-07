@@ -36,7 +36,7 @@ class MetricsReporterServiceSpec extends SpecBase {
   val endTimestamp = OffsetDateTime.parse("2018-11-09T17:15:35+01:00")
   val elapsedTimeInMillis = 5000L // endTimestamp - startTimestamp
 
-  when(mockDateTimeService.getTimeStamp())
+  when(mockDateTimeService.getTimeStamp)
     .thenReturn(startTimestamp)
     .thenReturn(endTimestamp)
 

@@ -16,29 +16,24 @@
 
 package controllers
 
-import play.api.mvc.{Action, ControllerComponents}
 import models.UndeliverableInformation
-import repositories.EmailRepository
+import play.api.mvc.{Action, ControllerComponents}
+import repositories.{EmailRepository, SuccessfulEmail}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
                                              cc: ControllerComponents)
                                             (implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def makeUndeliverable(): Action[UndeliverableInformation] = Action.async(parse.json[UndeliverableInformation]) { implicit request =>
-    val undeliverableInformation: UndeliverableInformation = request.body
-
-    if (undeliverableInformation.enrolmentIdentifier == "EORINumber") {
-      emailRepository.update(undeliverableInformation).map { updatedRecord =>
-        if (updatedRecord) NoContent else NotFound
-      }.recover {
-        case _ => InternalServerError
-      }
-    } else {
-      Future.successful(BadRequest)
+    emailRepository.update(request.body).map {
+      case SuccessfulEmail => NoContent
+      case _ => NotFound
+    }.recover {
+      case _ => InternalServerError
     }
   }
 }

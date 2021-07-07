@@ -16,11 +16,11 @@
 
 package controllers
 
-import play.api.libs.json.{Json, OFormat}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import connectors.EoriHistoryConnector
 import models._
-import repositories.HistoricEoriRepository
+import play.api.libs.json.{Json, OFormat}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import repositories._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -28,40 +28,43 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
                                       eoriHistoryConnector: EoriHistoryConnector,
-                                      cc: ControllerComponents)(implicit executionContext: ExecutionContext) extends BackendController(cc) {
+                                      cc: ControllerComponents
+                                     )(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getEoriHistory(eori: String): Action[AnyContent] = Action.async {
     historicEoriRepository.get(eori).flatMap {
-      case Some(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
+      case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
         Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
-      case _ => retrieveAndStoreHistoricEoris(eori).map {
-        eoriHistoryResponse => Ok(Json.toJson(eoriHistoryResponse))
-      }.recover { case _ => InternalServerError }
+      case _ => retrieveAndStoreHistoricEoris(eori)
     }
   }
 
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
     (for {
+      eoriHistory <- eoriHistoryConnector.getHistory(request.body.eori)
       updateEoriSucceeded <- historicEoriRepository.set(Seq(request.body))
-      eoriHistory <- if (updateEoriSucceeded) eoriHistoryConnector.getHistory(request.body.eori) else throw FailedToUpdateCache
-      updateEoriHistorySucceeded <- historicEoriRepository.set(eoriHistory)
+      updateEoriHistorySucceeded <- updateEoriSucceeded match {
+        case HistoricEoriSuccessful => historicEoriRepository.set(eoriHistory)
+        case _ => Future.successful(FailedToUpdateHistoricEori)
+      }
     } yield {
-      if (updateEoriHistorySucceeded) {
-        NoContent
-      } else {
-        InternalServerError
+      updateEoriHistorySucceeded match {
+        case HistoricEoriSuccessful => NoContent
+        case _ => InternalServerError
       }
     }).recover { case _ => InternalServerError }
   }
 
-  private def retrieveAndStoreHistoricEoris(eori: String): Future[EoriHistoryResponse] = {
+  private def retrieveAndStoreHistoricEoris(eori: String): Future[Result] = {
     for {
       eoriHistory <- eoriHistoryConnector.getHistory(eori)
-      updateSucceeded <- historicEoriRepository.set(eoriHistory)
-      maybeEoriHistory <- if (updateSucceeded) historicEoriRepository.get(eori) else throw FailedToUpdateCache
-      result = maybeEoriHistory match {
-        case Some(eoriPeriods) => EoriHistoryResponse(eoriPeriods)
-        case None => throw FailedToRetrieveEoriHistoryFromCache
+      updateResult <- historicEoriRepository.set(eoriHistory)
+      result <- updateResult match {
+        case HistoricEoriSuccessful => historicEoriRepository.get(eori).map {
+          case Left(_) => InternalServerError
+          case Right(value) => Ok(Json.toJson(EoriHistoryResponse(value)))
+        }
+        case _ => Future.successful(InternalServerError)
       }
     } yield result
   }
@@ -72,7 +75,3 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
     implicit val format: OFormat[EoriHistoryResponse] = Json.format[EoriHistoryResponse]
   }
 }
-
-case object FailedToUpdateCache extends Exception("Failed to update EoriStore with eori on updateEoriHistory")
-
-case object FailedToRetrieveEoriHistoryFromCache extends Exception("Failed to retrieve eori history after upadting cache")

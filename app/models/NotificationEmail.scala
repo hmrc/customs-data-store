@@ -18,20 +18,15 @@ package models
 
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, OFormat}
-import models.responses.MdgSub09Response
 
-case class NotificationEmail(address: Option[String],
-                             timestamp: Option[DateTime],
-                             undeliverable: Option[UndeliverableInformation] = None)
+case class NotificationEmail(address: String,
+                             timestamp: DateTime,
+                             undeliverable: Option[UndeliverableInformation])
 
 
 
 
 object NotificationEmail {
-  def fromMdgSub09Model(mdgSub09DataModel: MdgSub09Response): NotificationEmail = {
-    NotificationEmail(mdgSub09DataModel.emailAddress, mdgSub09DataModel.verifiedTimestamp)
-  }
-
   import play.api.libs.json.JodaReads._
   import play.api.libs.json.JodaWrites._
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]

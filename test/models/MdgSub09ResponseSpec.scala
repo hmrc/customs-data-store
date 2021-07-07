@@ -29,13 +29,13 @@ class MdgSub09ResponseSpec extends SpecBase {
       val sub09Response = Sub09Response.withEmailAndTimestamp(EORI1)
       val result = MdgSub09Response.sub09Reads.reads(sub09Response).get
       result.verifiedTimestamp.nonEmpty mustBe true
-      result.emailAddress.get mustBe "mickey.mouse@disneyland.com"
+      result.emailAddress.get mustBe "email@email.com"
     }
 
     "parse message with email and no timestamp" in {
       val sub09Response = Sub09Response.withEmailNoTimestamp(EORI1)
       val result = MdgSub09Response.sub09Reads.reads(sub09Response).get
-      result mustBe MdgSub09Response(Some("mickey.mouse@disneyland.com"), None)
+      result mustBe MdgSub09Response(Some("email@email.com"), None)
     }
 
     "parse message no email and no timestamp" in {
@@ -56,15 +56,14 @@ object Sub09Response {
 
   def withEmailAndTimestamp(eori: String): JsValue = {
     val response = sub09Response(eori)
-      .replace(emailKey, """ "emailAddress": "mickey.mouse@disneyland.com", """)
+      .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey,""" "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
     Json.parse(response)
   }
 
-  //TODO You can remove this once ETMP updates their api (The timestamp currently is not part of the response, but it will be later
   def withEmailNoTimestamp(eori: String): JsValue = {
     val response = sub09Response(eori)
-      .replace(emailKey, """ "emailAddress": "mickey.mouse@disneyland.com", """)
+      .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey, "")
     Json.parse(response)
   }

@@ -30,10 +30,8 @@ class AppConfig @Inject()(val configuration: Configuration, servicesConfig: Serv
   }
 
   lazy val sub21EORIHistoryEndpoint: String = servicesConfig.baseUrl("sub21") / configuration.getOptional[String]("microservice.services.sub21.historicEoriEndpoint").getOrElse("/")
-  lazy val sub21HostHeader: Option[String] = configuration.getOptional[String]("microservice.services.sub21.host-header")
   lazy val sub21BearerToken: String = "Bearer " +configuration.getOptional[String]("microservice.services.sub21.bearer-token").getOrElse("secret-token")
   lazy val sub09GetSubscriptionsEndpoint: String = servicesConfig.baseUrl("sub09") / configuration.getOptional[String]("microservice.services.sub09.companyInformationEndpoint").getOrElse("/")
-  lazy val sub09HostHeader: Option[String] = configuration.getOptional[String]("microservice.services.sub09.host-header")
   lazy val sub09BearerToken: String = "Bearer " +configuration.getOptional[String]("microservice.services.sub09.bearer-token").getOrElse("secret-token")
 }
 

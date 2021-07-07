@@ -49,8 +49,7 @@ class SubscriptionInfoConnectorSpec extends SpecBase {
 
       running(app) {
         val result = await(service.getSubscriberInformation(testEori)).value
-        result.emailAddress.value mustBe "mickey.mouse@disneyland.com"
-        result.verifiedTimestamp.nonEmpty mustBe true
+        result.address mustBe "email@email.com"
       }
     }
 
