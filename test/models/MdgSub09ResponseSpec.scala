@@ -61,7 +61,6 @@ object Sub09Response {
     Json.parse(response)
   }
 
-  //TODO You can remove this once ETMP updates their api (The timestamp currently is not part of the response, but it will be later
   def withEmailNoTimestamp(eori: String): JsValue = {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)

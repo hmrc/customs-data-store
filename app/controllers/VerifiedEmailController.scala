@@ -38,15 +38,13 @@ class VerifiedEmailController @Inject()(
   def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async {
     def retrieveAndStoreEmail: Future[Result] = {
       (for {
-        sub09Response <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
-        notificationEmail = NotificationEmail.fromMdgSub09Model(sub09Response)
-        result <- OptionT.liftF(emailRepo.set(eori, NotificationEmail.fromMdgSub09Model(sub09Response)).map {
+        notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
+        result <- OptionT.liftF(emailRepo.set(eori, notificationEmail).map {
           case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
           case _ => InternalServerError
         })
       } yield result).getOrElse(NotFound)
     }
-
 
     emailRepo.get(eori).flatMap {
       case Some(value) => Future.successful(Ok(Json.toJson(value)))
@@ -58,7 +56,7 @@ class VerifiedEmailController @Inject()(
     Action.async(parse.json[UpdateVerifiedEmailRequest]) { implicit request =>
       emailRepo.set(
         request.body.eori,
-        NotificationEmail(Some(request.body.address), Some(request.body.timestamp), None)
+        NotificationEmail(request.body.address, request.body.timestamp, None)
       ).map {
         case SuccessfulEmail => NoContent
         case _ => InternalServerError

@@ -28,13 +28,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
                                       eoriHistoryConnector: EoriHistoryConnector,
-                                      cc: ControllerComponents)(implicit executionContext: ExecutionContext) extends BackendController(cc) {
+                                      cc: ControllerComponents
+                                     )(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getEoriHistory(eori: String): Action[AnyContent] = Action.async {
     historicEoriRepository.get(eori).flatMap {
       case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
         Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
-      case Left(_) => retrieveAndStoreHistoricEoris(eori)
       case _ => retrieveAndStoreHistoricEoris(eori)
     }
   }
@@ -56,22 +56,17 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
   }
 
   private def retrieveAndStoreHistoricEoris(eori: String): Future[Result] = {
-    val result = for {
+    for {
       eoriHistory <- eoriHistoryConnector.getHistory(eori)
       updateResult <- historicEoriRepository.set(eoriHistory)
       result <- updateResult match {
         case HistoricEoriSuccessful => historicEoriRepository.get(eori).map {
-          case Left(_) => Left(FailedToUpdateHistoricEori)
-          case Right(value) => Right(EoriHistoryResponse(value))
+          case Left(_) => InternalServerError
+          case Right(value) => Ok(Json.toJson(EoriHistoryResponse(value)))
         }
-        case _ => Future.successful(Left(FailedToUpdateHistoricEori))
+        case _ => Future.successful(InternalServerError)
       }
     } yield result
-
-    result.map {
-      case Left(_) => InternalServerError
-      case Right(eoriPeriods) => Ok(Json.toJson(eoriPeriods))
-    }
   }
 
   case class EoriHistoryResponse(eoriHistory: Seq[EoriPeriod])

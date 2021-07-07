@@ -35,7 +35,7 @@ class EmailRepositorySpec extends SpecBase {
 
   "return 'true' if an update has been performed on a record" in {
     val eori = "SomeEori"
-    val notificationEmail = NotificationEmail(Some("some@email.com"), Some(DateTime.now()), None)
+    val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
     val undeliverableInformation = UndeliverableInformation("EORINumber", eori, "some2@email.com", "some event", DateTime.now(), None, None)
 
     await(for {
@@ -53,7 +53,7 @@ class EmailRepositorySpec extends SpecBase {
   "return 'false' if no update performed" in {
     val eori = "UnknownEori"
     val otherEori = "someEori"
-    val notificationEmail = NotificationEmail(Some("some@email.com"), Some(DateTime.now()), None)
+    val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
     val undeliverableInformation = UndeliverableInformation("EORINumber", eori, "some2@email.com", "some event", DateTime.now(), None, None)
 
     await(for {
@@ -69,7 +69,7 @@ class EmailRepositorySpec extends SpecBase {
 
   "remove the undeliverable object when setting a new email address" in {
     val eori = "someEori"
-    val notificationEmail = NotificationEmail(Some("some@email.com"), Some(DateTime.now()), None)
+    val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
     val undeliverableInformation = UndeliverableInformation("EORINumber", eori, "some2@email.com", "some event", DateTime.now(), None, None)
 
     await(for {

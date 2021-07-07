@@ -16,13 +16,13 @@
 
 package controllers
 
-import play.api.mvc.{Action, ControllerComponents}
 import models.UndeliverableInformation
-import repositories.{EmailRepository, FailedToRetrieveEmail, NoEmailDocumentsUpdated, SuccessfulEmail}
+import play.api.mvc.{Action, ControllerComponents}
+import repositories.{EmailRepository, SuccessfulEmail}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
                                              cc: ControllerComponents)
