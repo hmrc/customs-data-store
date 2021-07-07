@@ -17,12 +17,12 @@
 package repositories
 
 import com.mongodb.client.model.Indexes.ascending
+import models.EoriPeriod
 import org.mongodb.scala.model.Filters.{equal, in}
 import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions, Updates}
 import play.api.Configuration
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, Json, Reads, __}
-import models.EoriPeriod
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
@@ -48,10 +48,15 @@ class DefaultHistoricEoriRepository @Inject()()(
       ))
   ) with HistoricEoriRepository {
 
-  override def get(id: String): Future[Option[Seq[EoriPeriod]]] =
-    collection.find(equal("eoriHistory.eori", id)).toFuture().map(_.headOption.map(_.eoriPeriods))
+  override def get(id: String): Future[Either[HistoricEoriRepositoryResult, Seq[EoriPeriod]]] =
+    collection
+      .find(equal("eoriHistory.eori", id))
+      .toFuture().map(_.headOption match {
+      case Some(value) => Right(value.eoriPeriods)
+      case None => Left(FailedToRetrieveHistoricEori)
+    })
 
-  override def set(eoriHistory: Seq[EoriPeriod]): Future[Boolean] = {
+  override def set(eoriHistory: Seq[EoriPeriod]): Future[HistoricEoriRepositoryResult] = {
     val query = in("eoriHistory.eori", eoriHistory.map(_.eori): _*)
 
     val update = Updates.combine(
@@ -59,16 +64,19 @@ class DefaultHistoricEoriRepository @Inject()()(
       Updates.set("lastUpdated", LocalDateTime.now())
     )
 
-    collection.updateMany(query, update, UpdateOptions().upsert(true)).toFuture().map(v => v.wasAcknowledged())
+    collection
+      .updateMany(query, update, UpdateOptions()
+      .upsert(true))
+      .toFuture().map(v => if (v.wasAcknowledged()) HistoricEoriSuccessful else FailedToUpdateHistoricEori)
   }
 }
 
 trait HistoricEoriRepository {
-  def get(id: String): Future[Option[Seq[EoriPeriod]]]
-  def set(eoriHistory: Seq[EoriPeriod]): Future[Boolean]
+  def get(id: String): Future[Either[HistoricEoriRepositoryResult, Seq[EoriPeriod]]]
+  def set(eoriHistory: Seq[EoriPeriod]): Future[HistoricEoriRepositoryResult]
 }
 
-case class EoriHistory(eoriPeriods: Seq[EoriPeriod], lastUpdated: LocalDateTime = LocalDateTime.now)
+case class EoriHistory(eoriPeriods: Seq[EoriPeriod], lastUpdated: LocalDateTime)
 
 object EoriHistory {
   implicit lazy val reads: Reads[EoriHistory] = {
@@ -79,3 +87,9 @@ object EoriHistory {
   }
   implicit val format: Format[EoriHistory] = Format(reads, Json.writes[EoriHistory])
 }
+
+sealed trait HistoricEoriRepositoryResult
+
+case object HistoricEoriSuccessful extends HistoricEoriRepositoryResult
+case object FailedToUpdateHistoricEori extends HistoricEoriRepositoryResult
+case object FailedToRetrieveHistoricEori extends HistoricEoriRepositoryResult

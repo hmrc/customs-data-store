@@ -21,13 +21,15 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class MdgSub09Response(
-                              emailAddress: Option[String],
-                              verifiedTimestamp: Option[DateTime]
-                            )
+                             emailAddress: Option[String],
+                             verifiedTimestamp: Option[DateTime]
+                           )
 
 object MdgSub09Response {
   implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.DefaultJodaDateTimeReads, JodaWrites.JodaDateTimeWrites)
 
   implicit val sub09Reads: Reads[MdgSub09Response] =
-    ((JsPath \\ "emailAddress").readNullable[String] and (JsPath \\ "emailVerificationTimestamp").readNullable[DateTime])(MdgSub09Response.apply _)
+    ((JsPath \\ "emailAddress").readNullable[String] and
+      (JsPath \\ "emailVerificationTimestamp").readNullable[DateTime]
+      ) (MdgSub09Response.apply _)
 }

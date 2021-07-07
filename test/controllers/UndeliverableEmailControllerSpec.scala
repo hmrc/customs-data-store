@@ -23,7 +23,7 @@ import play.api.inject
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.EmailRepository
+import repositories.{EmailRepository, FailedToRetrieveEmail, SuccessfulEmail}
 import utils.SpecBase
 
 import scala.concurrent.Future
@@ -32,7 +32,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
   "makeUndeliverable" should {
     "return 404 if user has not been found in the data-store based on EORI" in new Setup {
-      when(mockEmailRepository.update(any())).thenReturn(Future.successful(false))
+      when(mockEmailRepository.update(any())).thenReturn(Future.successful(FailedToRetrieveEmail))
       val request = FakeRequest(POST, routes.UndeliverableEmailController.makeUndeliverable().url).withJsonBody(
         Json.obj(
           "enrolmentIdentifier" -> "EORINumber",
@@ -113,7 +113,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
     "return 204 if the update was successful to the database" in new Setup {
       when(mockEmailRepository.update(any())).thenReturn(
-        Future.successful(true)
+        Future.successful(SuccessfulEmail)
       )
 
       val request = FakeRequest(POST, routes.UndeliverableEmailController.makeUndeliverable().url).withJsonBody(

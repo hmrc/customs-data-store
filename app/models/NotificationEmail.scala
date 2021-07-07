@@ -22,14 +22,14 @@ import models.responses.MdgSub09Response
 
 case class NotificationEmail(address: Option[String],
                              timestamp: Option[DateTime],
-                             undeliverable: Option[UndeliverableInformation] = None)
+                             undeliverable: Option[UndeliverableInformation])
 
 
 
 
 object NotificationEmail {
   def fromMdgSub09Model(mdgSub09DataModel: MdgSub09Response): NotificationEmail = {
-    NotificationEmail(mdgSub09DataModel.emailAddress, mdgSub09DataModel.verifiedTimestamp)
+    NotificationEmail(mdgSub09DataModel.emailAddress, mdgSub09DataModel.verifiedTimestamp, None)
   }
 
   import play.api.libs.json.JodaReads._

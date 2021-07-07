@@ -22,9 +22,14 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
-class SpecBase extends AnyWordSpecLike  with MockitoSugar with Matchers with FutureAwaits with DefaultAwaitTimeout with OptionValues with BeforeAndAfterEach {
+class SpecBase
+  extends AnyWordSpecLike
+    with MockitoSugar
+    with Matchers
+    with FutureAwaits
+    with DefaultAwaitTimeout
+    with OptionValues
+    with BeforeAndAfterEach {
 
-  def application = new GuiceApplicationBuilder()
-    .configure("metrics.enabled" -> "false")
-
+  def application = new GuiceApplicationBuilder().configure("metrics.enabled" -> "false")
 }

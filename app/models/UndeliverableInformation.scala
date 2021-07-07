@@ -17,7 +17,7 @@
 package models
 
 import org.joda.time.DateTime
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Json, OFormat, OWrites, Reads}
 
 case class UndeliverableInformation(enrolmentIdentifier: String,
                                     enrolmentValue: String,
@@ -28,7 +28,12 @@ case class UndeliverableInformation(enrolmentIdentifier: String,
                                     reason: Option[String])
 
 object UndeliverableInformation {
+
   import play.api.libs.json.JodaReads._
   import play.api.libs.json.JodaWrites._
-  implicit val format: OFormat[UndeliverableInformation] = Json.format[UndeliverableInformation]
+
+  implicit val reads: Reads[UndeliverableInformation] = Json.reads[UndeliverableInformation].filter(
+    request => request.enrolmentIdentifier == "EORINumber"
+  )
+  implicit val writes: OWrites[UndeliverableInformation] = Json.writes[UndeliverableInformation]
 }

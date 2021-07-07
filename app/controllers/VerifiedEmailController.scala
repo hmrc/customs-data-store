@@ -16,12 +16,14 @@
 
 package controllers
 
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import cats.data.OptionT
+import cats.implicits._
 import connectors.SubscriptionInfoConnector
 import models.NotificationEmail
 import models.requests.UpdateVerifiedEmailRequest
-import repositories.EmailRepository
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import repositories.{EmailRepository, SuccessfulEmail}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -34,35 +36,32 @@ class VerifiedEmailController @Inject()(
                                        )(implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async {
-    def storeDataResult(maybeNotificationEmail: Option[NotificationEmail]): Future[Result] =
-      maybeNotificationEmail match {
-        case Some(value) => emailRepo.set(eori, value).map { writeSucceeded =>
-          if (writeSucceeded) Ok(Json.toJson(value)) else InternalServerError
-        }
-        case None => Future.successful(NotFound)
-      }
+    def retrieveAndStoreEmail: Future[Result] = {
+      (for {
+        sub09Response <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
+        notificationEmail = NotificationEmail.fromMdgSub09Model(sub09Response)
+        result <- OptionT.liftF(emailRepo.set(eori, NotificationEmail.fromMdgSub09Model(sub09Response)).map {
+          case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
+          case _ => InternalServerError
+        })
+      } yield result).getOrElse(NotFound)
+    }
 
-    def retrieveNotificationEmail: Future[Result] =
-      for {
-        sub09Response <- subscriptionInfoConnector.getSubscriberInformation(eori)
-        notificationEmail = sub09Response.map(NotificationEmail.fromMdgSub09Model)
-        result <- storeDataResult(notificationEmail)
-      } yield result
 
     emailRepo.get(eori).flatMap {
       case Some(value) => Future.successful(Ok(Json.toJson(value)))
-      case None => retrieveNotificationEmail
+      case None => retrieveAndStoreEmail
     }
   }
 
-
-  def updateVerifiedEmail(): Action[UpdateVerifiedEmailRequest] = Action.async(parse.json[UpdateVerifiedEmailRequest]) {
-    implicit request =>
+  def updateVerifiedEmail(): Action[UpdateVerifiedEmailRequest] =
+    Action.async(parse.json[UpdateVerifiedEmailRequest]) { implicit request =>
       emailRepo.set(
         request.body.eori,
-        NotificationEmail(Some(request.body.address), Some(request.body.timestamp))
+        NotificationEmail(Some(request.body.address), Some(request.body.timestamp), None)
       ).map {
-        updateSucceeded => if (updateSucceeded) NoContent else InternalServerError
+        case SuccessfulEmail => NoContent
+        case _ => InternalServerError
       }
-  }
+    }
 }
