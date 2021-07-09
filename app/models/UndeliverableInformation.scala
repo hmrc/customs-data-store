@@ -19,21 +19,24 @@ package models
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, OFormat, OWrites, Reads}
 
-case class UndeliverableInformation(enrolmentIdentifier: String,
-                                    enrolmentValue: String,
+case class UndeliverableInformation(enrolment: String,
                                     emailAddress: String,
                                     event: String,
                                     detected: DateTime,
                                     code: Option[Int],
-                                    reason: Option[String])
+                                    reason: Option[String]) {
+
+  def extractEori: Option[String] = enrolment.split("~") match {
+    case Array("HMRC-CUS-ORG", "EORINumber", value) => Some(value)
+    case _ => None
+  }
+}
 
 object UndeliverableInformation {
 
   import play.api.libs.json.JodaReads._
   import play.api.libs.json.JodaWrites._
 
-  implicit val reads: Reads[UndeliverableInformation] = Json.reads[UndeliverableInformation].filter(
-    request => request.enrolmentIdentifier == "EORINumber"
-  )
+  implicit val reads: Reads[UndeliverableInformation] = Json.reads[UndeliverableInformation]
   implicit val writes: OWrites[UndeliverableInformation] = Json.writes[UndeliverableInformation]
 }

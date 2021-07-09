@@ -36,12 +36,12 @@ class EmailRepositorySpec extends SpecBase {
   "return 'true' if an update has been performed on a record" in {
     val eori = "SomeEori"
     val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
-    val undeliverableInformation = UndeliverableInformation("EORINumber", eori, "some2@email.com", "some event", DateTime.now(), None, None)
+    val undeliverableInformation = UndeliverableInformation(s"HMRC-CUS-ORG~EORINumber~$eori", "some2@email.com", "some event", DateTime.now(), None, None)
 
     await(for {
       _ <- repository.set(eori, notificationEmail)
       currentNotification <- repository.get(eori)
-      _ <- repository.update(undeliverableInformation)
+      _ <- repository.update(eori, undeliverableInformation)
       newNotification <- repository.get(eori)
       _ <- dropData()
     } yield {
@@ -54,11 +54,11 @@ class EmailRepositorySpec extends SpecBase {
     val eori = "UnknownEori"
     val otherEori = "someEori"
     val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
-    val undeliverableInformation = UndeliverableInformation("EORINumber", eori, "some2@email.com", "some event", DateTime.now(), None, None)
+    val undeliverableInformation = UndeliverableInformation(s"HMRC-CUS-ORG~EORINumber~$eori", "some2@email.com", "some event", DateTime.now(), None, None)
 
     await(for {
       _ <- repository.set(otherEori, notificationEmail)
-      result <- repository.update(undeliverableInformation)
+      result <- repository.update(eori, undeliverableInformation)
       _ = result mustBe NoEmailDocumentsUpdated
       record <- repository.get(eori)
       _ <- dropData()
@@ -70,11 +70,11 @@ class EmailRepositorySpec extends SpecBase {
   "remove the undeliverable object when setting a new email address" in {
     val eori = "someEori"
     val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
-    val undeliverableInformation = UndeliverableInformation("EORINumber", eori, "some2@email.com", "some event", DateTime.now(), None, None)
+    val undeliverableInformation = UndeliverableInformation(s"HMRC-CUS-ORG~EORINumber~$eori", "some2@email.com", "some event", DateTime.now(), None, None)
 
     await(for {
       _ <- repository.set(eori, notificationEmail)
-      _ <- repository.update(undeliverableInformation)
+      _ <- repository.update(eori, undeliverableInformation)
       firstResult <- repository.get(eori)
       _ <- repository.set(eori, notificationEmail)
       secondResult <- repository.get(eori)

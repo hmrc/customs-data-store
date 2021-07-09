@@ -46,10 +46,10 @@ extends PlayMongoRepository[NotificationEmail](
     ).toFuture().map(v => if (v.wasAcknowledged()) SuccessfulEmail else FailedToRetrieveEmail)
   }
 
-  override def update(undeliverableInformation: UndeliverableInformation): Future[EmailRepositoryResult] = {
+  override def update(id: String, undeliverableInformation: UndeliverableInformation): Future[EmailRepositoryResult] = {
     val update = Updates.set("undeliverable", Codecs.toBson(undeliverableInformation))
     collection.updateOne(
-      equal("_id", undeliverableInformation.enrolmentValue),
+      equal("_id", id),
       update
     ).toFuture().map(v => if(v.getModifiedCount == 1) SuccessfulEmail else NoEmailDocumentsUpdated)
   }
@@ -58,7 +58,7 @@ extends PlayMongoRepository[NotificationEmail](
 trait EmailRepository {
   def get(id: String): Future[Option[NotificationEmail]]
   def set(id: String, notificationEmail: NotificationEmail): Future[EmailRepositoryResult]
-  def update(undeliverableInformation: UndeliverableInformation): Future[EmailRepositoryResult]
+  def update(id: String, undeliverableInformation: UndeliverableInformation): Future[EmailRepositoryResult]
 }
 
 sealed trait EmailRepositoryResult
