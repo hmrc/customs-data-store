@@ -110,8 +110,7 @@ An endpoint to update undeliverable information for an enrolmentValue
 ### Request parameters
 | Param                               | Type                                          | Optional/Mandatory|
 | ---------------------------------  | ---------------------------------------------------- | --- |
-| enrolmentIdentifier | String       | Mandatory |
-| enrolmentValue | String       | Mandatory |
+| enrolment | String       | Mandatory |
 | emailAddress | String       | Mandatory |
 | event | String       | Mandatory |
 | detected | DateTime       | Mandatory |
@@ -123,8 +122,7 @@ An endpoint to update undeliverable information for an enrolmentValue
 
 ```json
 {
-  "enrolmentIdentifier": "EORINumber",
-  "enrolmentValue": "GB744638982000",
+  "enrolment":  "HMRC-CUS-ORG~EORINumber~GB000000000000",
   "emailAddress": "email@email.com",
   "event": "someEvent",
   "detected": "2021-05-14T10:59:45.811+01:00",
@@ -139,7 +137,7 @@ An endpoint to update undeliverable information for an enrolmentValue
 | ---------------------------------  | ---------------------------------------------------- |
 | 204 | Successfully updated undeliverable information for enrolmentValue  |
 | 404 | No update was performed on a record either due to it not existing or already having the same undeliverable information present |
-| 400 | If enrolmentIdentifier is not equal to 'EORINumber' |
+| 400 | If enrolmentKey is not equal to 'HMRC-CUS-ORG' OR If enrolmentIdentifier is not equal to 'EORINumber' |
 | 500 | An unexpected failure happened in the service |
 
 ## Running and testing on localhost:

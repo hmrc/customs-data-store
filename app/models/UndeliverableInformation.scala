@@ -26,7 +26,7 @@ case class UndeliverableInformation(enrolment: String,
                                     code: Option[Int],
                                     reason: Option[String]) {
 
-  def extractEori: Option[String] = enrolment.split("~") match {
+  def extractEori: Option[String] = enrolment.split('~') match {
     case Array("HMRC-CUS-ORG", "EORINumber", value) => Some(value)
     case _ => None
   }
