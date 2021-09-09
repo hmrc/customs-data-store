@@ -167,7 +167,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         detectedDate.toString(),
         Some(12),
         Some("unknown reason"),
-        s"HMRC-CUS-ORG~EORINumber~$testEori"
+        s"HMRC-cus-ORG~EORINUMBER~$testEori"
       )
 
       val expectedRequest: UndeliverableInformation =
@@ -189,7 +189,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
           "timestamp" -> detectedDate.toString(),
           "event" -> Json.obj(
             "id" -> "some-id",
-            "enrolment" -> s"HMRC-CUS-ORG~EORINumber~$testEori",
+            "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~$testEori",
             "emailAddress" -> "some@email.com",
             "event" -> "some event",
             "detected" -> detectedDate.toString(),

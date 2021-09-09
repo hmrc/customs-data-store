@@ -27,9 +27,12 @@ case class UndeliverableInformation(subject: String,
                                    ) {
 
   def extractEori: Option[String] = event.enrolment.split('~') match {
-    case Array("HMRC-CUS-ORG", "EORINumber", value) => Some(value)
+    case Array(identifier, key, value) if validEnrolment(identifier, key) => Some(value)
     case _ => None
   }
+
+  private def validEnrolment(enrolmentIdentifier: String, enrolmentKey: String): Boolean =
+    enrolmentIdentifier.toUpperCase == "HMRC-CUS-ORG" && enrolmentKey.toUpperCase == "EORINUMBER"
 }
 
 object UndeliverableInformation {
