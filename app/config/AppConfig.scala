@@ -32,6 +32,7 @@ class AppConfig @Inject()(val configuration: Configuration, servicesConfig: Serv
   lazy val undeliverableEmailEnabled: Boolean = configuration.get[Boolean]("features.undeliverable")
   lazy val schedulerDelay: Int = configuration.get[Int]("scheduler.initialDelaySeconds")
   lazy val schedulerInterval: Int = configuration.get[Int]("scheduler.intervalSeconds")
+  lazy val schedulerMaxAttempts: Int = configuration.get[Int]("scheduler.maxAttempts")
   lazy val sub09GetSubscriptionsEndpoint: String = servicesConfig.baseUrl("sub09") / configuration.get[String]("microservice.services.sub09.companyInformationEndpoint")
   lazy val sub09BearerToken: String = "Bearer " + configuration.get[String]("microservice.services.sub09.bearer-token")
   lazy val sub21EORIHistoryEndpoint: String = servicesConfig.baseUrl("sub21") / configuration.get[String]("microservice.services.sub21.historicEoriEndpoint")

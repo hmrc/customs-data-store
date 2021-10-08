@@ -81,13 +81,24 @@ class Sub09ConnectorSpec extends SpecBase {
         await(service.getCompanyInformation(testEori)) mustBe Some(companyInformation)
       }
     }
+
+    "return None on failure" in new Setup {
+      when(mockHttp.GET[Option[MdgSub09CompanyInformationResponse]](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
+        .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
+
+      running(app) {
+        await(service.getCompanyInformation(testEori)) mustBe None
+      }
+    }
   }
 
   trait Setup {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     val testEori = "someEori"
+
     def mdgResponse(value: JsValue): MdgSub09Response = MdgSub09Response.sub09Reads.reads(value).get
-    def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse =  MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
+
+    def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse = MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
 
     val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
 

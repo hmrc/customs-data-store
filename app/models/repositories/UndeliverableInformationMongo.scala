@@ -27,7 +27,8 @@ case class UndeliverableInformationMongo(subject: String,
                                          timestamp: DateTime,
                                          event: UndeliverableInformationEvent,
                                          notifiedApi: Boolean,
-                                         processed: Boolean) {
+                                         processed: Boolean,
+                                         attempts: Int = 0) {
 
   def toUndeliverableInformation: UndeliverableInformation = UndeliverableInformation(subject, eventId, groupId, timestamp, event)
 }

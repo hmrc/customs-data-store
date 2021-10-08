@@ -16,8 +16,9 @@
 
 package controllers
 
+import connectors.Sub22Connector
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import models.repositories.{FailedToRetrieveEmail, SuccessfulEmail}
+import models.repositories.{FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
@@ -27,6 +28,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.{Application, inject}
 import repositories.EmailRepository
+import services.UndeliverableJobService
 import utils.SpecBase
 
 import scala.concurrent.Future
@@ -35,7 +37,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
   "makeUndeliverable" should {
     "return 404 if user has not been found in the data-store based on EORI" in new Setup {
-      when(mockEmailRepository.update(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
+      when(mockEmailRepository.findAndUpdate(any(), any())).thenReturn(Future.successful(None))
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, routes.UndeliverableEmailController.makeUndeliverable().url).withJsonBody(
         Json.obj(
           "subject" -> "some subject",
@@ -129,7 +131,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
     }
 
     "return 500 if the update to data to the database failed to write" in new Setup {
-      when(mockEmailRepository.update(any(), any())).thenReturn(
+      when(mockEmailRepository.findAndUpdate(any(), any())).thenReturn(
         Future.failed(new RuntimeException("something went wrong"))
       )
 
@@ -179,7 +181,27 @@ class UndeliverableEmailControllerSpec extends SpecBase {
           undeliverableInformationEvent
         )
 
-      when(mockEmailRepository.update(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
+      val undeliverableInformationMongo: UndeliverableInformationMongo = UndeliverableInformationMongo(
+        "some subject",
+        "some event",
+        "someGroupId",
+        detectedDate,
+        undeliverableInformationEvent,
+        notifiedApi = false,
+        processed = false
+      )
+      val newNotificationEmailMongo: NotificationEmailMongo = NotificationEmailMongo(
+        "some@email.com",
+        detectedDate,
+        Some(undeliverableInformationMongo)
+      )
+
+      when(mockEmailRepository.findAndUpdate(any(), any()))
+        .thenReturn(Future.successful(Some(newNotificationEmailMongo)))
+      when(mockSub22Connector.updateUndeliverable(any(), any()))
+        .thenReturn(Future.successful(true))
+      when(mockEmailRepository.markAsSuccessful(any()))
+        .thenReturn(Future.successful(true))
 
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, routes.UndeliverableEmailController.makeUndeliverable().url).withJsonBody(
         Json.obj(
@@ -202,16 +224,118 @@ class UndeliverableEmailControllerSpec extends SpecBase {
       running(app) {
         val result = route(app, request).value
         status(result) mustBe NO_CONTENT
-        verify(mockEmailRepository).update(testEori, expectedRequest)
+        verify(mockEmailRepository).findAndUpdate(testEori, expectedRequest)
       }
     }
+
+    "return 204 if the update failed to SUB22" in new Setup {
+      val detectedDate: DateTime = DateTime.now()
+
+      val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
+        "some-id",
+        "some event",
+        "some@email.com",
+        detectedDate.toString(),
+        Some(12),
+        Some("unknown reason"),
+        s"HMRC-cus-ORG~EORINUMBER~$testEori"
+      )
+
+      val expectedRequest: UndeliverableInformation =
+        UndeliverableInformation(
+          "some subject",
+          "some event",
+          "someGroupId",
+          detectedDate,
+          undeliverableInformationEvent
+        )
+
+      val undeliverableInformationMongo: UndeliverableInformationMongo = UndeliverableInformationMongo(
+        "some subject",
+        "some event",
+        "someGroupId",
+        detectedDate,
+        undeliverableInformationEvent,
+        notifiedApi = false,
+        processed = false
+      )
+      val newNotificationEmailMongo: NotificationEmailMongo = NotificationEmailMongo(
+        "some@email.com",
+        detectedDate,
+        Some(undeliverableInformationMongo)
+      )
+
+      when(mockEmailRepository.findAndUpdate(any(), any()))
+        .thenReturn(Future.successful(Some(newNotificationEmailMongo)))
+      when(mockSub22Connector.updateUndeliverable(any(), any()))
+        .thenReturn(Future.successful(false))
+      when(mockEmailRepository.resetProcessing(any()))
+        .thenReturn(Future.successful(true))
+
+      val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, routes.UndeliverableEmailController.makeUndeliverable().url).withJsonBody(
+        Json.obj(
+          "subject" -> "some subject",
+          "eventId" -> "some event",
+          "groupId" -> "someGroupId",
+          "timestamp" -> detectedDate.toString(),
+          "event" -> Json.obj(
+            "id" -> "some-id",
+            "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~$testEori",
+            "emailAddress" -> "some@email.com",
+            "event" -> "some event",
+            "detected" -> detectedDate.toString(),
+            "code" -> 12,
+            "reason" -> "unknown reason"
+          )
+        )
+      )
+
+      running(app) {
+        val result = route(app, request).value
+        status(result) mustBe NO_CONTENT
+        verify(mockEmailRepository).findAndUpdate(testEori, expectedRequest)
+      }
+    }
+
+    "return 404 if the feature is disabled" in  {
+      val app: Application = application.configure("features.undeliverable" -> false).build()
+      val detectedDate: DateTime = DateTime.now()
+      val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, routes.UndeliverableEmailController.makeUndeliverable().url).withJsonBody(
+        Json.obj(
+          "subject" -> "some subject",
+          "eventId" -> "some event",
+          "groupId" -> "someGroupId",
+          "timestamp" -> detectedDate.toString(),
+          "event" -> Json.obj(
+            "id" -> "some-id",
+            "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~SomeEori",
+            "emailAddress" -> "some@email.com",
+            "event" -> "some event",
+            "detected" -> detectedDate.toString(),
+            "code" -> 12,
+            "reason" -> "unknown reason"
+          )
+        )
+      )
+
+      running(app) {
+        val result = route(app, request).value
+        status(result) mustBe NOT_FOUND
+      }
+    }
+
   }
 
   trait Setup {
+    val notificationEmailMongo: NotificationEmailMongo = NotificationEmailMongo("someAddress", DateTime.now(), None)
     val testEori = "EoriNumber"
     val mockEmailRepository: EmailRepository = mock[EmailRepository]
+    val mockSub22Connector: Sub22Connector = mock[Sub22Connector]
+    val mockUndeliverableJobService: UndeliverableJobService = mock[UndeliverableJobService]
     val app: Application = application.overrides(
-      inject.bind[EmailRepository].toInstance(mockEmailRepository)
+      inject.bind[EmailRepository].toInstance(mockEmailRepository),
+      inject.bind[Sub22Connector].toInstance(mockSub22Connector),
+      inject.bind[UndeliverableJobService].toInstance(mockUndeliverableJobService)
     ).build()
   }
 }
