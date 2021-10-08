@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.libs.json.{Json, OWrites, Reads}
+import play.api.libs.json.{JsObject, Json, OWrites, Reads}
 
 case class UndeliverableInformationEvent(id: String,
                                          event: String,
@@ -24,7 +24,21 @@ case class UndeliverableInformationEvent(id: String,
                                          detected: String,
                                          code: Option[Int],
                                          reason: Option[String],
-                                         enrolment: String)
+                                         enrolment: String) {
+
+  private val auditCode: String = code.map(_.toString).getOrElse("-")
+  private val auditReason: String = reason.getOrElse("-")
+
+  def toAuditDetail: JsObject = Json.obj(
+    "id" -> id,
+      "event" -> event,
+      "emailAddress" -> emailAddress,
+      "detected" -> detected,
+      "code" -> auditCode,
+      "reason" -> auditReason,
+      "enrolment" -> enrolment
+  )
+}
 
 object UndeliverableInformationEvent {
 

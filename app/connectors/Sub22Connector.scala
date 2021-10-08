@@ -56,6 +56,4 @@ class Sub22Connector @Inject()(httpClient: HttpClient, appConfig: AppConfig)(imp
       case None => logger.error("No eori available in undeliverable information"); Future.successful(false)
     }
   }
-
-
 }
