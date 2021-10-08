@@ -17,6 +17,7 @@
 package services
 
 import connectors.Sub22Connector
+import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
 import models.{FailedToProcess, NoDataToProcess, NotificationEmail, ProcessSucceeded, UndeliverableInformation, UndeliverableInformationEvent}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
@@ -32,39 +33,39 @@ class UndeliverableJobServiceSpec extends SpecBase {
 
   "processJob" should {
     "return NoDataToProcess when no data returned from mongo" in new Setup {
-      when(mockEmailRepository.nextJob).thenReturn(Future.successful(None))
+      when(mockEmailRepository.nextJobs).thenReturn(Future.successful(Seq.empty))
       running(app) {
         val result = await(service.processJob())
-        result mustBe NoDataToProcess
+        result mustBe Seq.empty
       }
     }
 
     "return NoDataToProcess when no undeliverable information returned" in new Setup {
-      when(mockEmailRepository.nextJob).thenReturn(Future.successful(Some(notificationEmail)))
+      when(mockEmailRepository.nextJobs).thenReturn(Future.successful(Seq(notificationEmail)))
       running(app) {
         val result = await(service.processJob())
-        result mustBe NoDataToProcess
+        result mustBe Seq(NoDataToProcess)
       }
     }
 
     "return NoDataToProcess when the eori cannot be extracted from the record" in new Setup {
-      when(mockEmailRepository.nextJob).thenReturn(
+      when(mockEmailRepository.nextJobs).thenReturn(
         Future.successful(
-          Some(notificationEmail.copy(undeliverable = Some(invalidEoriUndeliverableInformation)))
+          Seq(notificationEmail.copy(undeliverable = Some(invalidEoriUndeliverableInformationMongo)))
         )
       )
 
       running(app) {
         val result = await(service.processJob())
-        result mustBe NoDataToProcess
+        result mustBe Seq(NoDataToProcess)
       }
     }
 
     "return FailedToProcess when sub22Connector returns a failed response" in new Setup {
-      when(mockEmailRepository.nextJob)
+      when(mockEmailRepository.nextJobs)
         .thenReturn(
           Future.successful(
-            Some(notificationEmail.copy(undeliverable = Some(undeliverableInformation)))
+            Seq(notificationEmail.copy(undeliverable = Some(undeliverableInformation)))
           )
         )
 
@@ -78,15 +79,15 @@ class UndeliverableJobServiceSpec extends SpecBase {
 
       running(app) {
         val result = await(service.processJob())
-        result mustBe FailedToProcess
+        result mustBe Seq(FailedToProcess)
       }
     }
 
     "return ProcessSucceeded when sub22Connector returns a successful response" in new Setup {
-      when(mockEmailRepository.nextJob)
+      when(mockEmailRepository.nextJobs)
         .thenReturn(
           Future.successful(
-            Some(notificationEmail.copy(undeliverable = Some(undeliverableInformation)))
+            Seq(notificationEmail.copy(undeliverable = Some(undeliverableInformation)))
           )
         )
 
@@ -100,7 +101,7 @@ class UndeliverableJobServiceSpec extends SpecBase {
 
       running(app) {
         val result = await(service.processJob())
-        result mustBe ProcessSucceeded
+        result mustBe Seq(ProcessSucceeded)
       }
     }
   }
@@ -133,10 +134,10 @@ class UndeliverableJobServiceSpec extends SpecBase {
         "HMRC-CUS-ORG~EORINumber~GB123456789012"
       )
 
-    val invalidEoriUndeliverableInformation: UndeliverableInformation = UndeliverableInformation("someSubject", "someEventId", "someGroupId", DateTime.now(), invalidEoriUndeliverableInformationEvent)
-    val undeliverableInformation: UndeliverableInformation = UndeliverableInformation("someSubject", "someEventId", "someGroupId", DateTime.now(), undeliverableInformationEvent)
+    val invalidEoriUndeliverableInformationMongo: UndeliverableInformationMongo = UndeliverableInformationMongo("someSubject", "someEventId", "someGroupId", DateTime.now(), invalidEoriUndeliverableInformationEvent, false, false)
+    val undeliverableInformation: UndeliverableInformationMongo = UndeliverableInformationMongo("someSubject", "someEventId", "someGroupId", DateTime.now(), undeliverableInformationEvent, false, false)
 
-    val notificationEmail: NotificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
+    val notificationEmail: NotificationEmailMongo = NotificationEmailMongo("some@email.com", DateTime.now(), None)
 
     val app: Application = application.overrides(
       inject.bind[Sub22Connector].toInstance(mockSub22Connector),

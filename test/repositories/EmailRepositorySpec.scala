@@ -16,7 +16,7 @@
 
 package repositories
 
-import models.repositories.NoEmailDocumentsUpdated
+import models.repositories.{NoEmailDocumentsUpdated, NotificationEmailMongo, UndeliverableInformationMongo}
 import org.joda.time.DateTime
 import play.api.Application
 import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
@@ -60,7 +60,7 @@ class EmailRepositorySpec extends SpecBase {
     await(for {
       _ <- repository.set(eori, notificationEmail)
       currentNotification <- repository.get(eori)
-      _ <- repository.update(eori, undeliverableInformation)
+      _ <- repository.findAndUpdate(eori, undeliverableInformation)
       newNotification <- repository.get(eori)
       _ <- dropData()
     } yield {
@@ -94,8 +94,8 @@ class EmailRepositorySpec extends SpecBase {
       )
     await(for {
       _ <- repository.set(otherEori, notificationEmail)
-      result <- repository.update(eori, undeliverableInformation)
-      _ = result mustBe NoEmailDocumentsUpdated
+      result <- repository.findAndUpdate(eori, undeliverableInformation)
+      _ = result mustBe None
       record <- repository.get(eori)
       _ <- dropData()
     } yield {
@@ -127,7 +127,7 @@ class EmailRepositorySpec extends SpecBase {
       )
     await(for {
       _ <- repository.set(eori, notificationEmail)
-      _ <- repository.update(eori, undeliverableInformation)
+      _ <- repository.findAndUpdate(eori, undeliverableInformation)
       firstResult <- repository.get(eori)
       _ <- repository.set(eori, notificationEmail)
       secondResult <- repository.get(eori)
@@ -140,6 +140,7 @@ class EmailRepositorySpec extends SpecBase {
 
   "nextJob returns a job that still needs to be processed" in {
     val eori = "someEori"
+    val dateTime = DateTime.now()
     val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
       "some event",
@@ -155,19 +156,31 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
-    val deliverableNotificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
-    val undeliverableNotificationEmail = NotificationEmail("some@email.com", DateTime.now(), Some(undeliverableInformation))
+
+    val undeliverableInformationMongo: UndeliverableInformationMongo =
+      UndeliverableInformationMongo(
+        "some-subject",
+        "some-event-id",
+        "some-group-id",
+        dateTime,
+        undeliverableInformationEvent,
+        notifiedApi = false,
+        processed = false
+      )
+    val deliverableNotificationEmail = NotificationEmail("some@email.com", dateTime, None)
+    val undeliverableNotificationEmail = NotificationEmail("some@email.com",dateTime, Some(undeliverableInformation))
+    val undeliverableNotificationEmailMongo = NotificationEmailMongo("some@email.com", dateTime, Some(undeliverableInformationMongo))
     await(
       for {
         _ <- repository.set(eori, deliverableNotificationEmail)
         _ <- repository.set(eori, undeliverableNotificationEmail)
-        result <- repository.nextJob
+        result <- repository.nextJobs
         _ <- dropData()
       } yield {
-        result mustBe Some(undeliverableNotificationEmail)
+        result mustBe List(undeliverableNotificationEmailMongo)
       }
     )
   }
@@ -192,20 +205,32 @@ class EmailRepositorySpec extends SpecBase {
         DateTime.now(),
         undeliverableInformationEvent
       )
+
+    val undeliverableInformationMongo: UndeliverableInformationMongo =
+      UndeliverableInformationMongo(
+        "some-subject",
+        "some-event-id",
+        "some-group-id",
+        DateTime.now(),
+        undeliverableInformationEvent,
+        notifiedApi = false,
+        processed = false
+      )
     val undeliverableNotificationEmail = NotificationEmail("some@email.com", DateTime.now(), Some(undeliverableInformation))
+    val undeliverableNotificationEmailMongo = NotificationEmailMongo("some@email.com", DateTime.now(), Some(undeliverableInformationMongo))
 
     await(
       for {
         _ <- repository.set(eori, undeliverableNotificationEmail)
-        result1 <- repository.nextJob
-        result2 <- repository.nextJob
+        result1 <- repository.nextJobs
+        result2 <- repository.nextJobs
         _ <- repository.resetProcessing(eori)
-        result3 <- repository.nextJob
+        result3 <- repository.nextJobs
         _ <- dropData()
       } yield {
-        result1 mustBe Some(undeliverableNotificationEmail)
-        result2 mustBe None
-        result3 mustBe Some(undeliverableNotificationEmail)
+        result1 mustBe Seq(undeliverableNotificationEmailMongo)
+        result2 mustBe Seq.empty
+        result3 mustBe Seq(undeliverableNotificationEmailMongo.copy(undeliverable = Some(undeliverableInformationMongo.copy(attempts = 1))))
       }
     )
   }
@@ -236,9 +261,9 @@ class EmailRepositorySpec extends SpecBase {
       for {
         _ <- repository.set(eori, undeliverableNotificationEmail)
         _ <- repository.markAsSuccessful(eori)
-        result <- repository.nextJob
+        result <- repository.nextJobs
       } yield {
-        result mustBe None
+        result mustBe Seq.empty
       }
     )
   }

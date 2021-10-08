@@ -17,9 +17,11 @@
 package repositories
 
 import com.mongodb.client.model.Indexes.ascending
+import config.AppConfig
 import models._
 import models.repositories.{EmailRepositoryResult, FailedToRetrieveEmail, NoEmailDocumentsUpdated, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
-import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model
+import org.mongodb.scala.model.Filters.{equal, lte}
 import org.mongodb.scala.model._
 import play.api.Logger
 import uk.gov.hmrc.mongo.MongoComponent
@@ -29,7 +31,8 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultEmailRepository @Inject()(
-                                        mongoComponent: MongoComponent
+                                        mongoComponent: MongoComponent,
+                                        appConfig: AppConfig
                                       )(implicit executionContext: ExecutionContext)
   extends PlayMongoRepository[NotificationEmailMongo](
     collectionName = "email-verification",
@@ -56,25 +59,30 @@ class DefaultEmailRepository @Inject()(
     ).toFuture().map(v => if (v.wasAcknowledged()) SuccessfulEmail else FailedToRetrieveEmail)
   }
 
-  override def update(id: String, undeliverableInformation: UndeliverableInformation): Future[EmailRepositoryResult] = {
+  override def findAndUpdate(id: String, undeliverableInformation: UndeliverableInformation): Future[Option[NotificationEmailMongo]] = {
     val update = Updates.set("undeliverable", Codecs.toBson(UndeliverableInformationMongo.fromUndeliverableInformation(undeliverableInformation)))
-    collection.updateOne(
+    collection.findOneAndUpdate(
       equal("_id", id),
       update
-    ).toFuture().map(v => if (v.getModifiedCount == 1) SuccessfulEmail else NoEmailDocumentsUpdated)
+    ).toFutureOption()
   }
 
-  override def nextJob: Future[Option[NotificationEmail]] = {
-    collection.findOneAndUpdate(
-      Filters.and(equal("undeliverable.processed", false), equal("undeliverable.notifiedApi", false)),
-      Updates.set("undeliverable.processed", true)
-    ).toFutureOption().map {
-      case emailJob@Some(_) =>
-        logger.info(s"Successfully marked latest undeliverable email for processing")
-        emailJob.map(_.toNotificationEmail)
-      case None =>
-        logger.debug(s"email queue is empty")
-        None
+  def nextJobs: Future[Seq[NotificationEmailMongo]] = {
+    val filter = Filters.and(
+      equal("undeliverable.processed", false),
+      equal("undeliverable.notifiedApi", false),
+      lte("undeliverable.attempts", appConfig.schedulerMaxAttempts))
+
+    for {
+      notificationEmails <- collection.find(filter).toFuture()
+      _ <- collection.updateMany(filter, Updates.set("undeliverable.processed", true)).toFuture().map(_.wasAcknowledged())
+    } yield {
+      if (notificationEmails.isEmpty) {
+        logger.info("undeliverable email queue is empty")
+      } else {
+        logger.info(s"Successfully marked ${notificationEmails.size} update for processing")
+      }
+      notificationEmails
     }
   }
 
@@ -83,10 +91,14 @@ class DefaultEmailRepository @Inject()(
       Updates.set("undeliverable.notifiedApi", true)
     ).toFuture().map(_.wasAcknowledged())
 
-  override def resetProcessing(id: String): Future[Boolean] =
+  override def resetProcessing(id: String): Future[Boolean] = {
     collection.updateOne(equal("_id", id),
-      Updates.set("undeliverable.processed", false)
+      Updates.combine(
+        Updates.inc("undeliverable.attempts", 1),
+        Updates.set("undeliverable.processed", false)
+      )
     ).toFuture().map(_.wasAcknowledged())
+  }
 }
 
 trait EmailRepository {
@@ -98,9 +110,9 @@ trait EmailRepository {
 
   def markAsSuccessful(id: String): Future[Boolean]
 
-  def nextJob: Future[Option[NotificationEmail]]
+  def nextJobs: Future[Seq[NotificationEmailMongo]]
 
-  def update(id: String, undeliverableInformation: UndeliverableInformation): Future[EmailRepositoryResult]
+  def findAndUpdate(id: String, undeliverableInformation: UndeliverableInformation): Future[Option[NotificationEmailMongo]]
 }
 
 
