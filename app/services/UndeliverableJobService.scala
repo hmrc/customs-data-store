@@ -16,6 +16,7 @@
 
 package services
 
+import config.AppConfig
 import connectors.Sub22Connector
 import models.{FailedToProcess, NoDataToProcess, ProcessResult, ProcessSucceeded, UndeliverableInformation}
 import org.joda.time.DateTime
@@ -27,7 +28,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class UndeliverableJobService @Inject()(
                                          sub22Connector: Sub22Connector,
-                                         emailRepository: EmailRepository
+                                         emailRepository: EmailRepository,
+                                         appConfig: AppConfig
                                        )(implicit executionContext: ExecutionContext) extends Logging {
   def processJob(): Future[Seq[ProcessResult]] = {
     emailRepository.nextJobs.flatMap { notificationEmails =>
@@ -37,7 +39,7 @@ class UndeliverableJobService @Inject()(
         val maybeEori: Option[String] = maybeUndeliverableInformation.flatMap(_.extractEori)
         (maybeUndeliverableInformation, maybeEori) match {
           case (Some(undeliverableInformation), Some(eori)) =>
-            updateSub22(undeliverableInformation, notificationEmail.timestamp, eori, notificationEmailMongo.undeliverable.exists(_.attempts == 5))
+            updateSub22(undeliverableInformation, notificationEmail.timestamp, eori, notificationEmailMongo.undeliverable.exists(_.attempts == appConfig.schedulerMaxAttempts))
           case _ => Future.successful(NoDataToProcess)
         }
       })
