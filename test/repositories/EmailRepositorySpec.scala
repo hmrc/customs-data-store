@@ -16,10 +16,10 @@
 
 package repositories
 
-import models.repositories.{NoEmailDocumentsUpdated, NotificationEmailMongo, UndeliverableInformationMongo}
+import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
+import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
 import org.joda.time.DateTime
 import play.api.Application
-import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
 import utils.SpecBase
 
 import scala.concurrent.ExecutionContext.Implicits.global

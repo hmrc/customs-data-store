@@ -18,12 +18,14 @@ package controllers
 
 import config.AppConfig
 import connectors.Sub22Connector
+import models.repositories.NotificationEmailMongo
 import models.{FailedToProcess, NoDataToProcess, ProcessResult, ProcessSucceeded, UndeliverableInformation}
 import org.joda.time.DateTime
 import play.api.mvc.{Action, ControllerComponents}
 import play.api.{Logger, LoggerLike}
 import repositories.EmailRepository
 import services.AuditingService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -43,7 +45,7 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
         case Some(eori) => emailRepository.findAndUpdate(eori, request.body).flatMap {
           case Some(record) =>
             auditingService.auditBouncedEmail(request.body)
-            updateSub22(request.body, record.timestamp, eori).map { _ => NoContent }
+            updateSub22(request.body, record, eori).map { _ => NoContent }
           case _ => Future.successful(NotFound)
         }.recover { case err => log.error(s"Failed to mark email as undeliverable: ${err.getMessage}"); InternalServerError }
         case None => Future.successful(BadRequest)
@@ -51,8 +53,10 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
     } else Future.successful(NotFound)
   }
 
-  private def updateSub22(undeliverableInformation: UndeliverableInformation, timestamp: DateTime, eori: String): Future[ProcessResult] = {
-    sub22Connector.updateUndeliverable(undeliverableInformation, timestamp).flatMap { updateSuccessful =>
+  private def updateSub22(undeliverableInformation: UndeliverableInformation,
+                          record: NotificationEmailMongo,
+                          eori: String)(implicit hc: HeaderCarrier): Future[ProcessResult] = {
+    sub22Connector.updateUndeliverable(undeliverableInformation, record.timestamp, record.undeliverable.map(_.attempts)).flatMap { updateSuccessful =>
       if (updateSuccessful) {
         emailRepository.markAsSuccessful(eori).map { _ => ProcessSucceeded }
       } else {

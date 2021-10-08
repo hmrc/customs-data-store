@@ -16,6 +16,7 @@
 
 package services
 
+import models.requests.Sub22UpdateVerifiedEmailRequest
 import models.{AuditModel, UndeliverableInformation}
 import play.api.http.HeaderNames
 import play.api.libs.json.{JsValue, Json, Writes}
@@ -37,6 +38,8 @@ class AuditingService @Inject()(auditConnector: AuditConnector)(implicit executi
   private val AUDIT_SOURCE = "customs-data-store"
   private val BOUNCED_EMAIL_TYPE = "BouncedEmail"
   private val BOUNCED_EMAIL_TRANSACTION_NAME = "Bounced Email"
+  private val SUB22_TYPE = "UpdateVerificationTimestamp"
+  private val SUB22_NAME = "Update Verification Timestamp"
 
   implicit val dataEventWrites: Writes[DataEvent] = Json.writes[DataEvent]
   val referrer: HeaderCarrier => String = _.headers(Seq(HeaderNames.REFERER)).headOption.fold("-")(_._2)
@@ -44,6 +47,16 @@ class AuditingService @Inject()(auditConnector: AuditConnector)(implicit executi
   def auditBouncedEmail(undeliverableInformation: UndeliverableInformation)(implicit hc: HeaderCarrier): Future[AuditResult] = {
     audit(AuditModel(BOUNCED_EMAIL_TRANSACTION_NAME, undeliverableInformation.toAuditDetail, BOUNCED_EMAIL_TYPE))
   }
+
+  def auditSub22Request(request: Sub22UpdateVerifiedEmailRequest, attempts: Option[Int])(implicit hc: HeaderCarrier): Future[AuditResult] = {
+    val detail = Json.obj(
+      "attempts" -> attempts.fold("_")(_.toString),
+      "requestCommon" -> Json.toJson(request.updateVerifiedEmailRequest.requestCommon),
+      "requestDetail" -> Json.toJson(request.updateVerifiedEmailRequest.requestDetail)
+    )
+    audit(AuditModel(SUB22_NAME, detail, SUB22_TYPE))
+  }
+
 
   private def audit(auditModel: AuditModel)(implicit hc: HeaderCarrier): Future[AuditResult] = {
     val dataEvent = ExtendedDataEvent(
@@ -54,9 +67,10 @@ class AuditingService @Inject()(auditConnector: AuditConnector)(implicit executi
     )
     log.debug(s"Splunk Audit Event:\n$dataEvent\n")
     auditConnector.sendExtendedEvent(dataEvent)
-      .map { auditResult =>
-        logAuditResult(auditResult)
-        auditResult
+      .map {
+        auditResult =>
+          logAuditResult(auditResult)
+          auditResult
       }
   }
 
