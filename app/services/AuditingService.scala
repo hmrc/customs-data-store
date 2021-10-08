@@ -49,11 +49,11 @@ class AuditingService @Inject()(auditConnector: AuditConnector)(implicit executi
   }
 
   def auditSub22Request(request: Sub22UpdateVerifiedEmailRequest, attempts: Option[Int])(implicit hc: HeaderCarrier): Future[AuditResult] = {
-    val detail = Json.obj(
+    val detail = Json.obj("updateVerifiedEmailRequest" -> Json.obj(
       "attempts" -> attempts.fold("_")(_.toString),
       "requestCommon" -> Json.toJson(request.updateVerifiedEmailRequest.requestCommon),
       "requestDetail" -> Json.toJson(request.updateVerifiedEmailRequest.requestDetail)
-    )
+    ))
     audit(AuditModel(SUB22_NAME, detail, SUB22_TYPE))
   }
 
