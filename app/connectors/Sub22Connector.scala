@@ -22,6 +22,7 @@ import models.requests.{RequestCommon, RequestDetail, Sub22UpdateVerifiedEmailRe
 import models.responses.UpdateVerifiedEmailResponse
 import org.joda.time.DateTime
 import play.api.Logging
+import services.AuditingService
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
@@ -30,11 +31,9 @@ import java.time.{LocalDateTime, ZoneId}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class Sub22Connector @Inject()(httpClient: HttpClient, appConfig: AppConfig)(implicit executionContext: ExecutionContext) extends Logging {
+class Sub22Connector @Inject()(httpClient: HttpClient, appConfig: AppConfig, auditingService: AuditingService)(implicit executionContext: ExecutionContext) extends Logging {
 
-  def updateUndeliverable(undeliverableInformation: UndeliverableInformation, verifiedTimestamp: DateTime): Future[Boolean] = {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
+  def updateUndeliverable(undeliverableInformation: UndeliverableInformation, verifiedTimestamp: DateTime, attempts: Option[Int])(implicit hc: HeaderCarrier): Future[Boolean] = {
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
     val localDate = LocalDateTime.now().format(dateFormat)
 
@@ -50,12 +49,13 @@ class Sub22Connector @Inject()(httpClient: HttpClient, appConfig: AppConfig)(imp
       case Some(eori) =>
         val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
-        httpClient.PUT[Sub22UpdateVerifiedEmailRequest, UpdateVerifiedEmailResponse](appConfig.sub22UpdateVerifiedEmailEndpoint, request, headers).map { response =>
+        auditingService.auditSub22Request(request, attempts)
+        httpClient.PUT[Sub22UpdateVerifiedEmailRequest, UpdateVerifiedEmailResponse](
+          appConfig.sub22UpdateVerifiedEmailEndpoint, request, headers
+        )(implicitly, implicitly, HeaderCarrier(), implicitly).map { response =>
           response.updateVerifiedEmailResponse.responseCommon.statusText.isEmpty
         }.recover { case _ => false }
       case None => logger.error("No eori available in undeliverable information"); Future.successful(false)
     }
   }
-
-
 }

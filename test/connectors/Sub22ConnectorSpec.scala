@@ -26,7 +26,7 @@ import play.api
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.{HttpClient, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
 import utils.SpecBase
 
 import scala.concurrent.Future
@@ -37,7 +37,7 @@ class Sub22ConnectorSpec extends SpecBase {
       .thenReturn(Future.failed(UpstreamErrorResponse("some error", 500, 500)))
 
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now()))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), Some(0)))
       result mustBe false
     }
   }
@@ -47,14 +47,14 @@ class Sub22ConnectorSpec extends SpecBase {
       .thenReturn(Future.successful(failedUpdateVerifiedEmailResponse))
 
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now()))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), Some(0)))
       result mustBe false
     }
   }
 
   "return false if unable to extract the EORI from the undeliverableInformation" in new Setup {
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")), DateTime.now()))
+      val result = await(connector.updateUndeliverable(undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")), DateTime.now(), Some(0)))
       result mustBe false
     }
   }
@@ -63,7 +63,7 @@ class Sub22ConnectorSpec extends SpecBase {
     when(mockHttp.PUT[Sub22Request, UpdateVerifiedEmailResponse](any(), any(), any())(any(), any(), any(), any()))
       .thenReturn(Future.successful(successfulUpdateVerifiedEmailResponse))
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now()))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), Some(0)))
       result mustBe true
     }
   }
@@ -72,6 +72,7 @@ class Sub22ConnectorSpec extends SpecBase {
     val testEori = "someEori"
     val detectedDate: DateTime = DateTime.now()
     val mockHttp: HttpClient = mock[HttpClient]
+    implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val successfulUpdateVerifiedEmailResponse: UpdateVerifiedEmailResponse = UpdateVerifiedEmailResponse(
       UpdateVerifiedEmailResponseCommon(

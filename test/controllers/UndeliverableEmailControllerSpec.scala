@@ -17,8 +17,8 @@
 package controllers
 
 import connectors.Sub22Connector
+import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import models.repositories.{FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
@@ -198,7 +198,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
       when(mockEmailRepository.findAndUpdate(any(), any()))
         .thenReturn(Future.successful(Some(newNotificationEmailMongo)))
-      when(mockSub22Connector.updateUndeliverable(any(), any()))
+      when(mockSub22Connector.updateUndeliverable(any(), any(), any())(any()))
         .thenReturn(Future.successful(true))
       when(mockEmailRepository.markAsSuccessful(any()))
         .thenReturn(Future.successful(true))
@@ -267,7 +267,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
       when(mockEmailRepository.findAndUpdate(any(), any()))
         .thenReturn(Future.successful(Some(newNotificationEmailMongo)))
-      when(mockSub22Connector.updateUndeliverable(any(), any()))
+      when(mockSub22Connector.updateUndeliverable(any(), any(), any())(any()))
         .thenReturn(Future.successful(false))
       when(mockEmailRepository.resetProcessing(any()))
         .thenReturn(Future.successful(true))

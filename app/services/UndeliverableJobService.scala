@@ -22,14 +22,14 @@ import models.{FailedToProcess, NoDataToProcess, ProcessResult, ProcessSucceeded
 import org.joda.time.DateTime
 import play.api.Logging
 import repositories.EmailRepository
+import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class UndeliverableJobService @Inject()(
                                          sub22Connector: Sub22Connector,
-                                         emailRepository: EmailRepository,
-                                         appConfig: AppConfig
+                                         emailRepository: EmailRepository
                                        )(implicit executionContext: ExecutionContext) extends Logging {
   def processJob(): Future[Seq[ProcessResult]] = {
     emailRepository.nextJobs.flatMap { notificationEmails =>
@@ -39,22 +39,21 @@ class UndeliverableJobService @Inject()(
         val maybeEori: Option[String] = maybeUndeliverableInformation.flatMap(_.extractEori)
         (maybeUndeliverableInformation, maybeEori) match {
           case (Some(undeliverableInformation), Some(eori)) =>
-            updateSub22(undeliverableInformation, notificationEmail.timestamp, eori, notificationEmailMongo.undeliverable.exists(_.attempts == appConfig.schedulerMaxAttempts))
+            updateSub22(undeliverableInformation, notificationEmail.timestamp, eori, notificationEmailMongo.undeliverable.map(_.attempts))
           case _ => Future.successful(NoDataToProcess)
         }
       })
     }
   }
 
-  private def updateSub22(undeliverableInformation: UndeliverableInformation, timestamp: DateTime, eori: String, finalAttempt: Boolean): Future[ProcessResult] =
-    sub22Connector.updateUndeliverable(undeliverableInformation, timestamp).flatMap { updateSuccessful =>
+  private def updateSub22(undeliverableInformation: UndeliverableInformation, timestamp: DateTime, eori: String, attempts: Option[Int]): Future[ProcessResult] = {
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    sub22Connector.updateUndeliverable(undeliverableInformation, timestamp, attempts).flatMap { updateSuccessful =>
       if (updateSuccessful) {
         emailRepository.markAsSuccessful(eori).map { _ => ProcessSucceeded }
       } else {
-        if (finalAttempt) {
-          logger.error(s"Failed to update SUB22 with undeliverable notification")
-        }
         emailRepository.resetProcessing(eori).map { _ => FailedToProcess }
       }
     }
+  }
 }

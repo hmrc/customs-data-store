@@ -17,7 +17,7 @@
 package models
 
 import org.joda.time.DateTime
-import play.api.libs.json.{Json, OWrites, Reads}
+import play.api.libs.json.{JsObject, Json, OWrites, Reads}
 
 case class UndeliverableInformation(subject: String,
                                     eventId: String,
@@ -25,6 +25,16 @@ case class UndeliverableInformation(subject: String,
                                     timestamp: DateTime,
                                     event: UndeliverableInformationEvent
                                    ) {
+
+  def toAuditDetail: JsObject = {
+    Json.obj(
+      "subject" -> subject,
+      "eventId" -> eventId,
+      "groupId" -> groupId,
+      "timestamp" -> timestamp.toString(),
+      "event" -> event.toAuditDetail
+    )
+  }
 
   def extractEori: Option[String] = event.enrolment.split('~') match {
     case Array(identifier, key, value) if validEnrolment(identifier, key) => Some(value)

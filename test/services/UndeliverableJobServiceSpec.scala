@@ -18,7 +18,7 @@ package services
 
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
-import models.{FailedToProcess, NoDataToProcess, NotificationEmail, ProcessSucceeded, UndeliverableInformation, UndeliverableInformationEvent}
+import models.{FailedToProcess, NoDataToProcess, ProcessSucceeded, UndeliverableInformationEvent}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -72,7 +72,7 @@ class UndeliverableJobServiceSpec extends SpecBase {
       when(mockEmailRepository.resetProcessing(any()))
         .thenReturn(Future.successful(true))
 
-      when(mockSub22Connector.updateUndeliverable(any(), any()))
+      when(mockSub22Connector.updateUndeliverable(any(), any(), any())(any()))
         .thenReturn(
           Future.successful(false)
         )
@@ -94,7 +94,7 @@ class UndeliverableJobServiceSpec extends SpecBase {
       when(mockEmailRepository.markAsSuccessful(any()))
         .thenReturn(Future.successful(true))
 
-      when(mockSub22Connector.updateUndeliverable(any(), any()))
+      when(mockSub22Connector.updateUndeliverable(any(), any(), any())(any()))
         .thenReturn(
           Future.successful(true)
         )
