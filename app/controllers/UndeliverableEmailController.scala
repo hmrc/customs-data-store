@@ -56,7 +56,7 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
   private def updateSub22(undeliverableInformation: UndeliverableInformation,
                           record: NotificationEmailMongo,
                           eori: String)(implicit hc: HeaderCarrier): Future[ProcessResult] = {
-    sub22Connector.updateUndeliverable(undeliverableInformation, record.timestamp, record.undeliverable.map(_.attempts)).flatMap { updateSuccessful =>
+    sub22Connector.updateUndeliverable(undeliverableInformation, record.timestamp, record.undeliverable.map(_.attempts).getOrElse(1)).flatMap { updateSuccessful =>
       if (updateSuccessful) {
         emailRepository.markAsSuccessful(eori).map { _ => ProcessSucceeded }
       } else {

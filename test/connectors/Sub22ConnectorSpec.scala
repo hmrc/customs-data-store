@@ -37,7 +37,7 @@ class Sub22ConnectorSpec extends SpecBase {
       .thenReturn(Future.failed(UpstreamErrorResponse("some error", 500, 500)))
 
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), Some(0)))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), 0))
       result mustBe false
     }
   }
@@ -47,14 +47,14 @@ class Sub22ConnectorSpec extends SpecBase {
       .thenReturn(Future.successful(failedUpdateVerifiedEmailResponse))
 
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), Some(0)))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), 0))
       result mustBe false
     }
   }
 
   "return false if unable to extract the EORI from the undeliverableInformation" in new Setup {
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")), DateTime.now(), Some(0)))
+      val result = await(connector.updateUndeliverable(undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")), DateTime.now(), 0))
       result mustBe false
     }
   }
@@ -63,7 +63,7 @@ class Sub22ConnectorSpec extends SpecBase {
     when(mockHttp.PUT[Sub22Request, UpdateVerifiedEmailResponse](any(), any(), any())(any(), any(), any(), any()))
       .thenReturn(Future.successful(successfulUpdateVerifiedEmailResponse))
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), Some(0)))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), 0))
       result mustBe true
     }
   }
