@@ -123,7 +123,7 @@ class AuditingServiceSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(extendedDataEventCaptor.capture())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        service.auditSub22Request(sub22Request, Some(1), successful = false)
+        service.auditSub22Request(sub22Request, 1, successful = false)
         val result = extendedDataEventCaptor.getValue
         result.detail mustBe Json.parse(request)
         result.auditType mustBe "UpdateVerificationTimestamp"
