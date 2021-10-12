@@ -49,12 +49,16 @@ class Sub22Connector @Inject()(httpClient: HttpClient, appConfig: AppConfig, aud
       case Some(eori) =>
         val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
-        auditingService.auditSub22Request(request, attempts)
         httpClient.PUT[Sub22UpdateVerifiedEmailRequest, UpdateVerifiedEmailResponse](
           appConfig.sub22UpdateVerifiedEmailEndpoint, request, headers
         )(implicitly, implicitly, HeaderCarrier(), implicitly).map { response =>
-          response.updateVerifiedEmailResponse.responseCommon.statusText.isEmpty
-        }.recover { case _ => false }
+          val isSuccessful = response.updateVerifiedEmailResponse.responseCommon.statusText.isEmpty
+          auditingService.auditSub22Request(request, attempts, isSuccessful)
+          isSuccessful
+        }.recover { case _ =>
+          auditingService.auditSub22Request(request, attempts, successful = false)
+          false
+        }
       case None => logger.error("No eori available in undeliverable information"); Future.successful(false)
     }
   }

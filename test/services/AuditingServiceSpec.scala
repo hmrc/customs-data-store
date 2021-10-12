@@ -102,6 +102,7 @@ class AuditingServiceSpec extends SpecBase {
         s"""{
           |    "updateVerifiedEmailRequest":{
           |      "attempts":"1",
+          |      "successful": false,
           |      "requestCommon":{
           |        "regime":"CDS",
           |        "receiptDate":"2021-10-06T12:32:28Z",
@@ -122,7 +123,7 @@ class AuditingServiceSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(extendedDataEventCaptor.capture())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        service.auditSub22Request(sub22Request, Some(1))
+        service.auditSub22Request(sub22Request, Some(1), successful = false)
         val result = extendedDataEventCaptor.getValue
         result.detail mustBe Json.parse(request)
         result.auditType mustBe "UpdateVerificationTimestamp"
