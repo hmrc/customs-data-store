@@ -39,14 +39,14 @@ class UndeliverableJobService @Inject()(
         val maybeEori: Option[String] = maybeUndeliverableInformation.flatMap(_.extractEori)
         (maybeUndeliverableInformation, maybeEori) match {
           case (Some(undeliverableInformation), Some(eori)) =>
-            updateSub22(undeliverableInformation, notificationEmail.timestamp, eori, notificationEmailMongo.undeliverable.map(_.attempts))
+            updateSub22(undeliverableInformation, notificationEmail.timestamp, eori, notificationEmailMongo.undeliverable.map(_.attempts).getOrElse(1))
           case _ => Future.successful(NoDataToProcess)
         }
       })
     }
   }
 
-  private def updateSub22(undeliverableInformation: UndeliverableInformation, timestamp: DateTime, eori: String, attempts: Option[Int]): Future[ProcessResult] = {
+  private def updateSub22(undeliverableInformation: UndeliverableInformation, timestamp: DateTime, eori: String, attempts: Int): Future[ProcessResult] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     sub22Connector.updateUndeliverable(undeliverableInformation, timestamp, attempts).flatMap { updateSuccessful =>
       if (updateSuccessful) {
