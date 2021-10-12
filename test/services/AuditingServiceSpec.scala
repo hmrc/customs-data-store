@@ -101,7 +101,7 @@ class AuditingServiceSpec extends SpecBase {
       val request =
         s"""{
           |    "updateVerifiedEmailRequest":{
-          |      "attempts":"1",
+          |      "attempts":1,
           |      "successful": false,
           |      "requestCommon":{
           |        "regime":"CDS",
