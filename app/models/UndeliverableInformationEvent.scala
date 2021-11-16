@@ -42,9 +42,6 @@ case class UndeliverableInformationEvent(id: String,
 
 object UndeliverableInformationEvent {
 
-  import play.api.libs.json.JodaReads._
-  import play.api.libs.json.JodaWrites._
-
   implicit val reads: Reads[UndeliverableInformationEvent] = Json.reads[UndeliverableInformationEvent]
   implicit val writes: OWrites[UndeliverableInformationEvent] = Json.writes[UndeliverableInformationEvent]
 }

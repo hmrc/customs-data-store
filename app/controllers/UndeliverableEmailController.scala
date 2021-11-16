@@ -19,8 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.Sub22Connector
 import models.repositories.NotificationEmailMongo
-import models.{FailedToProcess, NoDataToProcess, ProcessResult, ProcessSucceeded, UndeliverableInformation}
-import org.joda.time.DateTime
+import models.{FailedToProcess, ProcessResult, ProcessSucceeded, UndeliverableInformation}
 import play.api.mvc.{Action, ControllerComponents}
 import play.api.{Logger, LoggerLike}
 import repositories.EmailRepository

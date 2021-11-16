@@ -16,7 +16,6 @@
 
 package services
 
-import config.AppConfig
 import connectors.Sub22Connector
 import models.{FailedToProcess, NoDataToProcess, ProcessResult, ProcessSucceeded, UndeliverableInformation}
 import org.joda.time.DateTime

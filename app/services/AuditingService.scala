@@ -19,7 +19,7 @@ package services
 import models.requests.Sub22UpdateVerifiedEmailRequest
 import models.{AuditModel, UndeliverableInformation}
 import play.api.http.HeaderNames
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.{Json, Writes}
 import play.api.{Logger, LoggerLike}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions
