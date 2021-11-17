@@ -19,8 +19,7 @@ package repositories
 import com.mongodb.client.model.Indexes.ascending
 import config.AppConfig
 import models._
-import models.repositories.{EmailRepositoryResult, FailedToRetrieveEmail, NoEmailDocumentsUpdated, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
-import org.mongodb.scala.model
+import models.repositories.{EmailRepositoryResult, FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
 import org.mongodb.scala.model.Filters.{equal, lte}
 import org.mongodb.scala.model._
 import play.api.Logger
