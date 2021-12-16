@@ -42,6 +42,7 @@ An endpoint to retrieve the business full name and address for a given EORI
 ```json
 {
   "name": "ABC ltd",
+  "consent": "1",
   "address" : {
     "streetAndNumber": "12 Example Street",
     "city": "Example",
@@ -56,6 +57,7 @@ An endpoint to retrieve the business full name and address for a given EORI
 | Field                               | Required                                          | Description                                          |
 | ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
 | name | Mandatory        | Company name        |
+| consent | Optional        | consentToDisclosureOfPersonalData        |
 | address | Mandatory        | The address Information for the company        |
 | address.streetAndNumber | Mandatory | The street and number where the company resides |
 | address.city | Mandatory | The city where the company resides |

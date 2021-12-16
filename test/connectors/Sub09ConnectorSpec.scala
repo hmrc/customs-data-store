@@ -100,7 +100,7 @@ class Sub09ConnectorSpec extends SpecBase {
 
     def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse = MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
 
-    val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
+    val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
 
     val mockHttp = mock[HttpClient]
     val app = application.overrides(
