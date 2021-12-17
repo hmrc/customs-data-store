@@ -20,7 +20,7 @@ import models.AddressInformation
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsPath, Reads}
 
-case class MdgSub09CompanyInformationResponse(name: String, consent: Option[String] = None, address: AddressInformation)
+case class MdgSub09CompanyInformationResponse(name: String, consent: Option[String], address: AddressInformation)
 
 object MdgSub09CompanyInformationResponse {
   implicit val sub09CompanyInformation: Reads[MdgSub09CompanyInformationResponse] =
