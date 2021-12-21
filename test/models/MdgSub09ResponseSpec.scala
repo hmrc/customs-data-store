@@ -53,11 +53,13 @@ object Sub09Response {
   private val timeStampKey = "--THE-TIMESTAMP--"
   private val emailKey = "--THE-EMAIL--"
   private val eoriKey = "--THE-EORI-HERE--"
+  private val consentToDisclosureOfPersonalDataKEY = "--THE-CONSENT--"
 
   def withEmailAndTimestamp(eori: String): JsValue = {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey,""" "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
+      .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
     Json.parse(response)
   }
 
@@ -65,6 +67,7 @@ object Sub09Response {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey, "")
+      .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
     Json.parse(response)
   }
 
@@ -72,6 +75,15 @@ object Sub09Response {
     val response = sub09Response(eori)
       .replace(emailKey, "")
       .replace(timeStampKey, "")
+      .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
+    Json.parse(response)
+  }
+
+  def noConsentToDisclosureOfPersonalData(eori: String): JsValue = {
+    val response = sub09Response(eori)
+      .replace(emailKey, """ "emailAddress": "email@email.com", """)
+      .replace(timeStampKey,""" "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
+      .replace(consentToDisclosureOfPersonalDataKEY, "")
     Json.parse(response)
   }
 
@@ -124,7 +136,7 @@ object Sub09Response {
        |        "GB",
        |        "FR"
        |      ],
-       |      "consentToDisclosureOfPersonalData": "1",
+       |      $consentToDisclosureOfPersonalDataKEY
        |      "shortName": "Mick",
        |      "dateOfEstablishment": "1963-04-01",
        |      "typeOfPerson": "1",

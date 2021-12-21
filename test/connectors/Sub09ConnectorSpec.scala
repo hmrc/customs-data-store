@@ -82,6 +82,15 @@ class Sub09ConnectorSpec extends SpecBase {
       }
     }
 
+    "return company information noConsent '0' when the field is not present" in new Setup {
+      when(mockHttp.GET[Option[MdgSub09CompanyInformationResponse]](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
+        .thenReturn(Future.successful(Some(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori)))))
+
+      running(app) {
+        await(service.getCompanyInformation(testEori)) mustBe Some(companyInformationNoConsentFalse)
+      }
+    }
+
     "return None on failure" in new Setup {
       when(mockHttp.GET[Option[MdgSub09CompanyInformationResponse]](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
@@ -100,7 +109,8 @@ class Sub09ConnectorSpec extends SpecBase {
 
     def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse = MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
 
-    val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
+    val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
+    val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation("Example Ltd", "0", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
 
     val mockHttp = mock[HttpClient]
     val app = application.overrides(

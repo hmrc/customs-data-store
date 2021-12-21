@@ -54,7 +54,7 @@ class CompanyInformationRepositorySpec extends SpecBase {
     val app: Application = application.build()
     val repository: DefaultCompanyInformationRepository = app.injector.instanceOf[DefaultCompanyInformationRepository]
     val addressInformation: AddressInformation = AddressInformation("12 Example Street", "Example", Some("AA00 0AA"), "GB")
-    val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", addressInformation)
+    val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", addressInformation)
 
     def dropData(): Future[Unit] = {
       repository.collection.drop().toFuture().map(_ => ())

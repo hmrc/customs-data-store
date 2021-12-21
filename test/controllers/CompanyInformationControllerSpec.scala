@@ -73,7 +73,7 @@ class CompanyInformationControllerSpec extends SpecBase {
     val mockCompanyInformationRepository: CompanyInformationRepository = mock[CompanyInformationRepository]
     val mockSubscriptionInfoConnector: Sub09Connector = mock[Sub09Connector]
     val addressInformation: AddressInformation = AddressInformation("12 Example Street", "Example", Some("AA00 0AA"), "GB")
-    val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", addressInformation)
+    val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", addressInformation)
     val eori: String = "testEori"
 
     val app: Application = application.overrides(

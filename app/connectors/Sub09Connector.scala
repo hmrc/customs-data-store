@@ -77,10 +77,9 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
 
     metricsReporter.withResponseTimeLogging("mdg.get.company-information") {
       http.GET[Option[MdgSub09CompanyInformationResponse]](uri, headers = headers)
-        .map(_.map(v => CompanyInformation(v.name, v.address))).recover {
+        .map(_.map(v => CompanyInformation(v.name, v.consent.getOrElse("0"), v.address))).recover {
         case e => log.error(s"Failed to retrieve company information with error: $e"); None
       }
     }
   }
-
 }
