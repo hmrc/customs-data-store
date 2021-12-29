@@ -39,17 +39,15 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
   val log: LoggerLike = Logger(this.getClass)
 
   def makeUndeliverable(): Action[UndeliverableInformation] = Action.async(parse.json[UndeliverableInformation]) { implicit request =>
-    if (appConfig.undeliverableEmailEnabled) {
-      request.body.extractEori match {
-        case Some(eori) => emailRepository.findAndUpdate(eori, request.body).flatMap {
-          case Some(record) =>
-            auditingService.auditBouncedEmail(request.body)
-            updateSub22(request.body, record, eori).map { _ => NoContent }
-          case _ => Future.successful(NotFound)
-        }.recover { case err => log.error(s"Failed to mark email as undeliverable: ${err.getMessage}"); InternalServerError }
-        case None => Future.successful(BadRequest)
-      }
-    } else Future.successful(NotFound)
+    request.body.extractEori match {
+      case Some(eori) => emailRepository.findAndUpdate(eori, request.body).flatMap {
+        case Some(record) =>
+          auditingService.auditBouncedEmail(request.body)
+          updateSub22(request.body, record, eori).map { _ => NoContent }
+        case _ => Future.successful(NotFound)
+      }.recover { case err => log.error(s"Failed to mark email as undeliverable: ${err.getMessage}"); InternalServerError }
+      case None => Future.successful(BadRequest)
+    }
   }
 
   private def updateSub22(undeliverableInformation: UndeliverableInformation,

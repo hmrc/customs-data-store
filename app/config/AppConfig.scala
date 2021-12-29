@@ -29,7 +29,6 @@ class AppConfig @Inject()(val configuration: Configuration, servicesConfig: Serv
     def removeLeadingSlash(in: String): String = if (in.head == '/') in.drop(1) else in
   }
 
-  lazy val undeliverableEmailEnabled: Boolean = configuration.get[Boolean]("features.undeliverable")
   lazy val schedulerDelay: Int = configuration.get[Int]("scheduler.initialDelaySeconds")
   lazy val schedulerInterval: Int = configuration.get[Int]("scheduler.intervalSeconds")
   lazy val schedulerMaxAttempts: Int = configuration.get[Int]("scheduler.maxAttempts")

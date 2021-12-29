@@ -297,33 +297,6 @@ class UndeliverableEmailControllerSpec extends SpecBase {
       }
     }
 
-    "return 404 if the feature is disabled" in  {
-      val app: Application = application.configure("features.undeliverable" -> false).build()
-      val detectedDate: DateTime = DateTime.now()
-      val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, routes.UndeliverableEmailController.makeUndeliverable().url).withJsonBody(
-        Json.obj(
-          "subject" -> "some subject",
-          "eventId" -> "some event",
-          "groupId" -> "someGroupId",
-          "timestamp" -> detectedDate.toString(),
-          "event" -> Json.obj(
-            "id" -> "some-id",
-            "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~SomeEori",
-            "emailAddress" -> "some@email.com",
-            "event" -> "some event",
-            "detected" -> detectedDate.toString(),
-            "code" -> 12,
-            "reason" -> "unknown reason"
-          )
-        )
-      )
-
-      running(app) {
-        val result = route(app, request).value
-        status(result) mustBe NOT_FOUND
-      }
-    }
-
   }
 
   trait Setup {
