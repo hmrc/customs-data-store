@@ -30,12 +30,9 @@ class Scheduler @Inject()(actorSystem: ActorSystem,
                           undeliverableJobService: UndeliverableJobService,
                           appConfig: AppConfig
                          )(implicit executionContext: ExecutionContext) {
-
-  if (appConfig.undeliverableEmailEnabled) {
     val job: Runnable = () => undeliverableJobService.processJob().map(_ => ())
     actorSystem.scheduler.scheduleAtFixedRate(
       initialDelay = appConfig.schedulerDelay seconds,
       interval = appConfig.schedulerDelay seconds
     )(job)
-  }
 }
