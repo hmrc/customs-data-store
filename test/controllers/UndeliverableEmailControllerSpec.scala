@@ -18,7 +18,7 @@ package controllers
 
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
-import models.{UndeliverableInformation, UndeliverableInformationEvent, UndeliverableInformationTags}
+import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
@@ -46,7 +46,6 @@ class UndeliverableEmailControllerSpec extends SpecBase {
           "timestamp" -> DateTime.now().toString(),
           "event" -> Json.obj(
             "id" -> "some-id",
-
             "emailAddress" -> "some@email.com",
             "event" -> "some event",
             "detected" -> DateTime.now().toString(),
@@ -75,14 +74,12 @@ class UndeliverableEmailControllerSpec extends SpecBase {
           "timestamp" -> DateTime.now().toString(),
           "event" -> Json.obj(
             "id" -> "some-id",
+            "enrolment" -> s"HMRC-CUS-ORG~INVALID~$testEori",
             "emailAddress" -> "some@email.com",
             "event" -> "some event",
             "detected" -> DateTime.now().toString(),
             "code" -> 12,
-            "reason" -> "unknown reason",
-            "tags" -> Json.obj("enrolment" -> s"HMRC-CUS-ORG~INVALID~$testEori",
-              "source" -> "sdds"
-            )
+            "reason" -> "unknown reason"
           )
         )
       )
@@ -177,10 +174,8 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         detectedDate.toString(),
         Some(12),
         Some("unknown reason"),
-        UndeliverableInformationTags(
-          s"HMRC-cus-ORG~EORINUMBER~$testEori",
-          "sdds"
-        )
+        s"HMRC-cus-ORG~EORINUMBER~$testEori",
+        "sdds"
       )
 
       val expectedRequest: UndeliverableInformation =
@@ -252,10 +247,8 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         detectedDate.toString(),
         Some(12),
         Some("unknown reason"),
-        UndeliverableInformationTags(
-          s"HMRC-cus-ORG~EORINUMBER~$testEori",
-          "sdds"
-        )
+        s"HMRC-cus-ORG~EORINUMBER~$testEori",
+        "sdds"
       )
 
       val expectedRequest: UndeliverableInformation =
