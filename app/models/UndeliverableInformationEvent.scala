@@ -24,7 +24,7 @@ case class UndeliverableInformationEvent(id: String,
                                          detected: String,
                                          code: Option[Int],
                                          reason: Option[String],
-                                         enrolment: String) {
+                                         tags: UndeliverableInformationTags) {
 
   private val auditCode: String = code.map(_.toString).getOrElse("-")
   private val auditReason: String = reason.getOrElse("-")
@@ -36,7 +36,7 @@ case class UndeliverableInformationEvent(id: String,
       "detected" -> detected,
       "code" -> auditCode,
       "reason" -> auditReason,
-      "enrolment" -> enrolment
+      "enrolment" -> tags.enrolment
   )
 }
 
