@@ -17,7 +17,7 @@
 package repositories
 
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
-import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
+import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent, UndeliverableInformationTags}
 import org.joda.time.DateTime
 import play.api.Application
 import utils.SpecBase
@@ -45,7 +45,10 @@ class EmailRepositorySpec extends SpecBase {
       "detected",
       Some(12),
       Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori"
+      UndeliverableInformationTags(
+        s"HMRC-CUS-ORG~EORINumber~$eori",
+        "sdds"
+      )
     )
 
     val undeliverableInformation: UndeliverableInformation =
@@ -81,7 +84,10 @@ class EmailRepositorySpec extends SpecBase {
       "detected",
       Some(12),
       Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori"
+      UndeliverableInformationTags(
+        s"HMRC-CUS-ORG~EORINumber~$eori",
+        "sdds"
+      )
     )
 
     val undeliverableInformation: UndeliverableInformation =
@@ -114,7 +120,11 @@ class EmailRepositorySpec extends SpecBase {
       "detected",
       Some(12),
       Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori"
+      UndeliverableInformationTags(
+        s"HMRC-CUS-ORG~EORINumber~$eori",
+        "sdds"
+      )
+
     )
 
     val undeliverableInformation: UndeliverableInformation =
@@ -148,7 +158,10 @@ class EmailRepositorySpec extends SpecBase {
       "detected",
       Some(12),
       Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori"
+      UndeliverableInformationTags(
+        s"HMRC-CUS-ORG~EORINumber~$eori",
+        "sdds"
+      )
     )
 
     val undeliverableInformation: UndeliverableInformation =
@@ -194,7 +207,10 @@ class EmailRepositorySpec extends SpecBase {
       "detected",
       Some(12),
       Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori"
+      UndeliverableInformationTags(
+        s"HMRC-CUS-ORG~EORINumber~$eori",
+        "sdds"
+      )
     )
 
     val undeliverableInformation: UndeliverableInformation =
@@ -244,7 +260,10 @@ class EmailRepositorySpec extends SpecBase {
       "detected",
       Some(12),
       Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori"
+      UndeliverableInformationTags(
+        s"HMRC-CUS-ORG~EORINumber~$eori",
+        "sdds"
+      )
     )
 
     val undeliverableInformation: UndeliverableInformation =

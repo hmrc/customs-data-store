@@ -18,7 +18,7 @@ package controllers
 
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
-import models.{UndeliverableInformation, UndeliverableInformationEvent}
+import models.{UndeliverableInformation, UndeliverableInformationEvent, UndeliverableInformationTags}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
@@ -46,12 +46,15 @@ class UndeliverableEmailControllerSpec extends SpecBase {
           "timestamp" -> DateTime.now().toString(),
           "event" -> Json.obj(
             "id" -> "some-id",
-            "enrolment" -> s"HMRC-CUS-ORG~EORINumber~$testEori",
+
             "emailAddress" -> "some@email.com",
             "event" -> "some event",
             "detected" -> DateTime.now().toString(),
             "code" -> 12,
-            "reason" -> "unknown reason"
+            "reason" -> "unknown reason",
+            "tags" -> Json.obj("enrolment" -> s"HMRC-CUS-ORG~EORINumber~$testEori",
+              "source" -> "sdds"
+            )
           )
         )
       )
@@ -72,12 +75,14 @@ class UndeliverableEmailControllerSpec extends SpecBase {
           "timestamp" -> DateTime.now().toString(),
           "event" -> Json.obj(
             "id" -> "some-id",
-            "enrolment" -> s"HMRC-CUS-ORG~INVALID~$testEori",
             "emailAddress" -> "some@email.com",
             "event" -> "some event",
             "detected" -> DateTime.now().toString(),
             "code" -> 12,
-            "reason" -> "unknown reason"
+            "reason" -> "unknown reason",
+            "tags" -> Json.obj("enrolment" -> s"HMRC-CUS-ORG~INVALID~$testEori",
+              "source" -> "sdds"
+            )
           )
         )
       )
@@ -143,12 +148,15 @@ class UndeliverableEmailControllerSpec extends SpecBase {
           "timestamp" -> DateTime.now().toString(),
           "event" -> Json.obj(
             "id" -> "some-id",
-            "enrolment" -> s"HMRC-CUS-ORG~EORINumber~$testEori",
             "emailAddress" -> "some@email.com",
             "event" -> "some event",
             "detected" -> DateTime.now().toString(),
             "code" -> 12,
-            "reason" -> "unknown reason"
+            "reason" -> "unknown reason",
+            "tags" -> Json.obj(
+              "enrolment" -> s"HMRC-CUS-ORG~EORINumber~$testEori",
+              "source" -> "sdds"
+            )
           )
         )
       )
@@ -169,7 +177,10 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         detectedDate.toString(),
         Some(12),
         Some("unknown reason"),
-        s"HMRC-cus-ORG~EORINUMBER~$testEori"
+        UndeliverableInformationTags(
+          s"HMRC-cus-ORG~EORINUMBER~$testEori",
+          "sdds"
+        )
       )
 
       val expectedRequest: UndeliverableInformation =
@@ -211,12 +222,15 @@ class UndeliverableEmailControllerSpec extends SpecBase {
           "timestamp" -> detectedDate.toString(),
           "event" -> Json.obj(
             "id" -> "some-id",
-            "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~$testEori",
             "emailAddress" -> "some@email.com",
             "event" -> "some event",
             "detected" -> detectedDate.toString(),
             "code" -> 12,
-            "reason" -> "unknown reason"
+            "reason" -> "unknown reason",
+            "tags" -> Json.obj(
+              "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~$testEori",
+              "source" -> "sdds"
+            )
           )
         )
       )
@@ -238,7 +252,10 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         detectedDate.toString(),
         Some(12),
         Some("unknown reason"),
-        s"HMRC-cus-ORG~EORINUMBER~$testEori"
+        UndeliverableInformationTags(
+          s"HMRC-cus-ORG~EORINUMBER~$testEori",
+          "sdds"
+        )
       )
 
       val expectedRequest: UndeliverableInformation =
@@ -280,12 +297,15 @@ class UndeliverableEmailControllerSpec extends SpecBase {
           "timestamp" -> detectedDate.toString(),
           "event" -> Json.obj(
             "id" -> "some-id",
-            "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~$testEori",
             "emailAddress" -> "some@email.com",
             "event" -> "some event",
             "detected" -> detectedDate.toString(),
             "code" -> 12,
-            "reason" -> "unknown reason"
+            "reason" -> "unknown reason",
+            "tags" -> Json.obj(
+              "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~$testEori",
+              "source" -> "sdds"
+            )
           )
         )
       )
