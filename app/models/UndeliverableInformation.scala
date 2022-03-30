@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ case class UndeliverableInformation(subject: String,
     )
   }
 
-  def extractEori: Option[String] = event.tags.enrolment.split('~') match {
+  def extractEori: Option[String] = event.enrolment.split('~') match {
     case Array(identifier, key, value) if validEnrolment(identifier, key) => Some(value)
     case _ => None
   }
