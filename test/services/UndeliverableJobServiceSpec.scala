@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ class UndeliverableJobServiceSpec extends SpecBase {
         None,
         None,
         "invalid-eori",
-        "sdds"
+        Some("sdds")
       )
 
     val undeliverableInformationEvent: UndeliverableInformationEvent =
@@ -133,7 +133,7 @@ class UndeliverableJobServiceSpec extends SpecBase {
         None,
         None,
         "HMRC-CUS-ORG~EORINumber~GB123456789012",
-        "sdds"
+        Some("sdds")
       )
 
     val invalidEoriUndeliverableInformationMongo: UndeliverableInformationMongo = UndeliverableInformationMongo("someSubject", "someEventId", "someGroupId", DateTime.now(), invalidEoriUndeliverableInformationEvent, false, false)

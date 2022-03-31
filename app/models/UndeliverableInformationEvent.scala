@@ -27,7 +27,7 @@ case class UndeliverableInformationEvent(id: String,
                                          code: Option[Int],
                                          reason: Option[String],
                                          enrolment: String,
-                                         source: String) {
+                                         source: Option[String]) {
 
   private val auditCode: String = code.map(_.toString).getOrElse("-")
   private val auditReason: String = reason.getOrElse("-")
@@ -52,7 +52,7 @@ object UndeliverableInformationEvent {
       (JsPath \\ "code").readNullable[Int] and
       (JsPath \\ "reason").readNullable[String] and
       (JsPath \\ "enrolment").read[String] and
-      (JsPath \\ "source").read[String])(UndeliverableInformationEvent.apply _)
+      (JsPath \\ "source").readNullable[String])(UndeliverableInformationEvent.apply _)
 
   implicit val writes: OWrites[UndeliverableInformationEvent] = Json.writes[UndeliverableInformationEvent]
 }
