@@ -36,7 +36,7 @@ case class UndeliverableInformation(subject: String,
     )
   }
 
-  def extractEori: Option[String] = event.tags.enrolment.split('~') match {
+  def extractEori: Option[String] = event.enrolment.split('~') match {
     case Array(identifier, key, value) if validEnrolment(identifier, key) => Some(value)
     case _ => None
   }

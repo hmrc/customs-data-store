@@ -16,7 +16,7 @@
 
 package connectors
 
-import models.{UndeliverableInformation, UndeliverableInformationEvent, UndeliverableInformationTags}
+import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import models.requests.Sub22Request
 import models.responses.{UpdateVerifiedEmailResponse, UpdateVerifiedEmailResponseCommon, UpdateVerifiedEmailResponseCommonDetail}
 import org.joda.time.DateTime

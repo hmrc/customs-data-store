@@ -17,7 +17,7 @@
 package repositories
 
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
-import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent, UndeliverableInformationTags}
+import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
 import org.joda.time.DateTime
 import play.api.Application
 import utils.SpecBase

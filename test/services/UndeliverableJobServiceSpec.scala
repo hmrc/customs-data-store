@@ -18,7 +18,7 @@ package services
 
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
-import models.{FailedToProcess, NoDataToProcess, ProcessSucceeded, UndeliverableInformationEvent, UndeliverableInformationTags}
+import models.{FailedToProcess, NoDataToProcess, ProcessSucceeded, UndeliverableInformationEvent}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
