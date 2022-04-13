@@ -16,7 +16,6 @@
 
 package models
 
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 
@@ -26,8 +25,7 @@ case class UndeliverableInformationEvent(id: String,
                                          detected: String,
                                          code: Option[Int],
                                          reason: Option[String],
-                                         enrolment: String,
-                                         source: Option[String]) {
+                                         tags: UndeliverableInformationTags) {
 
   private val auditCode: String = code.map(_.toString).getOrElse("-")
   private val auditReason: String = reason.getOrElse("-")
@@ -39,20 +37,12 @@ case class UndeliverableInformationEvent(id: String,
       "detected" -> detected,
       "code" -> auditCode,
       "reason" -> auditReason,
-      "enrolment" -> enrolment
+      "enrolment" -> tags.enrolment
   )
 }
 
 object UndeliverableInformationEvent {
-  implicit val reads: Reads[UndeliverableInformationEvent] =
-      ((JsPath \\ "id").read[String] and
-      (JsPath \\ "event").read[String] and
-      (JsPath \\ "emailAddress").read[String] and
-      (JsPath \\ "detected").read[String] and
-      (JsPath \\ "code").readNullable[Int] and
-      (JsPath \\ "reason").readNullable[String] and
-      (JsPath \\ "enrolment").read[String] and
-      (JsPath \\ "source").readNullable[String])(UndeliverableInformationEvent.apply _)
+  implicit val reads: Reads[UndeliverableInformationEvent] = Json.reads[UndeliverableInformationEvent]
 
   implicit val writes: OWrites[UndeliverableInformationEvent] = Json.writes[UndeliverableInformationEvent]
 }

@@ -16,7 +16,7 @@
 
 package connectors
 
-import models.{UndeliverableInformation, UndeliverableInformationEvent}
+import models.{UndeliverableInformation, UndeliverableInformationEvent, UndeliverableInformationTags}
 import models.requests.Sub22Request
 import models.responses.{UpdateVerifiedEmailResponse, UpdateVerifiedEmailResponseCommon, UpdateVerifiedEmailResponseCommonDetail}
 import org.joda.time.DateTime
@@ -54,7 +54,8 @@ class Sub22ConnectorSpec extends SpecBase {
 
   "return false if unable to extract the EORI from the undeliverableInformation" in new Setup {
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")), DateTime.now(), 0))
+      val result = await(connector.updateUndeliverable(undeliverableInformation.copy(event = undeliverableInformationEvent.copy(tags =
+        UndeliverableInformationTags("invalid", Some("invalid")))),DateTime.now(), 0))
       result mustBe false
     }
   }
@@ -97,8 +98,10 @@ class Sub22ConnectorSpec extends SpecBase {
       "detected",
       Some(12),
       Some("unknown reason"),
+      UndeliverableInformationTags(
       s"HMRC-CUS-ORG~EORINumber~$testEori",
       Some("sdds")
+      )
     )
 
     val undeliverableInformation: UndeliverableInformation =
