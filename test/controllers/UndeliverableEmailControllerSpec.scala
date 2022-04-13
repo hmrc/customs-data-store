@@ -18,7 +18,7 @@ package controllers
 
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
-import models.{UndeliverableInformation, UndeliverableInformationEvent}
+import models.{UndeliverableInformation, UndeliverableInformationEvent, UndeliverableInformationTags}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
@@ -174,8 +174,10 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         detectedDate.toString(),
         Some(12),
         Some("unknown reason"),
+        UndeliverableInformationTags(
         s"HMRC-cus-ORG~EORINUMBER~$testEori",
         Some("sdds")
+        )
       )
 
       val expectedRequest: UndeliverableInformation =
@@ -247,8 +249,10 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         detectedDate.toString(),
         Some(12),
         Some("unknown reason"),
+        UndeliverableInformationTags(
         s"HMRC-cus-ORG~EORINUMBER~$testEori",
         Some("sdds")
+        )
       )
 
       val expectedRequest: UndeliverableInformation =
