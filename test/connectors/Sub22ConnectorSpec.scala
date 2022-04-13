@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ class Sub22ConnectorSpec extends SpecBase {
 
   "return false if unable to extract the EORI from the undeliverableInformation" in new Setup {
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation.copy(event = undeliverableInformationEvent.copy(tags = UndeliverableInformationTags("invalid", "invalid"))), DateTime.now(), 0))
+      val result = await(connector.updateUndeliverable(undeliverableInformation.copy(event = undeliverableInformationEvent.copy(tags = UndeliverableInformationTags("invalid", Some("invalid")))), DateTime.now(), 0))
       result mustBe false
     }
   }
@@ -97,7 +97,7 @@ class Sub22ConnectorSpec extends SpecBase {
       "detected",
       Some(12),
       Some("unknown reason"),
-      UndeliverableInformationTags(s"HMRC-CUS-ORG~EORINumber~$testEori", "SDDS")
+      UndeliverableInformationTags(s"HMRC-CUS-ORG~EORINumber~$testEori", Some("SDDS"))
     )
 
     val undeliverableInformation: UndeliverableInformation =
