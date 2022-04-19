@@ -17,7 +17,7 @@
 package services
 
 import models.requests.{RequestCommon, RequestDetail, Sub22Request, Sub22UpdateVerifiedEmailRequest}
-import models.{UndeliverableInformation, UndeliverableInformationEvent, UndeliverableInformationTags}
+import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -51,10 +51,8 @@ class AuditingServiceSpec extends SpecBase {
           "2021-04-07T09:46:29+00:00",
           Some(605),
           Some("Not delivering to previously bounced address"),
-          UndeliverableInformationTags(
           "HMRC-CUS-ORG~EORINumber~GB744638982000",
           Some("sdds")
-          )
         )
       )
 

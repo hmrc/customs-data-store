@@ -18,7 +18,7 @@ package services
 
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
-import models.{FailedToProcess, NoDataToProcess, ProcessSucceeded, UndeliverableInformationEvent, UndeliverableInformationTags}
+import models.{FailedToProcess, NoDataToProcess, ProcessSucceeded, UndeliverableInformationEvent}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -120,10 +120,8 @@ class UndeliverableJobServiceSpec extends SpecBase {
         DateTime.now().toString(),
         None,
         None,
-        UndeliverableInformationTags(
         "invalid-eori",
         Some("sdds")
-        )
       )
 
     val undeliverableInformationEvent: UndeliverableInformationEvent =
@@ -134,10 +132,8 @@ class UndeliverableJobServiceSpec extends SpecBase {
         DateTime.now().toString(),
         None,
         None,
-        UndeliverableInformationTags(
         "HMRC-CUS-ORG~EORINumber~GB123456789012",
         Some("sdds")
-        )
       )
 
     val invalidEoriUndeliverableInformationMongo: UndeliverableInformationMongo = UndeliverableInformationMongo("someSubject", "someEventId", "someGroupId", DateTime.now(), invalidEoriUndeliverableInformationEvent, false, false)
