@@ -28,7 +28,7 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
 val compileDeps = Seq(
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "0.56.0",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "0.70.0",
   "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "5.16.0",
   "com.typesafe.play" %% "play-json-joda" % "2.9.2",
   "org.typelevel" %% "cats-core" % "2.3.0"
