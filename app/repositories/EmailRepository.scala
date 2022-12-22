@@ -26,9 +26,10 @@ import play.api.Logger
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class DefaultEmailRepository @Inject()(
                                         mongoComponent: MongoComponent,
                                         appConfig: AppConfig
