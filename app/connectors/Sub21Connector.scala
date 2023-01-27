@@ -19,12 +19,13 @@ package connectors
 import config.AppConfig
 import models._
 import services.MetricsReporterService
+import uk.gov.hmrc.http.HttpReads.notFoundMessage
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
-
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, NotFoundException, StringContextOps}
 import javax.inject.Inject
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, NOT_FOUND}
+import uk.gov.hmrc.http.UpstreamErrorResponse.WithStatusCode
 import scala.concurrent.{ExecutionContext, Future}
-
 
 class Sub21Connector @Inject()(appConfig: AppConfig,
                                http: HttpClient,
@@ -40,7 +41,12 @@ class Sub21Connector @Inject()(appConfig: AppConfig,
         response =>
           response.getEORIHistoryResponse.responseDetail.EORIHistory
             .map(history => EoriPeriod(history.EORI, history.validFrom, history.validTo))
+      }.recoverWith {
+        case e@WithStatusCode(NOT_FOUND) if e.message.contains(NOT_FOUND.toString) => Future.failed(
+          new NotFoundException(notFoundMessage("GET", url.toString, e.message)))
       }
     }
   }
 }
+
+

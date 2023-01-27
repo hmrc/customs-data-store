@@ -19,7 +19,6 @@ package services
 import com.google.inject.Inject
 import play.api.http.Status
 import uk.gov.hmrc.http.{BadRequestException, NotFoundException, UpstreamErrorResponse}
-
 import java.time.OffsetDateTime
 import javax.inject.Singleton
 import scala.concurrent.{ExecutionContext, Future}
