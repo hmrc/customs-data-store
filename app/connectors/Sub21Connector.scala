@@ -23,7 +23,7 @@ import uk.gov.hmrc.http.HttpReads.notFoundMessage
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, NotFoundException, StringContextOps}
 import javax.inject.Inject
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, NOT_FOUND}
+import play.api.http.Status.NOT_FOUND
 import uk.gov.hmrc.http.UpstreamErrorResponse.WithStatusCode
 import scala.concurrent.{ExecutionContext, Future}
 
