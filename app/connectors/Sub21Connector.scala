@@ -48,5 +48,3 @@ class Sub21Connector @Inject()(appConfig: AppConfig,
     }
   }
 }
-
-
