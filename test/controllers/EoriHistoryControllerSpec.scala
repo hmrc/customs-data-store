@@ -157,10 +157,9 @@ class EoriHistoryControllerSpec extends SpecBase {
       }
     }
 
-    "return InternalServerError if an exception was thrown" in new Setup {
+    "return Not Found if we cannot find an EORI" in new Setup {
       when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.failed(new RuntimeException("failed")))
       when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(HistoricEoriSuccessful))
-
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Right(Seq(EoriPeriod("someEori", None, None)))))
 
       val body: JsObject = Json.obj("eori" -> "someEori")
@@ -168,12 +167,9 @@ class EoriHistoryControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-        status(result) mustBe INTERNAL_SERVER_ERROR
+        status(result) mustBe NOT_FOUND
       }
     }
-
-
-
   }
 
   trait Setup {
