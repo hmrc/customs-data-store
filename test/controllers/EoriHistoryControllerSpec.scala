@@ -158,7 +158,7 @@ class EoriHistoryControllerSpec extends SpecBase {
     }
 
     "return Not Found if we cannot find an EORI" in new Setup {
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.failed(new RuntimeException("failed")))
+      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.failed(new RuntimeException("Not found")))
       when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(HistoricEoriSuccessful))
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Right(Seq(EoriPeriod("someEori", None, None)))))
 
