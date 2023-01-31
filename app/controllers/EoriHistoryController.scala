@@ -55,7 +55,10 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
         case HistoricEoriSuccessful => NoContent
         case _ => InternalServerError
       }
-    }).recover { case err => log.info(s"Failed to update EoriHistory: ${err.getMessage}");InternalServerError }
+    }).recover {
+      case err => log.info(
+        s"Failed to find EoriHistory: ${err.getMessage}");NotFound
+    }
   }
 
   private def retrieveAndStoreHistoricEoris(eori: String): Future[Result] = {
