@@ -44,5 +44,5 @@ val testDeps = Seq(
   "org.mockito" % "mockito-core" % "4.0.0" % "test,it",
   "org.scalatestplus" %% "mockito-3-12" % "3.2.10.0",
   "com.vladsch.flexmark" % "flexmark-all" % "0.62.2" % "test,it",
-"uk.gov.hmrc" %% "bootstrap-backend-play-28" % bootstrap % "test,it"
+  "uk.gov.hmrc" %% "bootstrap-test-play-28" % bootstrap % "test,it"
 )
