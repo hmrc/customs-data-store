@@ -49,7 +49,7 @@ class DefaultEmailRepository @Inject()(
   private lazy val logger = Logger(this.getClass)
 
   override def get(id: String): Future[Option[NotificationEmail]] =
-    collection.find(equal("_id", id)).toSingle.toFutureOption.map(_.map(_.toNotificationEmail))
+    collection.find(equal("_id", id)).toSingle().toFutureOption().map(_.map(_.toNotificationEmail))
 
   override def set(id: String, notificationEmail: NotificationEmail): Future[EmailRepositoryResult] = {
     collection.replaceOne(
