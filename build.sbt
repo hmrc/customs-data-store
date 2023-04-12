@@ -1,4 +1,4 @@
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, integrationTestSettings, scalaSettings}
+import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, integrationTestSettings, targetJvm}
 import scoverage.ScoverageKeys
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import play.core.PlayVersion.{current => currentPlayVersion}
@@ -9,7 +9,7 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .settings(
     majorVersion := 0,
-    scalaVersion := "2.12.11",
+    scalaVersion := "2.13.8",
     libraryDependencies ++= compileDeps ++ testDeps,
     PlayKeys.playDefaultPort := 9893,
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;" +
@@ -29,7 +29,7 @@ lazy val microservice = Project(appName, file("."))
 
 val compileDeps = Seq(
   "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "0.70.0",
-  "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "5.16.0",
+  "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "7.15.0",
   "com.typesafe.play" %% "play-json-joda" % "2.9.2",
   "org.typelevel" %% "cats-core" % "2.3.0"
 )
