@@ -10,12 +10,13 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     majorVersion := 0,
     scalaVersion := "2.13.8",
+    targetJvm := "jvm-11",
     libraryDependencies ++= compileDeps ++ testDeps,
     PlayKeys.playDefaultPort := 9893,
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;" +
       ".*javascript.*;.*Routes.*;.*GuiceInjector;" +
       ".*ControllerConfiguration;.*LanguageSwitchController;.*Scheduler",
-    ScoverageKeys.coverageMinimum := 90,
+    ScoverageKeys.coverageMinimum := 97,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
   )
@@ -30,7 +31,7 @@ lazy val microservice = Project(appName, file("."))
 val bootstrap = "7.15.0"
 
 val compileDeps = Seq(
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "0.70.0",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "1.1.0",
   "uk.gov.hmrc" %% "bootstrap-backend-play-28" % bootstrap,
   "com.typesafe.play" %% "play-json-joda" % "2.9.2",
   "org.typelevel" %% "cats-core" % "2.3.0"

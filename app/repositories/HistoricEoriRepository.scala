@@ -24,7 +24,6 @@ import play.api.Configuration
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, Json, Reads, __}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import java.time.LocalDateTime

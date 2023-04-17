@@ -21,12 +21,11 @@ import models.{AddressInformation, CompanyInformation}
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.{IndexModel, IndexOptions, ReplaceOptions}
 import play.api.Configuration
-import play.api.libs.json.{Format, Json, OFormat}
+import play.api.libs.json.{Format, Json, OFormat, Reads, Writes, __}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
-
-import java.time.LocalDateTime
+import java.time.{Instant, ZoneOffset}
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -72,6 +71,23 @@ trait CompanyInformationRepository {
 case class CompanyInformationMongo(name: String, consent: String, address: AddressInformation, lastUpdated: LocalDateTime) {
   def toCompanyInformation: CompanyInformation = CompanyInformation(name, consent, address)
 }
+
+trait MongoJavatimeFormats {
+  outer =>
+  final val localDateTimeReads: Reads[LocalDateTime] =
+    Reads.at[String](__ \ "$date" \ "$numberLong")
+      .map(dateTime => Instant.ofEpochMilli(dateTime.toLong).atZone(ZoneOffset.UTC).toLocalDateTime)
+  final val localDateTimeWrites: Writes[LocalDateTime] =
+    Writes.at[String](__ \ "$date" \ "$numberLong")
+      .contramap(_.toInstant(ZoneOffset.UTC).toEpochMilli.toString)
+  final val localDateTimeFormat: Format[LocalDateTime] =
+    Format(localDateTimeReads, localDateTimeWrites)
+  trait Implicits {
+    implicit val jatLocalDateTimeFormat: Format[LocalDateTime] = outer.localDateTimeFormat
+  }
+  object Implicits extends Implicits
+}
+object MongoJavatimeFormats extends MongoJavatimeFormats
 
 object CompanyInformationMongo {
   implicit val mongoFormat: Format[LocalDateTime] = MongoJavatimeFormats.localDateTimeFormat
