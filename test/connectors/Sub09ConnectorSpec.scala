@@ -16,8 +16,8 @@
 
 package connectors
 
-import models.{AddressInformation, CompanyInformation, Sub09Response}
-import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response}
+import models.{AddressInformation, CompanyInformation, Sub09Response, XiEoriAddressInformation, XiEoriInformation}
+import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.inject.bind
@@ -101,6 +101,26 @@ class Sub09ConnectorSpec extends SpecBase {
     }
   }
 
+  "getXiEoriInformation" should {
+    "return xi eori information from the api" in new Setup {
+      when(mockHttp.GET[Option[MdgSub09XiEoriInformationResponse]](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
+        .thenReturn(Future.successful(Some(mdgXiEoriInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))))
+
+      running(app) {
+        await(service.getXiEoriInformation(testEori)) mustBe Some(xiEoriInformation)
+      }
+    }
+
+    "return None on failure" in new Setup {
+      when(mockHttp.GET[Option[MdgSub09XiEoriInformationResponse]](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
+        .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
+
+      running(app) {
+        await(service.getXiEoriInformation(testEori)) mustBe None
+      }
+    }
+  }
+
   trait Setup {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     val testEori = "someEori"
@@ -108,9 +128,11 @@ class Sub09ConnectorSpec extends SpecBase {
     def mdgResponse(value: JsValue): MdgSub09Response = MdgSub09Response.sub09Reads.reads(value).get
 
     def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse = MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
+    def mdgXiEoriInformationResponse(value: JsValue): MdgSub09XiEoriInformationResponse = MdgSub09XiEoriInformationResponse.sub09XiEoriInformation.reads(value).get
 
     val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
     val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation("Example Ltd", "0", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
+    val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", XiEoriAddressInformation("Example Rd", None, "Example", "GB", Some("AA00 0AA")))
 
     val mockHttp = mock[HttpClient]
     val app = application.overrides(
