@@ -25,6 +25,7 @@ class Module extends AbstractModule {
     bind(classOf[EmailRepository]).to(classOf[DefaultEmailRepository]).asEagerSingleton()
     bind(classOf[HistoricEoriRepository]).to(classOf[DefaultHistoricEoriRepository]).asEagerSingleton()
     bind(classOf[CompanyInformationRepository]).to(classOf[DefaultCompanyInformationRepository]).asEagerSingleton()
+    bind(classOf[XiEoriInformationRepository]).to(classOf[DefaultXiEoriInformationRepository]).asEagerSingleton()
     bind(classOf[Scheduler]).asEagerSingleton()
   }
 }

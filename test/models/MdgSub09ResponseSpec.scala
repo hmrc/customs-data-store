@@ -141,7 +141,23 @@ object Sub09Response {
        |      "dateOfEstablishment": "1963-04-01",
        |      "typeOfPerson": "1",
        |      "principalEconomicActivity": "2000",
-       |      "ETMP_Master_Indicator": true
+       |      "ETMP_Master_Indicator": true,
+       |      "XI_Subscription": {
+       |        "XI_EORINo": "XI123456789000",
+       |        "PBEAddress": {
+       |          "streetNumber1": "Example Rd",
+       |          "city": "Example",
+       |          "countryCode": "GB",
+       |          "postalCode": "AA00 0AA"
+       |        },
+       |        "XI_VATNumber": "GB123456789",
+       |        "EU_VATNumber": {
+       |          "countryCode": "GB",
+       |          "VATId": "123456891012"
+       |        },
+       |        "XI_ConsentToDisclose": "1",
+       |        "XI_SICCode": "7600"
+       |      }
        |    }
        |  }
        |}
