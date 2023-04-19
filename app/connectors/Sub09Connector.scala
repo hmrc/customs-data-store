@@ -17,8 +17,8 @@
 package connectors
 
 import config.AppConfig
-import models.{CompanyInformation, NotificationEmail}
-import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response}
+import models.{CompanyInformation, NotificationEmail, XiEoriInformation}
+import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse}
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpReads.Implicits._
@@ -79,6 +79,29 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
       http.GET[Option[MdgSub09CompanyInformationResponse]](uri, headers = headers)
         .map(_.map(v => CompanyInformation(v.name, v.consent.getOrElse("0"), v.address))).recover {
         case e => log.error(s"Failed to retrieve company information with error: $e"); None
+      }
+    }
+  }
+
+  def getXiEoriInformation(eori: String): Future[Option[XiEoriInformation]] = {
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
+    val localDate = LocalDateTime.now().format(dateFormat)
+    val acknowledgementReference = Random.alphanumeric.take(32).mkString
+
+    val headers = Seq(
+      ("Authorization" -> appConfig.sub09BearerToken),
+      ("Date" -> localDate),
+      ("X-Correlation-ID" -> java.util.UUID.randomUUID().toString),
+      ("X-Forwarded-Host" -> "MDTP"),
+      ("Accept" -> "application/json"))
+
+    val uri = url"${appConfig.sub09GetSubscriptionsEndpoint}?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
+
+    metricsReporter.withResponseTimeLogging("mdg.get.company-information") {
+      http.GET[Option[MdgSub09XiEoriInformationResponse]](uri, headers = headers)
+        .map(_.map(v => XiEoriInformation(v.xiEori, v.consent.getOrElse("0"), v.address))).recover {
+        case e => log.error(s"Failed to retrieve xi eori information with error: $e"); None
       }
     }
   }
