@@ -62,7 +62,6 @@ class DefaultXiEoriInformationRepository @Inject()(
     ).toFuture().map(_ => ())
 }
 
-
 trait XiEoriInformationRepository {
   def get(id: String): Future[Option[XiEoriInformation]]
 

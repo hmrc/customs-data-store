@@ -23,5 +23,3 @@ case class XiEoriInformation(xieori: String, consent: String, address: XiEoriAdd
 object XiEoriInformation {
   implicit val format: OFormat[XiEoriInformation] = Json.format[XiEoriInformation]
 }
-
-
