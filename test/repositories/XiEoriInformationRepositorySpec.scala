@@ -16,7 +16,7 @@
 
 package repositories
 
-import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
+import models.{XiEoriAddressInformation, XiEoriInformation}
 import play.api.Application
 import play.api.test.Helpers.running
 import utils.SpecBase
@@ -25,7 +25,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class XiEoriInformationRepositorySpec extends SpecBase {
-
 
   "retrieve the xi eori information from the database if present" in new Setup {
     running(app) {

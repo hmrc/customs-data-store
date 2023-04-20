@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.Sub09Connector
-import models.{CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
+import models.{XiEoriAddressInformation, XiEoriInformation}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.test.FakeRequest
@@ -67,7 +67,6 @@ class XiEoriControllerSpec extends SpecBase {
       contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
     }
   }
-
 
   trait Setup {
     val mockXiEoriInformationRepository: XiEoriInformationRepository = mock[XiEoriInformationRepository]
