@@ -57,7 +57,7 @@ class DefaultXiEoriInformationRepository @Inject()(
   override def set(id: String, xiEoriInformation: XiEoriInformation): Future[Unit] =
     collection.replaceOne(
       equal("_id", id),
-      XiEoriInformationMongo(xiEoriInformation.xieori, xiEoriInformation.consent, xiEoriInformation.address, LocalDateTime.now()),
+      XiEoriInformationMongo(xiEoriInformation.xiEori, xiEoriInformation.consent, xiEoriInformation.address, LocalDateTime.now()),
       ReplaceOptions().upsert(true)
     ).toFuture().map(_ => ())
 }

@@ -8,4 +8,3 @@ GET         /eori/:eori/xieori-information         controllers.XiEoriController.
 POST        /update-email                          controllers.VerifiedEmailController.updateVerifiedEmail()
 POST        /update-undeliverable-email            controllers.UndeliverableEmailController.makeUndeliverable()
 POST        /update-eori-history                   controllers.EoriHistoryController.updateEoriHistory()
-
