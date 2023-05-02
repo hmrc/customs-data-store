@@ -18,7 +18,7 @@ package controllers
 
 import cats.data.OptionT
 import connectors.Sub09Connector
-import models.XiEoriInformation
+import models.{XiEoriAddressInformation, XiEoriInformation}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.XiEoriInformationRepository
@@ -37,7 +37,8 @@ class XiEoriController @Inject() (xiEoriInformationRepository: XiEoriInformation
       case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
       case None => retrieveXiEoriInformation(eori).map {
         case Some(xiEoriInformation) => Ok(Json.toJson(xiEoriInformation))
-        case None => NotFound
+        case None => xiEoriInformationRepository.set(eori, XiEoriInformation("", "", XiEoriAddressInformation("",None,"","", None)))
+          NotFound
       }
     }
   }
