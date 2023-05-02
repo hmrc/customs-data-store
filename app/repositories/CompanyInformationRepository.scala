@@ -21,10 +21,9 @@ import models.{AddressInformation, CompanyInformation}
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.{IndexModel, IndexOptions, ReplaceOptions}
 import play.api.Configuration
-import play.api.libs.json.{Format, Json, OFormat, Reads, Writes, __}
+import play.api.libs.json._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import java.time.{Instant, ZoneOffset}
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
