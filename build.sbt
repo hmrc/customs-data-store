@@ -16,7 +16,7 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;" +
       ".*javascript.*;.*Routes.*;.*GuiceInjector;" +
       ".*ControllerConfiguration;.*LanguageSwitchController;.*Scheduler",
-    ScoverageKeys.coverageMinimum := 97,
+    ScoverageKeys.coverageMinimum := 98,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
   )
@@ -31,7 +31,7 @@ lazy val microservice = Project(appName, file("."))
 val bootstrap = "7.15.0"
 
 val compileDeps = Seq(
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "1.1.0",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "1.2.0",
   "uk.gov.hmrc" %% "bootstrap-backend-play-28" % bootstrap,
   "com.typesafe.play" %% "play-json-joda" % "2.9.2",
   "org.typelevel" %% "cats-core" % "2.3.0"
