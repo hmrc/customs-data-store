@@ -28,10 +28,10 @@ lazy val microservice = Project(appName, file("."))
   .settings(addTestReportOption(IntegrationTest, "int-test-reports"))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
-val bootstrap = "7.15.0"
+val bootstrap = "7.19.0"
 
 val compileDeps = Seq(
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "1.2.0",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "1.3.0",
   "uk.gov.hmrc" %% "bootstrap-backend-play-28" % bootstrap,
   "com.typesafe.play" %% "play-json-joda" % "2.9.2",
   "org.typelevel" %% "cats-core" % "2.3.0"
@@ -45,5 +45,6 @@ val testDeps = Seq(
   "org.mockito" % "mockito-core" % "4.0.0" % "test,it",
   "org.scalatestplus" %% "mockito-3-12" % "3.2.10.0",
   "com.vladsch.flexmark" % "flexmark-all" % "0.62.2" % "test,it",
-  "uk.gov.hmrc" %% "bootstrap-test-play-28" % bootstrap % "test,it"
+  "uk.gov.hmrc" %% "bootstrap-test-play-28" % bootstrap % "test,it",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "1.3.0"
 )
