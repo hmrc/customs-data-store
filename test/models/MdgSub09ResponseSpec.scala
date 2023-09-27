@@ -145,10 +145,10 @@ object Sub09Response {
        |      "XI_Subscription": {
        |        "XI_EORINo": "XI123456789000",
        |        "PBEAddress": {
-       |          "streetNumber1": "Example Rd",
-       |          "city": "Example",
-       |          "countryCode": "GB",
-       |          "postalCode": "AA00 0AA"
+       |          "pbeAddressLine1": "Example Rd",
+       |          "pbeAddressLine2": "Example",
+       |          "pbeAddressLine3": "GB",
+       |          "pbePostCode": "AA00 0AA"
        |        },
        |        "XI_VATNumber": "GB123456789",
        |        "EU_VATNumber": {

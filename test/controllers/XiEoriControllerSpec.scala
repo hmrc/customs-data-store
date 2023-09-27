@@ -71,7 +71,7 @@ class XiEoriControllerSpec extends SpecBase {
   trait Setup {
     val mockXiEoriInformationRepository: XiEoriInformationRepository = mock[XiEoriInformationRepository]
     val mockSubscriptionInfoConnector: Sub09Connector = mock[Sub09Connector]
-    val xiEoriAddressInformation: XiEoriAddressInformation = XiEoriAddressInformation("12 Example Street", None, "Example", "GB", Some("AA00 0AA"))
+    val xiEoriAddressInformation: XiEoriAddressInformation = XiEoriAddressInformation("12 Example Street", Some("Example"), Some("GB"), None, Some("AA00 0AA"))
     val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", xiEoriAddressInformation)
     val eori: String = "testEori"
 

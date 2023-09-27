@@ -52,7 +52,7 @@ class XiEoriInformationRepositorySpec extends SpecBase {
   trait Setup {
     val app: Application = application.build()
     val repository: DefaultXiEoriInformationRepository = app.injector.instanceOf[DefaultXiEoriInformationRepository]
-    val xiEoriAddressInformation: XiEoriAddressInformation = XiEoriAddressInformation("12 Example Street", None, "Example", "GB", Some("AA00 0AA"))
+    val xiEoriAddressInformation: XiEoriAddressInformation = XiEoriAddressInformation("12 Example Street", Some("Example"), Some("GB"), None, Some("AA00 0AA"))
     val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", xiEoriAddressInformation)
 
     def dropData(): Future[Unit] = {
