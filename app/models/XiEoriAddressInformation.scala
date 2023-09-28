@@ -18,11 +18,11 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class XiEoriAddressInformation(streetNumber1: String,
-                                    streetNumber2: Option[String],
-                                    city: String,
-                                    countryCode: String,
-                                    postalCode: Option[String])
+case class XiEoriAddressInformation(pbeAddressLine1: String,
+                                    pbeAddressLine2: Option[String] = None,
+                                    pbeAddressLine3: Option[String] = None,
+                                    pbeAddressLine4: Option[String] = None,
+                                    pbePostCode: Option[String] = None)
 
 object XiEoriAddressInformation {
   implicit val format: OFormat[XiEoriAddressInformation] = Json.format[XiEoriAddressInformation]

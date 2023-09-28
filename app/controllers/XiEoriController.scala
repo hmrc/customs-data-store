@@ -33,11 +33,15 @@ class XiEoriController @Inject() (xiEoriInformationRepository: XiEoriInformation
                                  (implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getXiEoriInformation(eori: String): Action[AnyContent] = Action.async {
+    val emptyString = ""
     xiEoriInformationRepository.get(eori).flatMap {
       case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
       case None => retrieveXiEoriInformation(eori).map {
         case Some(xiEoriInformation) => Ok(Json.toJson(xiEoriInformation))
-        case None => xiEoriInformationRepository.set(eori, XiEoriInformation("", "", XiEoriAddressInformation("",None,"","", None)))
+        case None => xiEoriInformationRepository.set(
+          eori,
+          XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
+        )
           NotFound
       }
     }

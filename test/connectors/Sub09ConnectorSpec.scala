@@ -132,7 +132,7 @@ class Sub09ConnectorSpec extends SpecBase {
 
     val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
     val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation("Example Ltd", "0", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
-    val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", XiEoriAddressInformation("Example Rd", None, "Example", "GB", Some("AA00 0AA")))
+    val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", XiEoriAddressInformation("Example Rd", Some("Example"), Some("GB"), None, Some("AA00 0AA")))
 
     val mockHttp = mock[HttpClient]
     val app = application.overrides(
