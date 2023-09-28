@@ -37,7 +37,7 @@ class XiEoriController @Inject() (xiEoriInformationRepository: XiEoriInformation
       case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
       case None => retrieveXiEoriInformation(eori).map {
         case Some(xiEoriInformation) => Ok(Json.toJson(xiEoriInformation))
-        case None => xiEoriInformationRepository.set(eori, XiEoriInformation("", "", XiEoriAddressInformation("",None,"","", None)))
+        case None => xiEoriInformationRepository.set(eori, XiEoriInformation("", "", XiEoriAddressInformation("",Some(""),Some(""),None, None)))
           NotFound
       }
     }
