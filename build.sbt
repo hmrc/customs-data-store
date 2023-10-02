@@ -28,7 +28,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(addTestReportOption(IntegrationTest, "int-test-reports"))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
-val bootstrap = "7.19.0"
+val bootstrap = "7.22.0"
 
 val compileDeps = Seq(
   "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "1.3.0",
