@@ -20,7 +20,8 @@ import org.scalatest.Assertion
 import play.api.Application
 import models.EoriPeriod
 import utils.SpecBase
-
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -53,6 +54,17 @@ class HistoricEoriRepositorySpec extends SpecBase {
         eoris2 <- repository.get(period2.eori)
         _ <- toFuture(eoris2.left.get mustBe FailedToRetrieveHistoricEori)
       } yield {})
+    }
+
+    "fail to UpdateHistoricEori " in {
+       val mockRepository = mock[DefaultHistoricEoriRepository]
+      when(mockRepository.set(any())).thenReturn(Future.successful(FailedToUpdateHistoricEori))
+
+      await(for {
+        result <- mockRepository.set(Seq(period1, period2))
+      } yield {
+        result mustBe FailedToUpdateHistoricEori
+      })
     }
 
     "retrieve eori history with any of its historic eoris" in {

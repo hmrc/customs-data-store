@@ -21,9 +21,11 @@ import models.{NotificationEmail, UndeliverableInformation, UndeliverableInforma
 import org.joda.time.DateTime
 import play.api.Application
 import utils.SpecBase
-
+import models.repositories.{SuccessfulEmail, FailedToRetrieveEmail}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 
 class EmailRepositorySpec extends SpecBase {
 
@@ -34,29 +36,31 @@ class EmailRepositorySpec extends SpecBase {
     repository.collection.drop().toFuture().map(_ => ())
   }
 
-  "return 'true' if an update has been performed on a record" in {
-    val eori = "SomeEori"
+  "successfully retrive email from repository" in new Setup {
+
+    val notificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
+
+    await(for {
+      result <- repository.set(eori, notificationEmail)
+    } yield {
+      result mustBe SuccessfulEmail
+    })
+  }
+
+  "fail to retrieve email from repository after setting bad email" in new Setup {
+    val mockEmailRepository = mock[DefaultEmailRepository]
+    when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
+    val notificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
+
+    await(for {
+      result <- mockEmailRepository.set(eori, notificationEmail)
+    } yield {
+      result mustBe FailedToRetrieveEmail
+    })
+  }
+
+  "return 'true' if an update has been performed on a record" in new Setup {
     val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
-
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
-      "some-id",
-      "some event",
-      "some@email.com",
-      "detected",
-      Some(12),
-      Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori",
-      Some("sdds")
-    )
-
-    val undeliverableInformation: UndeliverableInformation =
-      UndeliverableInformation(
-        "some-subject",
-        "some-event-id",
-        "some-group-id",
-        DateTime.now(),
-        undeliverableInformationEvent
-      )
 
     await(for {
       _ <- repository.set(eori, notificationEmail)
@@ -70,64 +74,24 @@ class EmailRepositorySpec extends SpecBase {
     })
   }
 
-  "return 'false' if no update performed" in {
-    val eori = "UnknownEori"
-    val otherEori = "someEori"
+  "return 'false' if no update performed" in new Setup {
+    val unknownEori = "UnknownEori"
     val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
 
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
-      "some-id",
-      "some event",
-      "some@email.com",
-      "detected",
-      Some(12),
-      Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori",
-      Some("sdds")
-    )
-
-    val undeliverableInformation: UndeliverableInformation =
-      UndeliverableInformation(
-        "some-subject",
-        "some-event-id",
-        "some-group-id",
-        DateTime.now(),
-        undeliverableInformationEvent
-      )
     await(for {
-      _ <- repository.set(otherEori, notificationEmail)
-      result <- repository.findAndUpdate(eori, undeliverableInformation)
+      _ <- repository.set(eori, notificationEmail)
+      result <- repository.findAndUpdate(unknownEori, undeliverableInformation)
       _ = result mustBe None
-      record <- repository.get(eori)
+      record <- repository.get(unknownEori)
       _ <- dropData()
     } yield {
       record mustBe None
     })
   }
 
-  "remove the undeliverable object when setting a new email address" in {
-    val eori = "someEori"
+  "remove the undeliverable object when setting a new email address" in new Setup {
     val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
 
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
-      "some-id",
-      "some event",
-      "some@email.com",
-      "detected",
-      Some(12),
-      Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori",
-      Some("sdds")
-    )
-
-    val undeliverableInformation: UndeliverableInformation =
-      UndeliverableInformation(
-        "some-subject",
-        "some-event-id",
-        "some-group-id",
-        DateTime.now(),
-        undeliverableInformationEvent
-      )
     await(for {
       _ <- repository.set(eori, notificationEmail)
       _ <- repository.findAndUpdate(eori, undeliverableInformation)
@@ -141,42 +105,15 @@ class EmailRepositorySpec extends SpecBase {
     })
   }
 
-  "nextJob returns a job that still needs to be processed" in {
-    val eori = "someEori"
-    val dateTime = DateTime.now()
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
-      "some-id",
-      "some event",
-      "some@email.com",
-      "detected",
-      Some(12),
-      Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori",
-      Some("sdds")
-    )
+  "nextJob returns a job that still needs to be processed" in new Setup {
 
-    val undeliverableInformation: UndeliverableInformation =
-      UndeliverableInformation(
-        "some-subject",
-        "some-event-id",
-        "some-group-id",
-        dateTime,
-        undeliverableInformationEvent
-      )
+    val deliverableNotificationEmail = NotificationEmail("some@email.com", detectedDate, None)
 
-    val undeliverableInformationMongo: UndeliverableInformationMongo =
-      UndeliverableInformationMongo(
-        "some-subject",
-        "some-event-id",
-        "some-group-id",
-        dateTime,
-        undeliverableInformationEvent,
-        notifiedApi = false,
-        processed = false
-      )
-    val deliverableNotificationEmail = NotificationEmail("some@email.com", dateTime, None)
-    val undeliverableNotificationEmail = NotificationEmail("some@email.com",dateTime, Some(undeliverableInformation))
-    val undeliverableNotificationEmailMongo = NotificationEmailMongo("some@email.com", dateTime, Some(undeliverableInformationMongo))
+    val undeliverableNotificationEmail = NotificationEmail(
+      "some@email.com", detectedDate, Some(undeliverableInformation))
+
+    val undeliverableNotificationEmailMongo = NotificationEmailMongo(
+      "some@email.com", detectedDate, Some(undeliverableInformationMongo))
     await(
       for {
         _ <- repository.set(eori, deliverableNotificationEmail)
@@ -189,40 +126,13 @@ class EmailRepositorySpec extends SpecBase {
     )
   }
 
-  "reset processing will make the next job pick the data up again" in {
-    val eori = "someEori"
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
-      "some-id",
-      "some event",
-      "some@email.com",
-      "detected",
-      Some(12),
-      Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori",
-      Some("sdds")
-    )
+  "reset processing will make the next job pick the data up again" in new Setup {
 
-    val undeliverableInformation: UndeliverableInformation =
-      UndeliverableInformation(
-        "some-subject",
-        "some-event-id",
-        "some-group-id",
-        DateTime.now(),
-        undeliverableInformationEvent
-      )
+    val undeliverableNotificationEmail = NotificationEmail(
+      "some@email.com", DateTime.now(), Some(undeliverableInformation))
 
-    val undeliverableInformationMongo: UndeliverableInformationMongo =
-      UndeliverableInformationMongo(
-        "some-subject",
-        "some-event-id",
-        "some-group-id",
-        DateTime.now(),
-        undeliverableInformationEvent,
-        notifiedApi = false,
-        processed = false
-      )
-    val undeliverableNotificationEmail = NotificationEmail("some@email.com", DateTime.now(), Some(undeliverableInformation))
-    val undeliverableNotificationEmailMongo = NotificationEmailMongo("some@email.com", DateTime.now(), Some(undeliverableInformationMongo))
+    val undeliverableNotificationEmailMongo = NotificationEmailMongo(
+      "some@email.com", DateTime.now(), Some(undeliverableInformationMongo))
 
     await(
       for {
@@ -240,28 +150,10 @@ class EmailRepositorySpec extends SpecBase {
     )
   }
 
-  "mark as successful will ensure that the next job will not pick the data up again" in {
-    val eori = "someEori"
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
-      "some-id",
-      "some event",
-      "some@email.com",
-      "detected",
-      Some(12),
-      Some("unknown reason"),
-      s"HMRC-CUS-ORG~EORINumber~$eori",
-      Some("sdds")
-    )
+  "mark as successful will ensure that the next job will not pick the data up again" in new Setup {
 
-    val undeliverableInformation: UndeliverableInformation =
-      UndeliverableInformation(
-        "some-subject",
-        "some-event-id",
-        "some-group-id",
-        DateTime.now(),
-        undeliverableInformationEvent
-      )
-    val undeliverableNotificationEmail = NotificationEmail("some@email.com", DateTime.now(), Some(undeliverableInformation))
+    val undeliverableNotificationEmail = NotificationEmail(
+      "some@email.com", DateTime.now(), Some(undeliverableInformation))
 
     await(
       for {
@@ -272,5 +164,41 @@ class EmailRepositorySpec extends SpecBase {
         result mustBe Seq.empty
       }
     )
+  }
+
+  trait Setup {
+    val detectedDate: DateTime = DateTime.now()
+    val eori = "SomeEori"
+
+    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
+      "some-id",
+      "some event",
+      "some@email.com",
+      detectedDate.toString(),
+      Some(12),
+      Some("unknown reason"),
+      s"HMRC-cus-ORG~EORINUMBER~$eori",
+      Some("sdds")
+    )
+
+    val undeliverableInformation: UndeliverableInformation =
+      UndeliverableInformation(
+        "some-subject",
+        "some-event-id",
+        "some-group-id",
+        detectedDate,
+        undeliverableInformationEvent
+      )
+
+    val undeliverableInformationMongo: UndeliverableInformationMongo =
+      UndeliverableInformationMongo(
+        "some-subject",
+        "some-event-id",
+        "some-group-id",
+        detectedDate,
+        undeliverableInformationEvent,
+        notifiedApi = false,
+        processed = false
+      )
   }
 }

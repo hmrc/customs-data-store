@@ -29,12 +29,12 @@ import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient}
 import utils.SpecBase
-
+import uk.gov.hmrc.http.{NotFoundException}
+import uk.gov.hmrc.http.HttpReads.notFoundMessage
 import java.net.URL
 import java.time.LocalDate
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
-
 
 class Sub21ConnectorSpec extends SpecBase {
 
@@ -69,7 +69,7 @@ class Sub21ConnectorSpec extends SpecBase {
     "hit the expected URL" in new Setup {
 
       val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
-      when(mockHttp.GET[HistoricEoriResponse](actualURL.capture(), any[Seq[(String,String)]])(any(), any(), any()))
+      when(mockHttp.GET[HistoricEoriResponse](actualURL.capture(), any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.successful(generateResponse(List(someEori))))
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
@@ -82,8 +82,8 @@ class Sub21ConnectorSpec extends SpecBase {
         await(service.getEoriHistory(someEori))
         actualURL.getValue.toString mustBe appConfig.sub21EORIHistoryEndpoint + someEori
       }
-
     }
+
     "return a list of EoriPeriod entries" in new Setup {
       val jsonResponse =
         s"""{
@@ -118,7 +118,7 @@ class Sub21ConnectorSpec extends SpecBase {
            |  }
            |}""".stripMargin
 
-      when(mockHttp.GET[HistoricEoriResponse](any[URL], any[Seq[(String,String)]])(any(), any(), any()))
+      when(mockHttp.GET[HistoricEoriResponse](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.successful(Json.parse(jsonResponse).as[HistoricEoriResponse]))
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
@@ -136,6 +136,28 @@ class Sub21ConnectorSpec extends SpecBase {
           EoriPeriod("historicEori2", Some("2019-07-24"), Some("2019-07-23")),
           EoriPeriod("historicEori3", Some("2019-07-24"), Some("2019-07-23"))
         )
+      }
+    }
+
+    "recoverWith Not Found" in new Setup {
+
+      val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
+      val compare = Future.failed(new NotFoundException(notFoundMessage("GET", actualURL.toString, "error1")))
+
+      when(mockHttp.GET[HistoricEoriResponse](
+        actualURL.capture(), any[Seq[(String, String)]])(any(), any(), any()))
+        .thenReturn(compare)
+
+      private val app: Application = new GuiceApplicationBuilder().overrides(
+        api.inject.bind[HttpClient].toInstance(mockHttp)
+      ).build()
+
+      val service = app.injector.instanceOf[Sub21Connector]
+
+      running(app) {
+        assertThrows[NotFoundException]{
+          await(service.getEoriHistory(someEori)) mustBe 404
+        }
       }
     }
   }
