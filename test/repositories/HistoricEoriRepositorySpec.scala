@@ -56,15 +56,13 @@ class HistoricEoriRepositorySpec extends SpecBase {
       } yield {})
     }
 
-    "fail to UpdateHistoricEori " in {
+    "fail to UpdateHistoricEori" in {
        val mockRepository = mock[DefaultHistoricEoriRepository]
       when(mockRepository.set(any())).thenReturn(Future.successful(FailedToUpdateHistoricEori))
 
-      await(for {
-        result <- mockRepository.set(Seq(period1, period2))
-      } yield {
-        result mustBe FailedToUpdateHistoricEori
-      })
+      mockRepository.set(Seq(period1, period2)).map {
+        result => result mustBe FailedToUpdateHistoricEori
+      }
     }
 
     "retrieve eori history with any of its historic eoris" in {

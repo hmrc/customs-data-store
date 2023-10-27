@@ -37,14 +37,10 @@ class EmailRepositorySpec extends SpecBase {
   }
 
   "successfully retrive email from repository" in new Setup {
-
     val notificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
-
-    await(for {
-      result <- repository.set(eori, notificationEmail)
-    } yield {
-      result mustBe SuccessfulEmail
-    })
+    repository.set(eori, notificationEmail).map {
+      result => result mustBe SuccessfulEmail
+    }
   }
 
   "fail to retrieve email from repository after setting bad email" in new Setup {
@@ -52,11 +48,9 @@ class EmailRepositorySpec extends SpecBase {
     when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
     val notificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
 
-    await(for {
-      result <- mockEmailRepository.set(eori, notificationEmail)
-    } yield {
-      result mustBe FailedToRetrieveEmail
-    })
+    mockEmailRepository.set(eori, notificationEmail).map {
+      result => result mustBe FailedToRetrieveEmail
+    }
   }
 
   "return 'true' if an update has been performed on a record" in new Setup {
@@ -78,15 +72,15 @@ class EmailRepositorySpec extends SpecBase {
     val unknownEori = "UnknownEori"
     val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
 
-    await(for {
+    for {
       _ <- repository.set(eori, notificationEmail)
       result <- repository.findAndUpdate(unknownEori, undeliverableInformation)
-      _ = result mustBe None
+      _ = result.map(notif => notif mustBe None)
       record <- repository.get(unknownEori)
       _ <- dropData()
     } yield {
       record mustBe None
-    })
+    }
   }
 
   "remove the undeliverable object when setting a new email address" in new Setup {
@@ -155,7 +149,6 @@ class EmailRepositorySpec extends SpecBase {
     val undeliverableNotificationEmail = NotificationEmail(
       "some@email.com", DateTime.now(), Some(undeliverableInformation))
 
-    await(
       for {
         _ <- repository.set(eori, undeliverableNotificationEmail)
         _ <- repository.markAsSuccessful(eori)
@@ -163,7 +156,6 @@ class EmailRepositorySpec extends SpecBase {
       } yield {
         result mustBe Seq.empty
       }
-    )
   }
 
   trait Setup {

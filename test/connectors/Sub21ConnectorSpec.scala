@@ -29,7 +29,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient}
 import utils.SpecBase
-import uk.gov.hmrc.http.{NotFoundException}
+import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.http.HttpReads.notFoundMessage
 import java.net.URL
 import java.time.LocalDate
@@ -152,11 +152,11 @@ class Sub21ConnectorSpec extends SpecBase {
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[Sub21Connector]
+      val connector = app.injector.instanceOf[Sub21Connector]
 
       running(app) {
         assertThrows[NotFoundException]{
-          await(service.getEoriHistory(someEori)) mustBe 404
+          await(connector.getEoriHistory(someEori)) mustBe 404
         }
       }
     }
