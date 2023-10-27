@@ -86,7 +86,7 @@ class EmailRepositorySpec extends SpecBase {
   "remove the undeliverable object when setting a new email address" in new Setup {
     val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
 
-    await(for {
+    for {
       _ <- repository.set(eori, notificationEmail)
       _ <- repository.findAndUpdate(eori, undeliverableInformation)
       firstResult <- repository.get(eori)
@@ -96,7 +96,7 @@ class EmailRepositorySpec extends SpecBase {
     } yield {
       firstResult mustBe Some(notificationEmail.copy(undeliverable = Some(undeliverableInformation)))
       secondResult mustBe Some(notificationEmail)
-    })
+    }
   }
 
   "nextJob returns a job that still needs to be processed" in new Setup {
