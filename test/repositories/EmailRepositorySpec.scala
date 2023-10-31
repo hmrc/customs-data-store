@@ -21,9 +21,11 @@ import models.{NotificationEmail, UndeliverableInformation, UndeliverableInforma
 import org.joda.time.DateTime
 import play.api.Application
 import utils.SpecBase
-
+import models.repositories.{SuccessfulEmail, FailedToRetrieveEmail}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 
 class EmailRepositorySpec extends SpecBase {
 
@@ -32,6 +34,24 @@ class EmailRepositorySpec extends SpecBase {
 
   def dropData(): Future[Unit] = {
     repository.collection.drop().toFuture().map(_ => ())
+  }
+
+  "successfully retrive email from repository" in new Setup {
+    val notificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
+    repository.set(eori, notificationEmail).map {
+      result => result mustBe SuccessfulEmail
+    }
+  }
+
+  "fail to retrieve email from repository after setting bad email" in new Setup {
+
+    val mockEmailRepository = mock[DefaultEmailRepository]
+    when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
+    val notificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
+
+    mockEmailRepository.set(eori, notificationEmail).map {
+      result => result mustBe FailedToRetrieveEmail
+    }
   }
 
   "return 'true' if an update has been performed on a record" in {
@@ -273,4 +293,29 @@ class EmailRepositorySpec extends SpecBase {
       }
     )
   }
+
+  trait Setup {
+    val eori = "SomeEori"
+
+    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
+      "some-id",
+      "some event",
+      "some@email.com",
+      "detected",
+      Some(12),
+      Some("unknown reason"),
+      s"HMRC-CUS-ORG~EORINumber~$eori",
+      Some("sdds")
+    )
+
+    val undeliverableInformation: UndeliverableInformation =
+      UndeliverableInformation(
+        "some-subject",
+        "some-event-id",
+        "some-group-id",
+        DateTime.now(),
+        undeliverableInformationEvent
+      )
+  }
+
 }
