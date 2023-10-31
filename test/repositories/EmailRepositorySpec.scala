@@ -101,6 +101,15 @@ class EmailRepositorySpec extends SpecBase {
 
   "nextJob returns a job that still needs to be processed" in new Setup {
 
+    override val undeliverableInformation: UndeliverableInformation =
+      UndeliverableInformation(
+        "some-subject2",
+        "some-event-id2",
+        "some-group-id2",
+        detectedDate,
+        undeliverableInformationEvent
+      )
+
     val deliverableNotificationEmail = NotificationEmail("some@email.com", detectedDate, None)
 
     val undeliverableNotificationEmail = NotificationEmail(
@@ -121,6 +130,15 @@ class EmailRepositorySpec extends SpecBase {
   }
 
   "reset processing will make the next job pick the data up again" in new Setup {
+
+    override val undeliverableInformation: UndeliverableInformation =
+      UndeliverableInformation(
+        "some-subject2",
+        "some-event-id2",
+        "some-group-id2",
+        detectedDate,
+        undeliverableInformationEvent
+      )
 
     val undeliverableNotificationEmail = NotificationEmail(
       "some@email.com", DateTime.now(), Some(undeliverableInformation))
@@ -184,9 +202,9 @@ class EmailRepositorySpec extends SpecBase {
 
     val undeliverableInformationMongo: UndeliverableInformationMongo =
       UndeliverableInformationMongo(
-        "some-subject",
-        "some-event-id",
-        "some-group-id",
+        "some-subject2",
+        "some-event-id2",
+        "some-group-id2",
         detectedDate,
         undeliverableInformationEvent,
         notifiedApi = false,
