@@ -54,12 +54,19 @@ object Sub09Response {
   private val emailKey = "--THE-EMAIL--"
   private val eoriKey = "--THE-EORI-HERE--"
   private val consentToDisclosureOfPersonalDataKEY = "--THE-CONSENT--"
+  private val xiEoriAddressKey = "--XI-EORI-ADDRESS--"
 
   def withEmailAndTimestamp(eori: String): JsValue = {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey,""" "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
+      .replace(xiEoriAddressKey, """"PBEAddress": {
+                                   |          "pbeAddressLine1": "Example Rd",
+                                   |          "pbeAddressLine2": "Example",
+                                   |          "pbeAddressLine3": "GB",
+                                   |          "pbePostCode": "AA00 0AA"
+                                   |        },""".stripMargin)
     Json.parse(response)
   }
 
@@ -68,6 +75,12 @@ object Sub09Response {
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey, "")
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
+      .replace(xiEoriAddressKey, """"PBEAddress": {
+                                   |          "pbeAddressLine1": "Example Rd",
+                                   |          "pbeAddressLine2": "Example",
+                                   |          "pbeAddressLine3": "GB",
+                                   |          "pbePostCode": "AA00 0AA"
+                                   |        },""".stripMargin)
     Json.parse(response)
   }
 
@@ -76,6 +89,12 @@ object Sub09Response {
       .replace(emailKey, "")
       .replace(timeStampKey, "")
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
+      .replace(xiEoriAddressKey, """"PBEAddress": {
+                                   |          "pbeAddressLine1": "Example Rd",
+                                   |          "pbeAddressLine2": "Example",
+                                   |          "pbeAddressLine3": "GB",
+                                   |          "pbePostCode": "AA00 0AA"
+                                   |        },""".stripMargin)
     Json.parse(response)
   }
 
@@ -84,6 +103,21 @@ object Sub09Response {
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey,""" "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
       .replace(consentToDisclosureOfPersonalDataKEY, "")
+      .replace(xiEoriAddressKey, """"PBEAddress": {
+                                   |          "pbeAddressLine1": "Example Rd",
+                                   |          "pbeAddressLine2": "Example",
+                                   |          "pbeAddressLine3": "GB",
+                                   |          "pbePostCode": "AA00 0AA"
+                                   |        },""".stripMargin)
+    Json.parse(response)
+  }
+
+  def noXiEoriAddressInformation(eori: String): JsValue = {
+    val response = sub09Response(eori)
+      .replace(emailKey, """ "emailAddress": "email@email.com", """)
+      .replace(timeStampKey,""" "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
+      .replace(consentToDisclosureOfPersonalDataKEY, "")
+      .replace(xiEoriAddressKey, "")
     Json.parse(response)
   }
 
@@ -144,12 +178,7 @@ object Sub09Response {
        |      "ETMP_Master_Indicator": true,
        |      "XI_Subscription": {
        |        "XI_EORINo": "XI123456789000",
-       |        "PBEAddress": {
-       |          "pbeAddressLine1": "Example Rd",
-       |          "pbeAddressLine2": "Example",
-       |          "pbeAddressLine3": "GB",
-       |          "pbePostCode": "AA00 0AA"
-       |        },
+       |        $xiEoriAddressKey
        |        "XI_VATNumber": "GB123456789",
        |        "EU_VATNumber": {
        |          "countryCode": "GB",

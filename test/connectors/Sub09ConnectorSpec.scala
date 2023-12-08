@@ -111,6 +111,15 @@ class Sub09ConnectorSpec extends SpecBase {
       }
     }
 
+    "return xi eori information from the api when pbeaddress is empty" in new Setup {
+      when(mockHttp.GET[Option[MdgSub09XiEoriInformationResponse]](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
+        .thenReturn(Future.successful(Some(mdgXiEoriInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))))
+
+      running(app) {
+        await(service.getXiEoriInformation(testEori)) mustBe Some(xiEoriInformationWithNoAddress)
+      }
+    }
+
     "return None on failure" in new Setup {
       when(mockHttp.GET[Option[MdgSub09XiEoriInformationResponse]](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
@@ -133,6 +142,7 @@ class Sub09ConnectorSpec extends SpecBase {
     val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
     val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation("Example Ltd", "0", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
     val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", XiEoriAddressInformation("Example Rd", Some("Example"), Some("GB"), None, Some("AA00 0AA")))
+    val xiEoriInformationWithNoAddress: XiEoriInformation = XiEoriInformation("XI123456789000", "1", XiEoriAddressInformation(""))
 
     val mockHttp = mock[HttpClient]
     val app = application.overrides(

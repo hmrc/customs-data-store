@@ -17,7 +17,7 @@
 package connectors
 
 import config.AppConfig
-import models.{CompanyInformation, NotificationEmail, XiEoriInformation}
+import models.{CompanyInformation, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
 import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse}
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
@@ -100,7 +100,7 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
 
     metricsReporter.withResponseTimeLogging("mdg.get.company-information") {
       http.GET[Option[MdgSub09XiEoriInformationResponse]](uri, headers = headers)
-        .map(_.map(v => XiEoriInformation(v.xiEori, v.consent.getOrElse("0"), v.address))).recover {
+        .map(_.map(v => XiEoriInformation(v.xiEori, v.consent.getOrElse("0"), v.address.getOrElse(XiEoriAddressInformation(""))))).recover {
         case e => log.error(s"Failed to retrieve xi eori information with error: $e"); None
       }
     }
