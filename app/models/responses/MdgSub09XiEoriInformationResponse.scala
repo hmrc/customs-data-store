@@ -20,7 +20,11 @@ import models.XiEoriAddressInformation
 import play.api.libs.json.{JsPath, Reads}
 import play.api.libs.functional.syntax._
 
-case class MdgSub09XiEoriInformationResponse(xiEori: String, consent: Option[String], address: Option[XiEoriAddressInformation])
+case class MdgSub09XiEoriInformationResponse(
+                                              xiEori: String,
+                                              consent: Option[String],
+                                              address: Option[XiEoriAddressInformation]
+                                            )
 
 object MdgSub09XiEoriInformationResponse {
   implicit val sub09XiEoriInformation: Reads[MdgSub09XiEoriInformationResponse] =

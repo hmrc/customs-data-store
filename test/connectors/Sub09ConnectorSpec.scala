@@ -27,6 +27,7 @@ import utils.SpecBase
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, ServiceUnavailableException}
 
 import java.net.URL
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
@@ -107,7 +108,9 @@ class Sub09ConnectorSpec extends SpecBase {
         .thenReturn(Future.successful(Some(mdgXiEoriInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))))
 
       running(app) {
-        await(service.getXiEoriInformation(testEori)) mustBe Some(xiEoriInformation)
+        service.getXiEoriInformation(testEori).map {
+          xiInfo => xiInfo mustBe Some(xiEoriInformation)
+        }
       }
     }
 
@@ -116,7 +119,9 @@ class Sub09ConnectorSpec extends SpecBase {
         .thenReturn(Future.successful(Some(mdgXiEoriInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))))
 
       running(app) {
-        await(service.getXiEoriInformation(testEori)) mustBe Some(xiEoriInformationWithNoAddress)
+        service.getXiEoriInformation(testEori).map {
+          xiInfo => xiInfo mustBe Some(xiEoriInformationWithNoAddress)
+        }
       }
     }
 
@@ -125,7 +130,9 @@ class Sub09ConnectorSpec extends SpecBase {
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
 
       running(app) {
-        await(service.getXiEoriInformation(testEori)) mustBe None
+        service.getXiEoriInformation(testEori).map {
+          xiInfo => xiInfo mustBe None
+        }
       }
     }
   }
@@ -136,13 +143,20 @@ class Sub09ConnectorSpec extends SpecBase {
 
     def mdgResponse(value: JsValue): MdgSub09Response = MdgSub09Response.sub09Reads.reads(value).get
 
-    def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse = MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
-    def mdgXiEoriInformationResponse(value: JsValue): MdgSub09XiEoriInformationResponse = MdgSub09XiEoriInformationResponse.sub09XiEoriInformation.reads(value).get
+    def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse =
+      MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
+    def mdgXiEoriInformationResponse(value: JsValue): MdgSub09XiEoriInformationResponse =
+      MdgSub09XiEoriInformationResponse.sub09XiEoriInformation.reads(value).get
 
-    val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
-    val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation("Example Ltd", "0", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
-    val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", XiEoriAddressInformation("Example Rd", Some("Example"), Some("GB"), None, Some("AA00 0AA")))
-    val xiEoriInformationWithNoAddress: XiEoriInformation = XiEoriInformation("XI123456789000", "1", XiEoriAddressInformation(""))
+    val companyInformation: CompanyInformation =
+      CompanyInformation("Example Ltd", "1", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
+    val companyInformationNoConsentFalse: CompanyInformation =
+      CompanyInformation("Example Ltd", "0", AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB"))
+    val xiEoriInformation: XiEoriInformation =
+      XiEoriInformation("XI123456789000", "1",
+        XiEoriAddressInformation("Example Rd", Some("Example"), Some("GB"), None, Some("AA00 0AA")))
+    val xiEoriInformationWithNoAddress: XiEoriInformation =
+      XiEoriInformation("XI123456789000", "1", XiEoriAddressInformation(""))
 
     val mockHttp = mock[HttpClient]
     val app = application.overrides(
