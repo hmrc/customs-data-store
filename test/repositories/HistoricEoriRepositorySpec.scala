@@ -16,94 +16,117 @@
 
 package repositories
 
-import org.scalatest.Assertion
-import play.api.Application
+import com.mongodb.WriteConcern
 import models.EoriPeriod
+import org.mongodb.scala.MongoCollection
+import org.scalatest.Assertion
+import play.api.{Application, Configuration}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.CollectionFactory
 import utils.SpecBase
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+
 import java.time.LocalDateTime
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class HistoricEoriRepositorySpec extends SpecBase {
 
-  private val app: Application = application.build()
-  val repository = app.injector.instanceOf[DefaultHistoricEoriRepository]
-
-  val eori1: String = "EORI00000001"
-  val eori2: String = "EORI00000002"
-  val eori3: String = "EORI00000003"
-  val eori4: String = "EORI00000004"
-  val eori5: String = "EORI00000005"
-
-  val period1 = EoriPeriod(eori1, Some("2001-01-20T00:00:00Z"), None)
-  val period2 = EoriPeriod(eori2, Some("2002-01-20T00:00:00Z"), None)
-  val period3 = EoriPeriod(eori3, Some("2003-01-20T00:00:00Z"), None)
-  val period4 = EoriPeriod(eori4, Some("2005-01-20T00:00:00Z"), None)
-  val period5 = EoriPeriod(eori5, Some("2006-01-20T00:00:00Z"), None)
-
-  def toFuture(condition: Assertion) = Future.successful(condition)
-
   "HistoricEoriRepository" should {
 
-    "not retrieve trader information when the store is empty" in {
+    "not retrieve trader information when the store is empty" in new Setup {
       await(for {
         eoris1 <- repository.get(period1.eori)
-        _ <- toFuture(eoris1.left.get mustBe FailedToRetrieveHistoricEori)
+        _ <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
         eoris2 <- repository.get(period2.eori)
-        _ <- toFuture(eoris2.left.get mustBe FailedToRetrieveHistoricEori)
+        _ <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
       } yield {})
     }
 
-    "fail to UpdateHistoricEori" in {
-       val mockRepository = mock[DefaultHistoricEoriRepository]
-      when(mockRepository.set(any())).thenReturn(Future.successful(FailedToUpdateHistoricEori))
+    "fail to UpdateHistoricEori" in new Setup {
+      val eoriHistory: Seq[EoriPeriod] = Seq(period1, period2)
 
-      mockRepository.set(Seq(period1, period2)).map {
+      repoWithUnacknowledgedWrite.set(eoriHistory).map {
         result => result mustBe FailedToUpdateHistoricEori
       }
     }
 
-    "retrieve eori history with any of its historic eoris" in {
-      val history = EoriHistory(Seq(period1, period2), LocalDateTime.now)
+    "retrieve eori history with any of its historic eoris" in new Setup {
+      val history: EoriHistory = EoriHistory(Seq(period1, period2), LocalDateTime.now)
+
       await(for {
         _ <- repository.set(Seq(period1, period2))
         _ <- repository.set(Seq(period4, period5))
         t1 <- repository.get(period1.eori)
         t2 <- repository.get(period2.eori)
-        _ <- toFuture(t1.right.get mustBe history.eoriPeriods)
-        _ <- toFuture(t2.right.get mustBe history.eoriPeriods)
+        _ <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _ <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
         _ <- repository.collection.drop().toFuture().map(_ => ())
       } yield ())
     }
 
-    "retrieve trader information by the latest historic eori" in {
+    "retrieve trader information by the latest historic eori" in new Setup {
       await(for {
         _ <- repository.set(Seq(period1, period3))
         eoris <- repository.get(period1.eori)
-        _ <- toFuture(eoris.right.get mustBe Seq(period1, period3))
+        _ <- toFuture(eoris.getOrElse(Seq()) mustBe Seq(period1, period3))
         _ <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
 
-    "retrieve trader information by the earliest historic eori" in {
+    "retrieve trader information by the earliest historic eori" in new Setup {
       await(for {
         _ <- repository.set(Seq(period1, period3))
         eoris <- repository.get(period3.eori)
-        _ <- toFuture(eoris.right.get mustBe Seq(period1, period3))
+        _ <- toFuture(eoris.getOrElse(Seq()) mustBe Seq(period1, period3))
         _ <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
 
-    "not retrieve trader information for eoris that are not historic eoris" in {
+    "not retrieve trader information for eoris that are not historic eoris" in new Setup {
       await(for {
         eoris1 <- repository.get(period4.eori)
-        _ <- toFuture(eoris1.left.get mustBe FailedToRetrieveHistoricEori)
+        _ <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
         eoris2 <- repository.get(period5.eori)
-        _ <- toFuture(eoris2.left.get mustBe FailedToRetrieveHistoricEori)
+        _ <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
         _ <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
   }
+
+  trait Setup {
+    val app: Application = application.build()
+
+    val repoWithUnacknowledgedWrite: DefaultHistoricEoriRepoWithUnacknowledgedWrite =
+      app.injector.instanceOf[DefaultHistoricEoriRepoWithUnacknowledgedWrite]
+
+    val repository: DefaultHistoricEoriRepository = app.injector.instanceOf[DefaultHistoricEoriRepository]
+
+    val eori1: String = "EORI00000001"
+    val eori2: String = "EORI00000002"
+    val eori3: String = "EORI00000003"
+    val eori4: String = "EORI00000004"
+    val eori5: String = "EORI00000005"
+
+    val period1: EoriPeriod = EoriPeriod(eori1, Some("2001-01-20T00:00:00Z"), None)
+    val period2: EoriPeriod = EoriPeriod(eori2, Some("2002-01-20T00:00:00Z"), None)
+    val period3: EoriPeriod = EoriPeriod(eori3, Some("2003-01-20T00:00:00Z"), None)
+    val period4: EoriPeriod = EoriPeriod(eori4, Some("2005-01-20T00:00:00Z"), None)
+    val period5: EoriPeriod = EoriPeriod(eori5, Some("2006-01-20T00:00:00Z"), None)
+
+    def toFuture(condition: Assertion): Future[Assertion] = Future.successful(condition)
+  }
+}
+
+@Singleton
+class DefaultHistoricEoriRepoWithUnacknowledgedWrite @Inject()()(mongoComponent: MongoComponent,
+                                                                 config: Configuration)
+  extends DefaultHistoricEoriRepository()(mongoComponent, config) {
+
+  override lazy val collection: MongoCollection[EoriHistory] =
+    CollectionFactory.collection(
+      mongoComponent.database,
+      collectionName,
+      domainFormat,
+      Seq.empty).withWriteConcern(WriteConcern.UNACKNOWLEDGED)
 }
