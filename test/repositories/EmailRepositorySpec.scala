@@ -34,14 +34,17 @@ import scala.concurrent.Future
 class EmailRepositorySpec extends SpecBase {
 
   "successfully retrive email from repository" in new Setup {
-    val notificationEmail: NotificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
+    override val notificationEmail: NotificationEmail =
+      NotificationEmail("123", dateTime, Some(undeliverableInformation))
+
     repository.set(eori, notificationEmail).map {
       result => result mustBe SuccessfulEmail
     }
   }
 
   "fail to retrieve email from repository after setting bad email" in new Setup {
-    val notificationEmail: NotificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
+    override val notificationEmail: NotificationEmail =
+      NotificationEmail("123", dateTime, Some(undeliverableInformation))
 
     repoWithUnacknowledgedWrite.set(eori, notificationEmail).map {
       result => result mustBe FailedToRetrieveEmail
@@ -49,7 +52,6 @@ class EmailRepositorySpec extends SpecBase {
   }
 
   "return 'true' if an update has been performed on a record" in new Setup {
-    val notificationEmail: NotificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
 
     override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
@@ -67,7 +69,7 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
 
@@ -84,9 +86,9 @@ class EmailRepositorySpec extends SpecBase {
   }
 
   "return 'false' if no update performed" in new Setup {
-    override val eori = "UnknownEori"
     val otherEori = "someEori"
-    val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
+
+    override val eori = "UnknownEori"
 
     override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
@@ -104,7 +106,7 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
 
@@ -120,7 +122,6 @@ class EmailRepositorySpec extends SpecBase {
   }
 
   "remove the undeliverable object when setting a new email address" in new Setup {
-    val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
 
     override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
@@ -138,7 +139,7 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
     await(for {
@@ -155,7 +156,6 @@ class EmailRepositorySpec extends SpecBase {
   }
 
   "nextJob returns a job that still needs to be processed" in new Setup {
-    val dateTime = DateTime.now()
 
     override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
@@ -188,7 +188,6 @@ class EmailRepositorySpec extends SpecBase {
         processed = false
       )
 
-    val deliverableNotificationEmail: NotificationEmail = NotificationEmail("some@email.com", dateTime, None)
     val undeliverableNotificationEmail: NotificationEmail =
       NotificationEmail("some@email.com", dateTime, Some(undeliverableInformation))
 
@@ -197,7 +196,7 @@ class EmailRepositorySpec extends SpecBase {
 
     await(
       for {
-        _ <- repository.set(eori, deliverableNotificationEmail)
+        _ <- repository.set(eori, notificationEmail)
         _ <- repository.set(eori, undeliverableNotificationEmail)
         result <- repository.nextJobs
         _ <- dropData()
@@ -224,7 +223,7 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
 
@@ -233,16 +232,16 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent,
         notifiedApi = false,
         processed = false
       )
     val undeliverableNotificationEmail: NotificationEmail =
-      NotificationEmail("some@email.com", DateTime.now(), Some(undeliverableInformation))
+      NotificationEmail("some@email.com", dateTime, Some(undeliverableInformation))
 
     val undeliverableNotificationEmailMongo: NotificationEmailMongo =
-      NotificationEmailMongo("some@email.com", DateTime.now(), Some(undeliverableInformationMongo))
+      NotificationEmailMongo("some@email.com", dateTime, Some(undeliverableInformationMongo))
 
     await(
       for {
@@ -279,12 +278,12 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
 
     val undeliverableNotificationEmail: NotificationEmail =
-      NotificationEmail("some@email.com", DateTime.now(), Some(undeliverableInformation))
+      NotificationEmail("some@email.com", dateTime, Some(undeliverableInformation))
 
     await(
       for {
@@ -299,6 +298,8 @@ class EmailRepositorySpec extends SpecBase {
 
   trait Setup {
     val eori = "SomeEori"
+    val dateTime: DateTime = DateTime.now()
+    val notificationEmail: NotificationEmail = NotificationEmail("some@email.com", dateTime, None)
 
     val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
@@ -316,7 +317,7 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
 
@@ -330,9 +331,7 @@ class EmailRepositorySpec extends SpecBase {
     def dropData(): Future[Unit] = {
       repository.collection.drop().toFuture().map(_ => ())
     }
-
   }
-
 }
 
 @Singleton
