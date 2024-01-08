@@ -24,13 +24,14 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api
 import play.api.Application
+import play.api.http.Status.NOT_FOUND
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient, NotFoundException, UpstreamErrorResponse}
 import utils.SpecBase
-import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.http.HttpReads.notFoundMessage
+
 import java.net.URL
 import java.time.LocalDate
 import scala.annotation.tailrec
@@ -38,48 +39,24 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class Sub21ConnectorSpec extends SpecBase {
 
-  protected def generateResponse(eoris: Seq[String]): HistoricEoriResponse = {
-    HistoricEoriResponse(
-      GetEORIHistoryResponse(
-        ResponseCommon("OK", LocalDate.now().toString),
-        ResponseDetail(generateEoriHistory(eoris))
-      )
-    )
-  }
-
-  def generateEoriHistory(allEoris: Seq[String]): Seq[EORIHistory] = {
-    val dateCalculator = (years: Int) => "19XX-03-20T19:30:51Z".replaceAll("XX", (85 + allEoris.size - years).toString)
-
-    @tailrec
-    def calcHistory(eoris: Seq[String], histories: Seq[EORIHistory]): Seq[EORIHistory] = {
-      val eori = eoris.head
-      eoris.size match {
-        case 1 =>
-          EORIHistory(eori, Some(dateCalculator(eoris.size)), None) +: histories
-        case _ =>
-          val current = EORIHistory(eori, Some(dateCalculator(eoris.size)), Some(dateCalculator(eoris.size - 1)))
-          calcHistory(eoris.tail, current +: histories)
-      }
-    }
-
-    calcHistory(allEoris, Seq.empty[EORIHistory])
-  }
-
   "EoriHistoryConnector" should {
     "hit the expected URL" in new Setup {
 
       val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
+
       when(mockHttp.GET[HistoricEoriResponse](actualURL.capture(), any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.successful(generateResponse(List(someEori))))
+
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val service = app.injector.instanceOf[Sub21Connector]
-      val appConfig = app.injector.instanceOf[AppConfig]
+      val service: Sub21Connector = app.injector.instanceOf[Sub21Connector]
+      val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
 
       running(app) {
         await(service.getEoriHistory(someEori))
+
         actualURL.getValue.toString mustBe appConfig.sub21EORIHistoryEndpoint + someEori
       }
     }
@@ -120,6 +97,7 @@ class Sub21ConnectorSpec extends SpecBase {
 
       when(mockHttp.GET[HistoricEoriResponse](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.successful(Json.parse(jsonResponse).as[HistoricEoriResponse]))
+
       private val app: Application = new GuiceApplicationBuilder().overrides(
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
@@ -142,7 +120,12 @@ class Sub21ConnectorSpec extends SpecBase {
     "recoverWith Not Found" in new Setup {
 
       val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
-      val compare = Future.failed(new NotFoundException(notFoundMessage("GET", actualURL.toString, "error1")))
+
+      val compare: Future[Nothing] = Future.failed(
+        UpstreamErrorResponse(
+          notFoundMessage("GET", actualURL.toString, "error1"),
+          NOT_FOUND)
+      )
 
       when(mockHttp.GET[HistoricEoriResponse](
         actualURL.capture(), any[Seq[(String, String)]])(any(), any(), any()))
@@ -152,10 +135,10 @@ class Sub21ConnectorSpec extends SpecBase {
         api.inject.bind[HttpClient].toInstance(mockHttp)
       ).build()
 
-      val connector = app.injector.instanceOf[Sub21Connector]
+      val connector: Sub21Connector = app.injector.instanceOf[Sub21Connector]
 
       running(app) {
-        assertThrows[NotFoundException]{
+        assertThrows[NotFoundException] {
           await(connector.getEoriHistory(someEori)) mustBe 404
         }
       }
@@ -164,11 +147,42 @@ class Sub21ConnectorSpec extends SpecBase {
 
   trait Setup {
     implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
     implicit val implicitHeaderCarrier: HeaderCarrier = HeaderCarrier(
       authorization = Option(Authorization("myAwesomeCrypto")),
       otherHeaders = List(("X-very-important", "foo"))
     )
+
     val someEori = "testEori"
-    val mockHttp = mock[HttpClient]
+    val mockHttp: HttpClient = mock[HttpClient]
   }
+
+  protected def generateResponse(eoris: Seq[String]): HistoricEoriResponse = {
+    HistoricEoriResponse(
+      GetEORIHistoryResponse(
+        ResponseCommon("OK", LocalDate.now().toString),
+        ResponseDetail(generateEoriHistory(eoris))
+      )
+    )
+  }
+
+  def generateEoriHistory(allEoris: Seq[String]): Seq[EORIHistory] = {
+    val dateCalculator =
+      (years: Int) => "19XX-03-20T19:30:51Z".replaceAll("XX", (85 + allEoris.size - years).toString)
+
+    @tailrec
+    def calcHistory(eoris: Seq[String], histories: Seq[EORIHistory]): Seq[EORIHistory] = {
+      val eori = eoris.head
+      eoris.size match {
+        case 1 =>
+          EORIHistory(eori, Some(dateCalculator(eoris.size)), None) +: histories
+        case _ =>
+          val current = EORIHistory(eori, Some(dateCalculator(eoris.size)), Some(dateCalculator(eoris.size - 1)))
+          calcHistory(eoris.tail, current +: histories)
+      }
+    }
+
+    calcHistory(allEoris, Seq.empty[EORIHistory])
+  }
+
 }

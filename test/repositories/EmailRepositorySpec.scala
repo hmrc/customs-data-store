@@ -16,49 +16,44 @@
 
 package repositories
 
-import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
+import com.mongodb.WriteConcern
+import config.AppConfig
+import models.repositories.{FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
 import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
 import org.joda.time.DateTime
+import org.mongodb.scala.MongoCollection
 import play.api.Application
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.CollectionFactory
 import utils.SpecBase
-import models.repositories.{SuccessfulEmail, FailedToRetrieveEmail}
+
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
 
 class EmailRepositorySpec extends SpecBase {
 
-  private val app: Application = application.build()
-  val repository: DefaultEmailRepository = app.injector.instanceOf[DefaultEmailRepository]
-
-  def dropData(): Future[Unit] = {
-    repository.collection.drop().toFuture().map(_ => ())
-  }
-
   "successfully retrive email from repository" in new Setup {
-    val notificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
+    override val notificationEmail: NotificationEmail =
+      NotificationEmail("123", dateTime, Some(undeliverableInformation))
+
     repository.set(eori, notificationEmail).map {
       result => result mustBe SuccessfulEmail
     }
   }
 
   "fail to retrieve email from repository after setting bad email" in new Setup {
+    override val notificationEmail: NotificationEmail =
+      NotificationEmail("123", dateTime, Some(undeliverableInformation))
 
-    val mockEmailRepository = mock[DefaultEmailRepository]
-    when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
-    val notificationEmail = NotificationEmail("123", DateTime.now, Some(undeliverableInformation))
-
-    mockEmailRepository.set(eori, notificationEmail).map {
+    repoWithUnacknowledgedWrite.set(eori, notificationEmail).map {
       result => result mustBe FailedToRetrieveEmail
     }
   }
 
-  "return 'true' if an update has been performed on a record" in {
-    val eori = "SomeEori"
-    val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
+  "return 'true' if an update has been performed on a record" in new Setup {
 
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
+    override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
       "some event",
       "some@email.com",
@@ -69,12 +64,12 @@ class EmailRepositorySpec extends SpecBase {
       Some("sdds")
     )
 
-    val undeliverableInformation: UndeliverableInformation =
+    override val undeliverableInformation: UndeliverableInformation =
       UndeliverableInformation(
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
 
@@ -90,12 +85,12 @@ class EmailRepositorySpec extends SpecBase {
     })
   }
 
-  "return 'false' if no update performed" in {
-    val eori = "UnknownEori"
+  "return 'false' if no update performed" in new Setup {
     val otherEori = "someEori"
-    val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
 
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
+    override val eori = "UnknownEori"
+
+    override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
       "some event",
       "some@email.com",
@@ -106,14 +101,15 @@ class EmailRepositorySpec extends SpecBase {
       Some("sdds")
     )
 
-    val undeliverableInformation: UndeliverableInformation =
+    override val undeliverableInformation: UndeliverableInformation =
       UndeliverableInformation(
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
+
     await(for {
       _ <- repository.set(otherEori, notificationEmail)
       result <- repository.findAndUpdate(eori, undeliverableInformation)
@@ -125,11 +121,9 @@ class EmailRepositorySpec extends SpecBase {
     })
   }
 
-  "remove the undeliverable object when setting a new email address" in {
-    val eori = "someEori"
-    val notificationEmail = NotificationEmail("some@email.com", DateTime.now(), None)
+  "remove the undeliverable object when setting a new email address" in new Setup {
 
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
+    override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
       "some event",
       "some@email.com",
@@ -140,12 +134,12 @@ class EmailRepositorySpec extends SpecBase {
       Some("sdds")
     )
 
-    val undeliverableInformation: UndeliverableInformation =
+    override val undeliverableInformation: UndeliverableInformation =
       UndeliverableInformation(
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
     await(for {
@@ -161,10 +155,9 @@ class EmailRepositorySpec extends SpecBase {
     })
   }
 
-  "nextJob returns a job that still needs to be processed" in {
-    val eori = "someEori"
-    val dateTime = DateTime.now()
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
+  "nextJob returns a job that still needs to be processed" in new Setup {
+
+    override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
       "some event",
       "some@email.com",
@@ -175,7 +168,7 @@ class EmailRepositorySpec extends SpecBase {
       Some("sdds")
     )
 
-    val undeliverableInformation: UndeliverableInformation =
+    override val undeliverableInformation: UndeliverableInformation =
       UndeliverableInformation(
         "some-subject",
         "some-event-id",
@@ -194,12 +187,16 @@ class EmailRepositorySpec extends SpecBase {
         notifiedApi = false,
         processed = false
       )
-    val deliverableNotificationEmail = NotificationEmail("some@email.com", dateTime, None)
-    val undeliverableNotificationEmail = NotificationEmail("some@email.com",dateTime, Some(undeliverableInformation))
-    val undeliverableNotificationEmailMongo = NotificationEmailMongo("some@email.com", dateTime, Some(undeliverableInformationMongo))
+
+    val undeliverableNotificationEmail: NotificationEmail =
+      NotificationEmail("some@email.com", dateTime, Some(undeliverableInformation))
+
+    val undeliverableNotificationEmailMongo: NotificationEmailMongo =
+      NotificationEmailMongo("some@email.com", dateTime, Some(undeliverableInformationMongo))
+
     await(
       for {
-        _ <- repository.set(eori, deliverableNotificationEmail)
+        _ <- repository.set(eori, notificationEmail)
         _ <- repository.set(eori, undeliverableNotificationEmail)
         result <- repository.nextJobs
         _ <- dropData()
@@ -209,9 +206,8 @@ class EmailRepositorySpec extends SpecBase {
     )
   }
 
-  "reset processing will make the next job pick the data up again" in {
-    val eori = "someEori"
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
+  "reset processing will make the next job pick the data up again" in new Setup {
+    override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
       "some event",
       "some@email.com",
@@ -222,12 +218,12 @@ class EmailRepositorySpec extends SpecBase {
       Some("sdds")
     )
 
-    val undeliverableInformation: UndeliverableInformation =
+    override val undeliverableInformation: UndeliverableInformation =
       UndeliverableInformation(
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
 
@@ -236,13 +232,16 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent,
         notifiedApi = false,
         processed = false
       )
-    val undeliverableNotificationEmail = NotificationEmail("some@email.com", DateTime.now(), Some(undeliverableInformation))
-    val undeliverableNotificationEmailMongo = NotificationEmailMongo("some@email.com", DateTime.now(), Some(undeliverableInformationMongo))
+    val undeliverableNotificationEmail: NotificationEmail =
+      NotificationEmail("some@email.com", dateTime, Some(undeliverableInformation))
+
+    val undeliverableNotificationEmailMongo: NotificationEmailMongo =
+      NotificationEmailMongo("some@email.com", dateTime, Some(undeliverableInformationMongo))
 
     await(
       for {
@@ -255,14 +254,15 @@ class EmailRepositorySpec extends SpecBase {
       } yield {
         result1 mustBe Seq(undeliverableNotificationEmailMongo)
         result2 mustBe Seq.empty
-        result3 mustBe Seq(undeliverableNotificationEmailMongo.copy(undeliverable = Some(undeliverableInformationMongo.copy(attempts = 1))))
+        result3 mustBe
+          Seq(undeliverableNotificationEmailMongo.copy(
+            undeliverable = Some(undeliverableInformationMongo.copy(attempts = 1))))
       }
     )
   }
 
-  "mark as successful will ensure that the next job will not pick the data up again" in {
-    val eori = "someEori"
-    val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
+  "mark as successful will ensure that the next job will not pick the data up again" in new Setup {
+    override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
       "some event",
       "some@email.com",
@@ -273,15 +273,17 @@ class EmailRepositorySpec extends SpecBase {
       Some("sdds")
     )
 
-    val undeliverableInformation: UndeliverableInformation =
+    override val undeliverableInformation: UndeliverableInformation =
       UndeliverableInformation(
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
-    val undeliverableNotificationEmail = NotificationEmail("some@email.com", DateTime.now(), Some(undeliverableInformation))
+
+    val undeliverableNotificationEmail: NotificationEmail =
+      NotificationEmail("some@email.com", dateTime, Some(undeliverableInformation))
 
     await(
       for {
@@ -296,6 +298,8 @@ class EmailRepositorySpec extends SpecBase {
 
   trait Setup {
     val eori = "SomeEori"
+    val dateTime: DateTime = DateTime.now()
+    val notificationEmail: NotificationEmail = NotificationEmail("some@email.com", dateTime, None)
 
     val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
@@ -313,9 +317,32 @@ class EmailRepositorySpec extends SpecBase {
         "some-subject",
         "some-event-id",
         "some-group-id",
-        DateTime.now(),
+        dateTime,
         undeliverableInformationEvent
       )
-  }
 
+    val app: Application = application.build()
+
+    val repository: DefaultEmailRepository = app.injector.instanceOf[DefaultEmailRepository]
+
+    val repoWithUnacknowledgedWrite: EmailRepositoryWithUnacknowledgedWrite =
+      app.injector.instanceOf[EmailRepositoryWithUnacknowledgedWrite]
+
+    def dropData(): Future[Unit] = {
+      repository.collection.drop().toFuture().map(_ => ())
+    }
+  }
+}
+
+@Singleton
+class EmailRepositoryWithUnacknowledgedWrite @Inject()()(mongoComponent: MongoComponent,
+                                                         config: AppConfig)
+  extends DefaultEmailRepository(mongoComponent, config) {
+
+  override lazy val collection: MongoCollection[NotificationEmailMongo] =
+    CollectionFactory.collection(
+      mongoComponent.database,
+      collectionName,
+      domainFormat,
+      Seq.empty).withWriteConcern(WriteConcern.UNACKNOWLEDGED)
 }

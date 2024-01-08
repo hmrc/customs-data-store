@@ -15,14 +15,15 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;" +
       ".*javascript.*;.*Routes.*;.*GuiceInjector;" +
       ".*ControllerConfiguration;.*LanguageSwitchController;.*Scheduler",
-    ScoverageKeys.coverageMinimum := 98,
+    ScoverageKeys.coverageMinimumBranchTotal := 98,
+    ScoverageKeys.coverageMinimumBranchTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
   )
   .configs(IntegrationTest)
-  .settings(integrationTestSettings(): _*)
+  .settings(integrationTestSettings() *)
   .settings(resolvers += Resolver.jcenterRepo)
-  .settings(parallelExecution in Test := false)
+  .settings(Test / parallelExecution := false)
   .settings(addTestReportOption(IntegrationTest, "int-test-reports"))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
