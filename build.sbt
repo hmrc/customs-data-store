@@ -1,14 +1,19 @@
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, integrationTestSettings, targetJvm}
-import scoverage.ScoverageKeys
 import play.core.PlayVersion.{current => currentPlayVersion}
+import scoverage.ScoverageKeys
+import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, itSettings, targetJvm}
 
 val appName = "customs-data-store"
+val bootstrap = "7.22.0"
+val silencerVersion = "1.17.13"
+
+val scala2_13_8 = "2.13.8"
+
+ThisBuild / majorVersion := 0
+ThisBuild / scalaVersion := scala2_13_8
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .settings(
-    majorVersion := 0,
-    scalaVersion := "2.13.8",
     targetJvm := "jvm-11",
     libraryDependencies ++= compileDeps ++ testDeps,
     PlayKeys.playDefaultPort := 9893,
@@ -19,15 +24,25 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageMinimumBranchTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
+    //***** Use of the silencer plugin to suppress routes Unused import warnings ******
+    scalacOptions += "-P:silencer:pathFilters=routes",
+    libraryDependencies ++= Seq(
+      compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
+      "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
+    )
+    //**********************************************************************************
   )
   .configs(IntegrationTest)
-  .settings(integrationTestSettings() *)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(Test / parallelExecution := false)
   .settings(addTestReportOption(IntegrationTest, "int-test-reports"))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
-val bootstrap = "7.22.0"
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(itSettings)
+  .settings(libraryDependencies ++= Seq("uk.gov.hmrc" %% "bootstrap-test-play-28" % bootstrap % Test))
 
 val compileDeps = Seq(
   "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" % "1.3.0",
