@@ -74,10 +74,8 @@ class AppConfigSpec extends SpecBase {
 
   "sub09GetSubscriptionsEndpoint" should {
     "return correct value" in new Setup {
-      import appConfig.URLSyntacticSugar
-
       appConfig.sub09GetSubscriptionsEndpoint mustBe
-      "http://localhost:9753/customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
+        "http://localhost:9753/customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
     }
   }
 
@@ -89,24 +87,18 @@ class AppConfigSpec extends SpecBase {
 
   "sub21EORIHistoryEndpoint" should {
     "return correct value" in new Setup {
-      import appConfig.URLSyntacticSugar
-
       appConfig.sub21EORIHistoryEndpoint mustBe "http://localhost:9753/customs-financials-hods-stub/eorihistory/"
     }
   }
 
   "sub21BearerToken" should {
     "return correct value" in new Setup {
-      import appConfig.URLSyntacticSugar
-
       appConfig.sub21BearerToken mustBe "Bearer secret-token"
     }
   }
 
   "sub22UpdateVerifiedEmailEndpoint" should {
     "return correct value" in new Setup {
-      import appConfig.URLSyntacticSugar
-
       appConfig.sub22UpdateVerifiedEmailEndpoint mustBe
         "http://localhost:9753/customs-financials-hods-stub/subscriptions/updateverifiedemail/v1"
     }
