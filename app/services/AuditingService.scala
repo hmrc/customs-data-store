@@ -47,7 +47,8 @@ class AuditingService @Inject()(auditConnector: AuditConnector)(implicit executi
     audit(AuditModel(BOUNCED_EMAIL_TRANSACTION_NAME, undeliverableInformation.toAuditDetail, BOUNCED_EMAIL_TYPE))
   }
 
-  def auditSub22Request(request: Sub22UpdateVerifiedEmailRequest, attempts: Int, successful: Boolean)(implicit hc: HeaderCarrier): Future[AuditResult] = {
+  def auditSub22Request(request: Sub22UpdateVerifiedEmailRequest,
+                        attempts: Int, successful: Boolean)(implicit hc: HeaderCarrier): Future[AuditResult] = {
     val detail = Json.obj("updateVerifiedEmailRequest" -> Json.obj(
       "attempts" -> attempts,
       "successful" -> successful,
@@ -65,7 +66,9 @@ class AuditingService @Inject()(auditConnector: AuditConnector)(implicit executi
       tags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(auditModel.transactionName, referrer(hc)),
       detail = auditModel.detail
     )
+
     log.debug(s"Splunk Audit Event:\n$dataEvent\n")
+
     auditConnector.sendExtendedEvent(dataEvent)
       .map {
         auditResult =>

@@ -26,10 +26,11 @@ case class MdgSub09Response(
                            )
 
 object MdgSub09Response {
-  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.DefaultJodaDateTimeReads, JodaWrites.JodaDateTimeWrites)
+  implicit val dateTimeFormat: Format[DateTime] =
+    Format[DateTime](JodaReads.DefaultJodaDateTimeReads, JodaWrites.JodaDateTimeWrites)
 
   implicit val sub09Reads: Reads[MdgSub09Response] =
     ((JsPath \\ "emailAddress").readNullable[String] and
       (JsPath \\ "emailVerificationTimestamp").readNullable[DateTime]
-      ) (MdgSub09Response.apply _)
+      )(MdgSub09Response.apply _)
 }

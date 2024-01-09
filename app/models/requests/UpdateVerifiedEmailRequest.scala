@@ -20,7 +20,9 @@ import org.joda.time.DateTime
 import play.api.libs.json.{Json, OFormat}
 
 
-case class UpdateVerifiedEmailRequest(eori: String, address: String, timestamp: DateTime)
+case class UpdateVerifiedEmailRequest(eori: String,
+                                      address: String,
+                                      timestamp: DateTime)
 
 object UpdateVerifiedEmailRequest {
   import play.api.libs.json.JodaReads._

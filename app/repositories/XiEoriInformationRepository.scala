@@ -54,10 +54,16 @@ class DefaultXiEoriInformationRepository @Inject()(
       .toFutureOption()
       .map(_.map(_.toXiEoriInformation))
 
-  override def set(id: String, xiEoriInformation: XiEoriInformation): Future[Unit] =
+  override def set(id: String,
+                   xiEoriInformation: XiEoriInformation): Future[Unit] =
     collection.replaceOne(
       equal("_id", id),
-      XiEoriInformationMongo(xiEoriInformation.xiEori, xiEoriInformation.consent, xiEoriInformation.address, LocalDateTime.now()),
+      XiEoriInformationMongo(
+        xiEoriInformation.xiEori,
+        xiEoriInformation.consent,
+        xiEoriInformation.address,
+        LocalDateTime.now()
+      ),
       ReplaceOptions().upsert(true)
     ).toFuture().map(_ => ())
 }
@@ -68,7 +74,10 @@ trait XiEoriInformationRepository {
   def set(id: String, xieoriInformation: XiEoriInformation): Future[Unit]
 }
 
-case class XiEoriInformationMongo(xiEori: String, consent: String, address: XiEoriAddressInformation, lastUpdated: LocalDateTime) {
+case class XiEoriInformationMongo(xiEori: String,
+                                  consent: String,
+                                  address: XiEoriAddressInformation,
+                                  lastUpdated: LocalDateTime) {
   def toXiEoriInformation: XiEoriInformation = XiEoriInformation(xiEori, consent, address)
 }
 

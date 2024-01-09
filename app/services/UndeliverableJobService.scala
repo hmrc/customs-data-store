@@ -31,22 +31,37 @@ class UndeliverableJobService @Inject()(
                                          emailRepository: EmailRepository
                                        )(implicit executionContext: ExecutionContext) extends Logging {
   def processJob(): Future[Seq[ProcessResult]] = {
+
     emailRepository.nextJobs.flatMap { notificationEmails =>
+
       Future.sequence(notificationEmails.map { notificationEmailMongo =>
+
         val notificationEmail = notificationEmailMongo.toNotificationEmail
         val maybeUndeliverableInformation: Option[UndeliverableInformation] = notificationEmail.undeliverable
         val maybeEori: Option[String] = maybeUndeliverableInformation.flatMap(_.extractEori)
+
         (maybeUndeliverableInformation, maybeEori) match {
           case (Some(undeliverableInformation), Some(eori)) =>
-            updateSub22(undeliverableInformation, notificationEmail.timestamp, eori, notificationEmailMongo.undeliverable.map(_.attempts).getOrElse(1))
+            val firstAttempt = 1
+
+            updateSub22(
+              undeliverableInformation,
+              notificationEmail.timestamp,
+              eori,
+              notificationEmailMongo.undeliverable.map(_.attempts).getOrElse(firstAttempt)
+            )
           case _ => Future.successful(NoDataToProcess)
         }
       })
     }
   }
 
-  private def updateSub22(undeliverableInformation: UndeliverableInformation, timestamp: DateTime, eori: String, attempts: Int): Future[ProcessResult] = {
+  private def updateSub22(undeliverableInformation: UndeliverableInformation,
+                          timestamp: DateTime,
+                          eori: String,
+                          attempts: Int): Future[ProcessResult] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
+
     sub22Connector.updateUndeliverable(undeliverableInformation, timestamp, attempts).flatMap { updateSuccessful =>
       if (updateSuccessful) {
         emailRepository.markAsSuccessful(eori).map { _ => ProcessSucceeded }

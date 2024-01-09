@@ -17,8 +17,8 @@
 package connectors
 
 import config.AppConfig
-import models.{CompanyInformation, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
 import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse}
+import models.{CompanyInformation, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpReads.Implicits._

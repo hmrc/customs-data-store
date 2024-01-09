@@ -56,7 +56,11 @@ class DefaultCompanyInformationRepository @Inject()(
   override def set(id: String, companyInformation: CompanyInformation): Future[Unit] =
     collection.replaceOne(
       equal("_id", id),
-      CompanyInformationMongo(companyInformation.name, companyInformation.consent, companyInformation.address, LocalDateTime.now()),
+      CompanyInformationMongo(companyInformation.name,
+        companyInformation.consent,
+        companyInformation.address,
+        LocalDateTime.now()
+      ),
       ReplaceOptions().upsert(true)
     ).toFuture().map(_ => ())
 }
@@ -67,7 +71,10 @@ trait CompanyInformationRepository {
   def set(id: String, businessInformation: CompanyInformation): Future[Unit]
 }
 
-case class CompanyInformationMongo(name: String, consent: String, address: AddressInformation, lastUpdated: LocalDateTime) {
+case class CompanyInformationMongo(name: String,
+                                   consent: String,
+                                   address: AddressInformation,
+                                   lastUpdated: LocalDateTime) {
   def toCompanyInformation: CompanyInformation = CompanyInformation(name, consent, address)
 }
 
@@ -92,5 +99,3 @@ object CompanyInformationMongo {
   implicit val mongoFormat: Format[LocalDateTime] = MongoJavatimeFormats.localDateTimeFormat
   implicit val format: OFormat[CompanyInformationMongo] = Json.format[CompanyInformationMongo]
 }
-
-
