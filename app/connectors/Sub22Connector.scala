@@ -31,9 +31,14 @@ import java.time.{LocalDateTime, ZoneId}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class Sub22Connector @Inject()(httpClient: HttpClient, appConfig: AppConfig, auditingService: AuditingService)(implicit executionContext: ExecutionContext) extends Logging {
+class Sub22Connector @Inject()(httpClient: HttpClient,
+                               appConfig: AppConfig,
+                               auditingService: AuditingService)(
+                                implicit executionContext: ExecutionContext) extends Logging {
 
-  def updateUndeliverable(undeliverableInformation: UndeliverableInformation, verifiedTimestamp: DateTime, attempts: Int)(implicit hc: HeaderCarrier): Future[Boolean] = {
+  def updateUndeliverable(undeliverableInformation: UndeliverableInformation,
+                          verifiedTimestamp: DateTime, attempts: Int)(implicit hc: HeaderCarrier): Future[Boolean] = {
+
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
     val localDate = LocalDateTime.now().format(dateFormat)
 
@@ -49,16 +54,21 @@ class Sub22Connector @Inject()(httpClient: HttpClient, appConfig: AppConfig, aud
       case Some(eori) =>
         val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
+
         httpClient.PUT[Sub22UpdateVerifiedEmailRequest, UpdateVerifiedEmailResponse](
           appConfig.sub22UpdateVerifiedEmailEndpoint, request, headers
+
         )(implicitly, implicitly, HeaderCarrier(), implicitly).map { response =>
+
           val isSuccessful = response.updateVerifiedEmailResponse.responseCommon.statusText.isEmpty
           auditingService.auditSub22Request(request, attempts, isSuccessful)
           isSuccessful
-        }.recover { case _ =>
-          auditingService.auditSub22Request(request, attempts, successful = false)
-          false
+        }.recover {
+          case _ =>
+            auditingService.auditSub22Request(request, attempts, successful = false)
+            false
         }
+
       case None => logger.error("No eori available in undeliverable information"); Future.successful(false)
     }
   }

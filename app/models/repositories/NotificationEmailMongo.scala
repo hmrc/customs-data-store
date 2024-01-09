@@ -23,7 +23,10 @@ import play.api.libs.json.{Json, OFormat}
 case class NotificationEmailMongo(address: String,
                                   timestamp: DateTime,
                                   undeliverable: Option[UndeliverableInformationMongo]) {
-  def toNotificationEmail: NotificationEmail = NotificationEmail(address, timestamp, undeliverable.map(_.toUndeliverableInformation))
+  def toNotificationEmail: NotificationEmail = NotificationEmail(
+    address,
+    timestamp,
+    undeliverable.map(_.toUndeliverableInformation))
 }
 
 object NotificationEmailMongo {

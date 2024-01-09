@@ -34,18 +34,18 @@ case class UndeliverableInformationEvent(id: String,
 
   def toAuditDetail: JsObject = Json.obj(
     "id" -> id,
-      "event" -> event,
-      "emailAddress" -> emailAddress,
-      "detected" -> detected,
-      "code" -> auditCode,
-      "reason" -> auditReason,
-      "enrolment" -> enrolment
+    "event" -> event,
+    "emailAddress" -> emailAddress,
+    "detected" -> detected,
+    "code" -> auditCode,
+    "reason" -> auditReason,
+    "enrolment" -> enrolment
   )
 }
 
 object UndeliverableInformationEvent {
   implicit val reads: Reads[UndeliverableInformationEvent] =
-      ((JsPath \\ "id").read[String] and
+    ((JsPath \\ "id").read[String] and
       (JsPath \\ "event").read[String] and
       (JsPath \\ "emailAddress").read[String] and
       (JsPath \\ "detected").read[String] and

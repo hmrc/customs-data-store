@@ -30,7 +30,8 @@ case class UndeliverableInformationMongo(subject: String,
                                          processed: Boolean,
                                          attempts: Int = 0) {
 
-  def toUndeliverableInformation: UndeliverableInformation = UndeliverableInformation(subject, eventId, groupId, timestamp, event)
+  def toUndeliverableInformation: UndeliverableInformation =
+    UndeliverableInformation(subject, eventId, groupId, timestamp, event)
 }
 
 object UndeliverableInformationMongo {
@@ -47,5 +48,6 @@ object UndeliverableInformationMongo {
 
   import play.api.libs.json.JodaReads._
   import play.api.libs.json.JodaWrites._
+
   implicit val format: OFormat[UndeliverableInformationMongo] = Json.format[UndeliverableInformationMongo]
 }

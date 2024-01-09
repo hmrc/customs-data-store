@@ -19,7 +19,7 @@ package models
 import play.api.libs.json.{Json, OFormat}
 
 case class TraderData(eoriHistory: Seq[EoriPeriod],
-                      notificationEmail:Option[NotificationEmail])
+                      notificationEmail: Option[NotificationEmail])
 
 object TraderData {
   implicit val traderDataFormat: OFormat[TraderData] = Json.format[TraderData]

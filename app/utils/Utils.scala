@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package models.requests
+package utils
 
-import play.api.libs.json.{Json, Writes}
+object Utils {
 
-case class Sub22Request(requestCommon: RequestCommon,
-                        requestDetail: RequestDetail)
-
-object Sub22Request {
-  implicit val writes: Writes[Sub22Request] = Json.writes[Sub22Request]
+  val hyphen = "-"
+  val emptyString = ""
+  val singleSpace = " "
 }

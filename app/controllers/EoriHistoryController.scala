@@ -57,7 +57,7 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
       }
     }).recover {
       case err => log.info(s"Failed to find EoriHistory: ${err.getMessage}")
-        if(err.getMessage.contains("Not found")) NotFound else InternalServerError
+        if (err.getMessage.contains("Not found")) NotFound else InternalServerError
     }
   }
 

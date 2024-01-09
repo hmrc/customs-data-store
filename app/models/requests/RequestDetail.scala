@@ -24,11 +24,12 @@ case class RequestDetail(IDType: String,
                          IDNumber: String,
                          emailAddress: String,
                          emailVerificationTimestamp: DateTime,
-                         emailVerified: Boolean
-                        )
+                         emailVerified: Boolean)
 
 object RequestDetail {
-  def fromEmailAndEori(email: String, eori: String, timestamp: DateTime): RequestDetail =
+  def fromEmailAndEori(email: String,
+                       eori: String,
+                       timestamp: DateTime): RequestDetail =
     RequestDetail(
       IDType = "EORI",
       IDNumber = eori,

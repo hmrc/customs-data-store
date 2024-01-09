@@ -36,12 +36,14 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
                                metricsReporter: MetricsReporterService)(implicit executionContext: ExecutionContext) {
 
   val log: LoggerLike = Logger(this.getClass)
+  private val acknowledgementRefLength = 32
 
   def getSubscriberInformation(eori: String): Future[Option[NotificationEmail]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
+
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
     val localDate = LocalDateTime.now().format(dateFormat)
-    val acknowledgementReference = Random.alphanumeric.take(32).mkString
+    val acknowledgementReference = Random.alphanumeric.take(acknowledgementRefLength).mkString
 
     val headers = Seq(
       ("Authorization" -> appConfig.sub09BearerToken),
@@ -50,7 +52,9 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
       ("X-Forwarded-Host" -> "MDTP"),
       ("Accept" -> "application/json"))
 
-    val uri = url"${appConfig.sub09GetSubscriptionsEndpoint}?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
+    val uri = url"${
+      appConfig.sub09GetSubscriptionsEndpoint
+    }?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
 
     metricsReporter.withResponseTimeLogging("mdg.get.company-information") {
       http.GET[MdgSub09Response](uri, headers = headers).map {
@@ -62,9 +66,10 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
 
   def getCompanyInformation(eori: String): Future[Option[CompanyInformation]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
+
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
     val localDate = LocalDateTime.now().format(dateFormat)
-    val acknowledgementReference = Random.alphanumeric.take(32).mkString
+    val acknowledgementReference = Random.alphanumeric.take(acknowledgementRefLength).mkString
 
     val headers = Seq(
       ("Authorization" -> appConfig.sub09BearerToken),
@@ -73,7 +78,9 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
       ("X-Forwarded-Host" -> "MDTP"),
       ("Accept" -> "application/json"))
 
-    val uri = url"${appConfig.sub09GetSubscriptionsEndpoint}?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
+    val uri = url"${
+      appConfig.sub09GetSubscriptionsEndpoint
+    }?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
 
     metricsReporter.withResponseTimeLogging("mdg.get.company-information") {
       http.GET[Option[MdgSub09CompanyInformationResponse]](uri, headers = headers)
@@ -84,11 +91,12 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
   }
 
   def getXiEoriInformation(eori: String): Future[Option[XiEoriInformation]] = {
-    val emptyString = ""
     implicit val hc: HeaderCarrier = HeaderCarrier()
+
+    val emptyString = ""
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
     val localDate = LocalDateTime.now().format(dateFormat)
-    val acknowledgementReference = Random.alphanumeric.take(32).mkString
+    val acknowledgementReference = Random.alphanumeric.take(acknowledgementRefLength).mkString
 
     val headers = Seq(
       ("Authorization" -> appConfig.sub09BearerToken),
@@ -97,15 +105,22 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
       ("X-Forwarded-Host" -> "MDTP"),
       ("Accept" -> "application/json"))
 
-    val uri = url"${appConfig.sub09GetSubscriptionsEndpoint}?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
+    val uri = url"${
+      appConfig.sub09GetSubscriptionsEndpoint
+    }?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
 
     metricsReporter.withResponseTimeLogging("mdg.get.company-information") {
       http.GET[Option[MdgSub09XiEoriInformationResponse]](uri, headers = headers)
         .map(_.map(v =>
-          XiEoriInformation(v.xiEori, v.consent.getOrElse("0"), v.address.getOrElse(XiEoriAddressInformation(emptyString)))))
+          XiEoriInformation(
+            v.xiEori,
+            v.consent.getOrElse("0"),
+            v.address.getOrElse(XiEoriAddressInformation(emptyString)))
+        ))
         .recover {
-        case e => log.error(s"Failed to retrieve xi eori information with error: $e"); None
-      }
+          case e => log.error(s"Failed to retrieve xi eori information with error: $e"); None
+        }
     }
   }
+
 }
