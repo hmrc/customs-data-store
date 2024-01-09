@@ -20,7 +20,16 @@ import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json.{JsString, Writes}
 
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 object DateTimeUtils {
+
+  val rfc1123DateTimePattern: String = "EEE, dd MMM yyyy HH:mm:ss z"
+
+  val rfc1123DateTimeFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern(rfc1123DateTimePattern).withZone(ZoneId.systemDefault())
+
   def dateTimeWritesIsoUtc: Writes[DateTime] = (d: org.joda.time.DateTime) =>
     JsString(d.toString(ISODateTimeFormat.dateTimeNoMillis().withZoneUTC()))
 }
