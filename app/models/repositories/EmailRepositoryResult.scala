@@ -21,7 +21,3 @@ sealed trait EmailRepositoryResult
 case object SuccessfulEmail extends EmailRepositoryResult
 
 case object FailedToRetrieveEmail extends EmailRepositoryResult
-
-//Not being used as of now but can be used for the scenarios where there is a result other than SuccessfulEmail
-// or FailedToRetrieveEmail
-case object NoEmailDocumentsUpdated extends EmailRepositoryResult

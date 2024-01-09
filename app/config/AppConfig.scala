@@ -25,7 +25,7 @@ import utils.Utils.singleSpace
 class AppConfig @Inject()(val configuration: Configuration, servicesConfig: ServicesConfig) {
   //Remove duplicate / from urls read from config
 
-  private val bearer = "Bearer"
+  private val bearerTokenPrefix = "Bearer"
 
   lazy val schedulerDelay: Int = configuration.get[Int]("scheduler.initialDelaySeconds")
   lazy val schedulerMaxAttempts: Int = configuration.get[Int]("scheduler.maxAttempts")
@@ -35,21 +35,21 @@ class AppConfig @Inject()(val configuration: Configuration, servicesConfig: Serv
       "microservice.services.sub09.companyInformationEndpoint")
 
   lazy val sub09BearerToken: String =
-    s"$bearer$singleSpace${configuration.get[String]("microservice.services.sub09.bearer-token")}"
+    s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub09.bearer-token")}"
 
   lazy val sub21EORIHistoryEndpoint: String =
     servicesConfig.baseUrl("sub21") / configuration.get[String](
       "microservice.services.sub21.historicEoriEndpoint")
 
   lazy val sub21BearerToken: String =
-    s"$bearer$singleSpace${configuration.get[String]("microservice.services.sub21.bearer-token")}"
+    s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub21.bearer-token")}"
 
   lazy val sub22UpdateVerifiedEmailEndpoint: String =
     servicesConfig.baseUrl("sub22") / configuration.get[String](
       "microservice.services.sub22.updateVerifiedEmailEndpoint")
 
   lazy val sub22BearerToken: String =
-    s"$bearer$singleSpace${configuration.get[String]("microservice.services.sub22.bearer-token")}"
+    s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub22.bearer-token")}"
 
   implicit class URLSyntacticSugar(left: String) {
     def /(right: String): String = removeTrailingSlash(left) + "/" + removeLeadingSlash(right)
