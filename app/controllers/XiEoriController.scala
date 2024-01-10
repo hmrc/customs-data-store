@@ -23,6 +23,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.XiEoriInformationRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import utils.Utils.emptyString
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,7 +34,6 @@ class XiEoriController @Inject() (xiEoriInformationRepository: XiEoriInformation
                                  (implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getXiEoriInformation(eori: String): Action[AnyContent] = Action.async {
-    val emptyString = ""
     xiEoriInformationRepository.get(eori).flatMap {
       case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
       case None => retrieveXiEoriInformation(eori).map {
