@@ -24,13 +24,11 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageMinimumBranchTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
-    //***** Use of the silencer plugin to suppress routes Unused import warnings ******
     scalacOptions += "-P:silencer:pathFilters=routes",
     libraryDependencies ++= Seq(
       compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
       "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
     )
-    //**********************************************************************************
   )
   .configs(IntegrationTest)
   .settings(resolvers += Resolver.jcenterRepo)
