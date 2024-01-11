@@ -19,6 +19,7 @@ package models
 import models.responses.MdgSub09Response
 import play.api.libs.json.{JsValue, Json}
 import utils.SpecBase
+import utils.Utils.emptyString
 
 class MdgSub09ResponseSpec extends SpecBase {
 
@@ -80,7 +81,7 @@ object Sub09Response {
   def withEmailNoTimestamp(eori: String): JsValue = {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
-      .replace(timeStampKey, "")
+      .replace(timeStampKey, emptyString)
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
       .replace(xiEoriAddressKey,
         """"PBEAddress": {
@@ -94,8 +95,8 @@ object Sub09Response {
 
   def noEmailNoTimestamp(eori: String): JsValue = {
     val response = sub09Response(eori)
-      .replace(emailKey, "")
-      .replace(timeStampKey, "")
+      .replace(emailKey, emptyString)
+      .replace(timeStampKey, emptyString)
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
       .replace(xiEoriAddressKey,
         """"PBEAddress": {
@@ -111,7 +112,7 @@ object Sub09Response {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
-      .replace(consentToDisclosureOfPersonalDataKEY, "")
+      .replace(consentToDisclosureOfPersonalDataKEY, emptyString)
       .replace(xiEoriAddressKey,
         """"PBEAddress": {
           |          "pbeAddressLine1": "Example Rd",
@@ -126,8 +127,8 @@ object Sub09Response {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
-      .replace(consentToDisclosureOfPersonalDataKEY, "")
-      .replace(xiEoriAddressKey, "")
+      .replace(consentToDisclosureOfPersonalDataKEY, emptyString)
+      .replace(xiEoriAddressKey, emptyString)
     Json.parse(response)
   }
 
