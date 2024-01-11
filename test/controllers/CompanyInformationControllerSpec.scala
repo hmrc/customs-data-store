@@ -36,7 +36,9 @@ class CompanyInformationControllerSpec extends SpecBase {
 
     running(app) {
       val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformation(eori).url)
+
       val result = route(app, request).value
+
       contentAsJson(result).as[CompanyInformation] mustBe companyInformation
     }
   }
@@ -44,12 +46,15 @@ class CompanyInformationControllerSpec extends SpecBase {
   "return not found if no information found for user" in new Setup {
     when(mockCompanyInformationRepository.get(any()))
       .thenReturn(Future.successful(None))
+
     when(mockSubscriptionInfoConnector.getCompanyInformation(any()))
       .thenReturn(Future.successful(None))
 
     running(app) {
       val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformation(eori).url)
+
       val result = route(app, request).value
+
       status(result) mustBe NOT_FOUND
     }
   }
@@ -57,24 +62,30 @@ class CompanyInformationControllerSpec extends SpecBase {
   "return company information and store in the database when no existing data in the database" in new Setup {
     when(mockCompanyInformationRepository.get(any()))
       .thenReturn(Future.successful(None))
+
     when(mockSubscriptionInfoConnector.getCompanyInformation(any()))
       .thenReturn(Future.successful(Some(companyInformation)))
+
     when(mockCompanyInformationRepository.set(eori, companyInformation)).thenReturn(Future.unit)
 
     running(app) {
       val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformation(eori).url)
+
       val result = route(app, request).value
+
       contentAsJson(result).as[CompanyInformation] mustBe companyInformation
     }
   }
 
-
   trait Setup {
-    val mockCompanyInformationRepository: CompanyInformationRepository = mock[CompanyInformationRepository]
-    val mockSubscriptionInfoConnector: Sub09Connector = mock[Sub09Connector]
-    val addressInformation: AddressInformation = AddressInformation("12 Example Street", "Example", Some("AA00 0AA"), "GB")
+    val addressInformation: AddressInformation =
+      AddressInformation("12 Example Street", "Example", Some("AA00 0AA"), "GB")
+
     val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", addressInformation)
     val eori: String = "testEori"
+
+    val mockCompanyInformationRepository: CompanyInformationRepository = mock[CompanyInformationRepository]
+    val mockSubscriptionInfoConnector: Sub09Connector = mock[Sub09Connector]
 
     val app: Application = application.overrides(
         inject.bind[CompanyInformationRepository].toInstance(mockCompanyInformationRepository),

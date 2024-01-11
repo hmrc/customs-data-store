@@ -15,7 +15,8 @@
  */
 
 package utils
-import org.scalatest.{BeforeAndAfterEach,  OptionValues}
+
+import org.scalatest.{BeforeAndAfterEach, OptionValues}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import org.scalatestplus.mockito.MockitoSugar

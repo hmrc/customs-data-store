@@ -22,31 +22,37 @@ import utils.SpecBase
 
 class MdgSub09ResponseSpec extends SpecBase {
 
-  val EORI1 = "testEori"
+  val eori1 = "testEori"
 
   "The DataModel" should {
+
     "parse message with email and a timestamp" in {
-      val sub09Response = Sub09Response.withEmailAndTimestamp(EORI1)
+      val sub09Response = Sub09Response.withEmailAndTimestamp(eori1)
+
       val result = MdgSub09Response.sub09Reads.reads(sub09Response).get
+
       result.verifiedTimestamp.nonEmpty mustBe true
       result.emailAddress.get mustBe "email@email.com"
     }
 
     "parse message with email and no timestamp" in {
-      val sub09Response = Sub09Response.withEmailNoTimestamp(EORI1)
+      val sub09Response = Sub09Response.withEmailNoTimestamp(eori1)
+
       val result = MdgSub09Response.sub09Reads.reads(sub09Response).get
+
       result mustBe MdgSub09Response(Some("email@email.com"), None)
     }
 
     "parse message no email and no timestamp" in {
-      val sub09Response = Sub09Response.noEmailNoTimestamp(EORI1)
+      val sub09Response = Sub09Response.noEmailNoTimestamp(eori1)
+
       val result = MdgSub09Response.sub09Reads.reads(sub09Response).get
+
       result mustBe MdgSub09Response(None, None)
     }
   }
 
 }
-
 
 object Sub09Response {
 
@@ -59,14 +65,15 @@ object Sub09Response {
   def withEmailAndTimestamp(eori: String): JsValue = {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
-      .replace(timeStampKey,""" "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
+      .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
-      .replace(xiEoriAddressKey, """"PBEAddress": {
-                                   |          "pbeAddressLine1": "Example Rd",
-                                   |          "pbeAddressLine2": "Example",
-                                   |          "pbeAddressLine3": "GB",
-                                   |          "pbePostCode": "AA00 0AA"
-                                   |        },""".stripMargin)
+      .replace(xiEoriAddressKey,
+        """"PBEAddress": {
+          |          "pbeAddressLine1": "Example Rd",
+          |          "pbeAddressLine2": "Example",
+          |          "pbeAddressLine3": "GB",
+          |          "pbePostCode": "AA00 0AA"
+          |        },""".stripMargin)
     Json.parse(response)
   }
 
@@ -75,12 +82,13 @@ object Sub09Response {
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey, "")
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
-      .replace(xiEoriAddressKey, """"PBEAddress": {
-                                   |          "pbeAddressLine1": "Example Rd",
-                                   |          "pbeAddressLine2": "Example",
-                                   |          "pbeAddressLine3": "GB",
-                                   |          "pbePostCode": "AA00 0AA"
-                                   |        },""".stripMargin)
+      .replace(xiEoriAddressKey,
+        """"PBEAddress": {
+          |          "pbeAddressLine1": "Example Rd",
+          |          "pbeAddressLine2": "Example",
+          |          "pbeAddressLine3": "GB",
+          |          "pbePostCode": "AA00 0AA"
+          |        },""".stripMargin)
     Json.parse(response)
   }
 
@@ -89,33 +97,35 @@ object Sub09Response {
       .replace(emailKey, "")
       .replace(timeStampKey, "")
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
-      .replace(xiEoriAddressKey, """"PBEAddress": {
-                                   |          "pbeAddressLine1": "Example Rd",
-                                   |          "pbeAddressLine2": "Example",
-                                   |          "pbeAddressLine3": "GB",
-                                   |          "pbePostCode": "AA00 0AA"
-                                   |        },""".stripMargin)
+      .replace(xiEoriAddressKey,
+        """"PBEAddress": {
+          |          "pbeAddressLine1": "Example Rd",
+          |          "pbeAddressLine2": "Example",
+          |          "pbeAddressLine3": "GB",
+          |          "pbePostCode": "AA00 0AA"
+          |        },""".stripMargin)
     Json.parse(response)
   }
 
   def noConsentToDisclosureOfPersonalData(eori: String): JsValue = {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
-      .replace(timeStampKey,""" "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
+      .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
       .replace(consentToDisclosureOfPersonalDataKEY, "")
-      .replace(xiEoriAddressKey, """"PBEAddress": {
-                                   |          "pbeAddressLine1": "Example Rd",
-                                   |          "pbeAddressLine2": "Example",
-                                   |          "pbeAddressLine3": "GB",
-                                   |          "pbePostCode": "AA00 0AA"
-                                   |        },""".stripMargin)
+      .replace(xiEoriAddressKey,
+        """"PBEAddress": {
+          |          "pbeAddressLine1": "Example Rd",
+          |          "pbeAddressLine2": "Example",
+          |          "pbeAddressLine3": "GB",
+          |          "pbePostCode": "AA00 0AA"
+          |        },""".stripMargin)
     Json.parse(response)
   }
 
   def noXiEoriAddressInformation(eori: String): JsValue = {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
-      .replace(timeStampKey,""" "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
+      .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
       .replace(consentToDisclosureOfPersonalDataKEY, "")
       .replace(xiEoriAddressKey, "")
     Json.parse(response)

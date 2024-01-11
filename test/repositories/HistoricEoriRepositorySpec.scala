@@ -95,13 +95,6 @@ class HistoricEoriRepositorySpec extends SpecBase {
   }
 
   trait Setup {
-    val app: Application = application.build()
-
-    val repoWithUnacknowledgedWrite: DefaultHistoricEoriRepoWithUnacknowledgedWrite =
-      app.injector.instanceOf[DefaultHistoricEoriRepoWithUnacknowledgedWrite]
-
-    val repository: DefaultHistoricEoriRepository = app.injector.instanceOf[DefaultHistoricEoriRepository]
-
     val eori1: String = "EORI00000001"
     val eori2: String = "EORI00000002"
     val eori3: String = "EORI00000003"
@@ -115,6 +108,13 @@ class HistoricEoriRepositorySpec extends SpecBase {
     val period5: EoriPeriod = EoriPeriod(eori5, Some("2006-01-20T00:00:00Z"), None)
 
     def toFuture(condition: Assertion): Future[Assertion] = Future.successful(condition)
+
+    val app: Application = application.build()
+
+    val repoWithUnacknowledgedWrite: DefaultHistoricEoriRepoWithUnacknowledgedWrite =
+      app.injector.instanceOf[DefaultHistoricEoriRepoWithUnacknowledgedWrite]
+
+    val repository: DefaultHistoricEoriRepository = app.injector.instanceOf[DefaultHistoricEoriRepository]
   }
 }
 

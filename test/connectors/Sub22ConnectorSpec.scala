@@ -33,11 +33,19 @@ import scala.concurrent.Future
 
 class Sub22ConnectorSpec extends SpecBase {
   "return false if a non 200 response returned from SUB22" in new Setup {
+    val errorMsg = "some error"
+    val statusCode500 = 500
+    val reportAs500 = 500
+
     when(mockHttp.PUT[Sub22Request, UpdateVerifiedEmailResponse](any(), any(), any())(any(), any(), any(), any()))
-      .thenReturn(Future.failed(UpstreamErrorResponse("some error", 500, 500)))
+      .thenReturn(Future.failed(UpstreamErrorResponse(errorMsg, statusCode500, reportAs500)))
 
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), 0))
+      val result = await(connector.updateUndeliverable(
+        undeliverableInformation,
+        DateTime.now(),
+        attemptsZero))
+
       result mustBe false
     }
   }
@@ -47,14 +55,19 @@ class Sub22ConnectorSpec extends SpecBase {
       .thenReturn(Future.successful(failedUpdateVerifiedEmailResponse))
 
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), 0))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), attemptsZero))
+
       result mustBe false
     }
   }
 
   "return false if unable to extract the EORI from the undeliverableInformation" in new Setup {
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")), DateTime.now(), 0))
+      val result = await(connector.updateUndeliverable(
+        undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")),
+        DateTime.now(),
+        attemptsZero))
+
       result mustBe false
     }
   }
@@ -62,17 +75,23 @@ class Sub22ConnectorSpec extends SpecBase {
   "return true if the request was successful" in new Setup {
     when(mockHttp.PUT[Sub22Request, UpdateVerifiedEmailResponse](any(), any(), any())(any(), any(), any(), any()))
       .thenReturn(Future.successful(successfulUpdateVerifiedEmailResponse))
+
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), 0))
+      val result = await(connector.updateUndeliverable(
+        undeliverableInformation,
+        DateTime.now(),
+        attemptsZero))
+
       result mustBe true
     }
   }
 
   trait Setup {
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+
     val testEori = "someEori"
     val detectedDate: DateTime = DateTime.now()
-    val mockHttp: HttpClient = mock[HttpClient]
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+    val attemptsZero = 0
 
     val successfulUpdateVerifiedEmailResponse: UpdateVerifiedEmailResponse = UpdateVerifiedEmailResponse(
       UpdateVerifiedEmailResponseCommon(
@@ -85,6 +104,8 @@ class Sub22ConnectorSpec extends SpecBase {
         UpdateVerifiedEmailResponseCommonDetail("OK", Some("failure"))
       )
     )
+
+    val mockHttp: HttpClient = mock[HttpClient]
 
     val app: Application = new GuiceApplicationBuilder().overrides(
       api.inject.bind[HttpClient].toInstance(mockHttp)

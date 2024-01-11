@@ -28,9 +28,9 @@ import play.api.http.Status.NOT_FOUND
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers._
+import uk.gov.hmrc.http.HttpReads.notFoundMessage
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient, NotFoundException, UpstreamErrorResponse}
 import utils.SpecBase
-import uk.gov.hmrc.http.HttpReads.notFoundMessage
 
 import java.net.URL
 import java.time.LocalDate
@@ -40,29 +40,21 @@ import scala.concurrent.{ExecutionContext, Future}
 class Sub21ConnectorSpec extends SpecBase {
 
   "EoriHistoryConnector" should {
-    "hit the expected URL" in new Setup {
 
-      val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
+    "hit the expected URL" in new Setup {
 
       when(mockHttp.GET[HistoricEoriResponse](actualURL.capture(), any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.successful(generateResponse(List(someEori))))
 
-      private val app: Application = new GuiceApplicationBuilder().overrides(
-        api.inject.bind[HttpClient].toInstance(mockHttp)
-      ).build()
-
-      val service: Sub21Connector = app.injector.instanceOf[Sub21Connector]
-      val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
-
       running(app) {
-        await(service.getEoriHistory(someEori))
+        await(connector.getEoriHistory(someEori))
 
         actualURL.getValue.toString mustBe appConfig.sub21EORIHistoryEndpoint + someEori
       }
     }
 
     "return a list of EoriPeriod entries" in new Setup {
-      val jsonResponse =
+      val jsonResponse: String =
         s"""{
            |  "getEORIHistoryResponse": {
            |    "responseCommon": {
@@ -98,15 +90,9 @@ class Sub21ConnectorSpec extends SpecBase {
       when(mockHttp.GET[HistoricEoriResponse](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.successful(Json.parse(jsonResponse).as[HistoricEoriResponse]))
 
-      private val app: Application = new GuiceApplicationBuilder().overrides(
-        api.inject.bind[HttpClient].toInstance(mockHttp)
-      ).build()
-
-      val service = app.injector.instanceOf[Sub21Connector]
-
       running(app) {
 
-        val response = await(service.getEoriHistory(someEori))
+        val response = await(connector.getEoriHistory(someEori))
 
         response mustBe List(
           EoriPeriod("testEori", Some("2019-07-24"), None),
@@ -119,8 +105,6 @@ class Sub21ConnectorSpec extends SpecBase {
 
     "recoverWith Not Found" in new Setup {
 
-      val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
-
       val compare: Future[Nothing] = Future.failed(
         UpstreamErrorResponse(
           notFoundMessage("GET", actualURL.toString, "error1"),
@@ -130,12 +114,6 @@ class Sub21ConnectorSpec extends SpecBase {
       when(mockHttp.GET[HistoricEoriResponse](
         actualURL.capture(), any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(compare)
-
-      private val app: Application = new GuiceApplicationBuilder().overrides(
-        api.inject.bind[HttpClient].toInstance(mockHttp)
-      ).build()
-
-      val connector: Sub21Connector = app.injector.instanceOf[Sub21Connector]
 
       running(app) {
         assertThrows[NotFoundException] {
@@ -153,8 +131,17 @@ class Sub21ConnectorSpec extends SpecBase {
       otherHeaders = List(("X-very-important", "foo"))
     )
 
+    val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
+
     val someEori = "testEori"
     val mockHttp: HttpClient = mock[HttpClient]
+
+    val app: Application = new GuiceApplicationBuilder().overrides(
+      api.inject.bind[HttpClient].toInstance(mockHttp)
+    ).build()
+
+    val connector: Sub21Connector = app.injector.instanceOf[Sub21Connector]
+    val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
   }
 
   protected def generateResponse(eoris: Seq[String]): HistoricEoriResponse = {
@@ -173,6 +160,7 @@ class Sub21ConnectorSpec extends SpecBase {
     @tailrec
     def calcHistory(eoris: Seq[String], histories: Seq[EORIHistory]): Seq[EORIHistory] = {
       val eori = eoris.head
+
       eoris.size match {
         case 1 =>
           EORIHistory(eori, Some(dateCalculator(eoris.size)), None) +: histories
