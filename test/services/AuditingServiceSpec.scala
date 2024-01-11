@@ -124,7 +124,6 @@ class AuditingServiceSpec extends SpecBase {
           |      }
           |  }""".stripMargin
 
-
       running(app) {
         when(mockAuditConnector.sendExtendedEvent(extendedDataEventCaptor.capture())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
