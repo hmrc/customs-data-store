@@ -37,8 +37,11 @@ import scala.concurrent._
 class AuditingServiceSpec extends SpecBase {
 
   "AuditingService" should {
+
     "audit the bounced email request data" in new Setup {
-      val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
+      val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
+        ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
+
       val undeliverableInformation: UndeliverableInformation = UndeliverableInformation(
         "bounced-email",
         "77ed39b7-d5d8-46ed-abab-a5a8ff416dae",
@@ -56,7 +59,7 @@ class AuditingServiceSpec extends SpecBase {
         )
       )
 
-      val request =
+      val request: String =
         """{
           |    "subject": "bounced-email",
           |    "eventId" : "77ed39b7-d5d8-46ed-abab-a5a8ff416dae",
@@ -73,33 +76,35 @@ class AuditingServiceSpec extends SpecBase {
           |  }
           |}""".stripMargin
 
-
       running(app) {
         when(mockAuditConnector.sendExtendedEvent(extendedDataEventCaptor.capture())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
         service.auditBouncedEmail(undeliverableInformation)
+
         val result = extendedDataEventCaptor.getValue
+
         result.detail mustBe Json.parse(request)
         result.auditType mustBe "BouncedEmail"
         result.auditSource mustBe "customs-data-store"
         result.tags.get("transactionName") mustBe Some("Bounced Email")
-
       }
     }
 
     "audit the SUB22 request data" in new Setup {
-      val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
-      val time = DateTime.parse("2021-10-06T12:32:28Z")
+      val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
+        ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
 
-      val sub22Request = Sub22UpdateVerifiedEmailRequest(
+      val time: DateTime = DateTime.parse("2021-10-06T12:32:28Z")
+
+      val sub22Request: Sub22UpdateVerifiedEmailRequest = Sub22UpdateVerifiedEmailRequest(
         Sub22Request(
           RequestCommon("CDS", time, "8e61730857ae46a28d9c76ec39a52099"),
           RequestDetail("EORI", "GB333186848876", "test@email.com", time, emailVerified = false)
         )
       )
 
-      val request =
+      val request: String =
         s"""{
           |    "updateVerifiedEmailRequest":{
           |      "attempts":1,
@@ -119,18 +124,18 @@ class AuditingServiceSpec extends SpecBase {
           |      }
           |  }""".stripMargin
 
-
       running(app) {
         when(mockAuditConnector.sendExtendedEvent(extendedDataEventCaptor.capture())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
         service.auditSub22Request(sub22Request, 1, successful = false)
+
         val result = extendedDataEventCaptor.getValue
+
         result.detail mustBe Json.parse(request)
         result.auditType mustBe "UpdateVerificationTimestamp"
         result.auditSource mustBe "customs-data-store"
         result.tags.get("transactionName") mustBe Some("Update Verification Timestamp")
-
       }
     }
   }

@@ -53,6 +53,3 @@ object UndeliverableInformation {
   implicit val reads: Reads[UndeliverableInformation] = Json.reads[UndeliverableInformation]
   implicit val writes: OWrites[UndeliverableInformation] = Json.writes[UndeliverableInformation]
 }
-
-
-

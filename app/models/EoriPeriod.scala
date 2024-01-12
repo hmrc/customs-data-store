@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Json, OFormat, OWrites}
 
 case class EoriPeriod(eori: String,
                       validFrom: Option[String],
@@ -25,6 +25,6 @@ case class EoriPeriod(eori: String,
 }
 
 object EoriPeriod {
-  implicit val writes = Json.writes[EoriPeriod]
+  implicit val writes: OWrites[EoriPeriod] = Json.writes[EoriPeriod]
   implicit val format: OFormat[EoriPeriod] = Json.format[EoriPeriod]
 }

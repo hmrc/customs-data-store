@@ -17,6 +17,7 @@
 package models.repositories
 
 sealed trait EmailRepositoryResult
+
 case object SuccessfulEmail extends EmailRepositoryResult
+
 case object FailedToRetrieveEmail extends EmailRepositoryResult
-case object NoEmailDocumentsUpdated extends EmailRepositoryResult

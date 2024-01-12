@@ -24,4 +24,3 @@ import javax.inject.Singleton
 case class DateTimeService() {
   def getTimeStamp: OffsetDateTime = OffsetDateTime.ofInstant( Instant.now() , ZoneOffset.UTC)
 }
-

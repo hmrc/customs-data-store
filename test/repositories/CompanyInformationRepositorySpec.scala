@@ -26,7 +26,6 @@ import scala.concurrent.Future
 
 class CompanyInformationRepositorySpec extends SpecBase {
 
-
   "retrieve the company information from the database if present" in new Setup {
     running(app) {
       await(for {
@@ -51,10 +50,14 @@ class CompanyInformationRepositorySpec extends SpecBase {
   }
 
   trait Setup {
-    val app: Application = application.build()
-    val repository: DefaultCompanyInformationRepository = app.injector.instanceOf[DefaultCompanyInformationRepository]
-    val addressInformation: AddressInformation = AddressInformation("12 Example Street", "Example", Some("AA00 0AA"), "GB")
+    val addressInformation: AddressInformation =
+      AddressInformation("12 Example Street", "Example", Some("AA00 0AA"), "GB")
+
     val companyInformation: CompanyInformation = CompanyInformation("Example Ltd", "1", addressInformation)
+
+    val app: Application = application.build()
+
+    val repository: DefaultCompanyInformationRepository = app.injector.instanceOf[DefaultCompanyInformationRepository]
 
     def dropData(): Future[Unit] = {
       repository.collection.drop().toFuture().map(_ => ())

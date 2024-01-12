@@ -33,6 +33,7 @@ class Sub21Connector @Inject()(appConfig: AppConfig,
 
   def getEoriHistory(eori: String): Future[Seq[EoriPeriod]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
+
     metricsReporter.withResponseTimeLogging("mdg.get.eori-history") {
       val url = url"${appConfig.sub21EORIHistoryEndpoint}$eori"
       val headers = Seq(("Authorization" -> appConfig.sub21BearerToken))

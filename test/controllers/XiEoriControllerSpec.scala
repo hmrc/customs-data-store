@@ -30,50 +30,68 @@ import scala.concurrent.Future
 
 class XiEoriControllerSpec extends SpecBase {
 
-  "return xi eori information if stored in the database" in new Setup {
-    when(mockXiEoriInformationRepository.get(any()))
-      .thenReturn(Future.successful(Some(xiEoriInformation)))
+  "getXiEoriInformation" should {
 
-    running(app) {
-      val request = FakeRequest(GET, routes.XiEoriController.getXiEoriInformation(eori).url)
-      val result = route(app, request).value
-      contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
+    "return xi eori information if stored in the database" in new Setup {
+      when(mockXiEoriInformationRepository.get(any()))
+        .thenReturn(Future.successful(Some(xiEoriInformation)))
+
+      running(app) {
+        val request = FakeRequest(GET, getRoute)
+
+        val result = route(app, request).value
+
+        contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
+      }
     }
-  }
 
-  "return not found if no information found for user" in new Setup {
-    when(mockXiEoriInformationRepository.get(any()))
-      .thenReturn(Future.successful(None))
-    when(mockSubscriptionInfoConnector.getXiEoriInformation(any()))
-      .thenReturn(Future.successful(None))
+    "return not found if no information found for user" in new Setup {
+      when(mockXiEoriInformationRepository.get(any()))
+        .thenReturn(Future.successful(None))
 
-    running(app) {
-      val request = FakeRequest(GET, routes.XiEoriController.getXiEoriInformation(eori).url)
-      val result = route(app, request).value
-      status(result) mustBe NOT_FOUND
+      when(mockSubscriptionInfoConnector.getXiEoriInformation(any()))
+        .thenReturn(Future.successful(None))
+
+      running(app) {
+        val request = FakeRequest(GET, getRoute)
+
+        val result = route(app, request).value
+
+        status(result) mustBe NOT_FOUND
+      }
     }
-  }
 
-  "return company information and store in the database when no existing data in the database" in new Setup {
-    when(mockXiEoriInformationRepository.get(any()))
-      .thenReturn(Future.successful(None))
-    when(mockSubscriptionInfoConnector.getXiEoriInformation(any()))
-      .thenReturn(Future.successful(Some(xiEoriInformation)))
-    when(mockXiEoriInformationRepository.set(eori, xiEoriInformation)).thenReturn(Future.unit)
+    "return company information and store in the database when no existing data in the database" in new Setup {
+      when(mockXiEoriInformationRepository.get(any()))
+        .thenReturn(Future.successful(None))
 
-    running(app) {
-      val request = FakeRequest(GET, routes.XiEoriController.getXiEoriInformation(eori).url)
-      val result = route(app, request).value
-      contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
+      when(mockSubscriptionInfoConnector.getXiEoriInformation(any()))
+        .thenReturn(Future.successful(Some(xiEoriInformation)))
+
+      when(mockXiEoriInformationRepository.set(eori, xiEoriInformation)).thenReturn(Future.unit)
+
+      running(app) {
+        val request = FakeRequest(GET, getRoute)
+
+        val result = route(app, request).value
+
+        contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
+      }
     }
   }
 
   trait Setup {
-    val mockXiEoriInformationRepository: XiEoriInformationRepository = mock[XiEoriInformationRepository]
-    val mockSubscriptionInfoConnector: Sub09Connector = mock[Sub09Connector]
-    val xiEoriAddressInformation: XiEoriAddressInformation = XiEoriAddressInformation("12 Example Street", Some("Example"), Some("GB"), None, Some("AA00 0AA"))
+
+    val xiEoriAddressInformation: XiEoriAddressInformation =
+      XiEoriAddressInformation("12 Example Street", Some("Example"), Some("GB"), None, Some("AA00 0AA"))
+
     val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", xiEoriAddressInformation)
     val eori: String = "testEori"
+
+    val getRoute: String = routes.XiEoriController.getXiEoriInformation(eori).url
+
+    val mockXiEoriInformationRepository: XiEoriInformationRepository = mock[XiEoriInformationRepository]
+    val mockSubscriptionInfoConnector: Sub09Connector = mock[Sub09Connector]
 
     val app: Application = application.overrides(
       inject.bind[XiEoriInformationRepository].toInstance(mockXiEoriInformationRepository),

@@ -14,13 +14,27 @@
  * limitations under the License.
  */
 
-package models.requests
+package utils
 
-import play.api.libs.json.{Json, Writes}
+import utils.Utils.{emptyString, hyphen, singleSpace}
 
-case class Sub22Request(requestCommon: RequestCommon,
-                        requestDetail: RequestDetail)
+class UtilsSpec extends SpecBase {
 
-object Sub22Request {
-  implicit val writes: Writes[Sub22Request] = Json.writes[Sub22Request]
+  "hyphen" should {
+    "return correct value" in {
+      hyphen mustBe "-"
+    }
+  }
+
+  "emptyString" should {
+    "return correct value" in {
+      emptyString mustBe empty
+    }
+  }
+
+  "singleSpace" should {
+    "return correct value" in {
+      singleSpace mustBe " "
+    }
+  }
 }

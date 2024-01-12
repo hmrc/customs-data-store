@@ -16,44 +16,108 @@
 
 package config
 
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.flatspec.AnyFlatSpec
-import play.api.{Configuration, Environment}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.Application
+import utils.SpecBase
 
-class AppConfigSpec extends AnyFlatSpec with Matchers {
+class AppConfigSpec extends SpecBase {
 
-  class AppConfigScenario {
-    val env = Environment.simple()
-    val configuration = Configuration.load(env)
-    val servicesConfig = new ServicesConfig(configuration)
-  }
+  "url" should {
 
-  it should "remove left hand side slash" in new AppConfigScenario {
-    new AppConfig(configuration, servicesConfig) {
-      val url = "http://localhost/" / "abcd"
-      url mustBe "http://localhost/abcd"
+    "remove left hand side slash" in new Setup {
+
+      import appConfig.URLSyntacticSugar
+
+      val url: String = urlWithTrailingSlash / urlStringWithoutSlashes
+
+      url mustBe urlAfterApplyingStringWithSlash
     }
   }
 
-  it should "remove right hand side slash" in new AppConfigScenario {
-    new AppConfig(configuration, servicesConfig) {
-      val url = "http://localhost" / "/abcd"
-      url mustBe "http://localhost/abcd"
+  "remove right hand side slash" in new Setup {
+
+    import appConfig.URLSyntacticSugar
+
+    val url: String = sampleUrl / urlStringWithLeadingSlash
+
+    url mustBe urlAfterApplyingStringWithSlash
+  }
+
+  "remove left and right hand side slashes" in new Setup {
+
+    import appConfig.URLSyntacticSugar
+
+    val url: String = urlWithTrailingSlash / urlStringWithLeadingSlash
+
+    url mustBe urlAfterApplyingStringWithSlash
+  }
+
+  "No slashes" in new Setup {
+
+    import appConfig.URLSyntacticSugar
+
+    val url: String = sampleUrl / "abcd"
+
+    url mustBe urlAfterApplyingStringWithSlash
+  }
+
+  "schedulerDelay" should {
+    "return correct value" in new Setup {
+      appConfig.schedulerDelay mustBe 60
     }
   }
 
-  it should "remove left and right hand side slashes" in new AppConfigScenario {
-    new AppConfig(configuration, servicesConfig) {
-      val url = "http://localhost/" / "/abcd"
-      url mustBe "http://localhost/abcd"
+  "schedulerMaxAttempts" should {
+    "return correct value" in new Setup {
+      appConfig.schedulerMaxAttempts mustBe 5
     }
   }
 
-  it should "No slashes" in new AppConfigScenario {
-    new AppConfig(configuration, servicesConfig) {
-      val url = "http://localhost" / "abcd"
-      url mustBe "http://localhost/abcd"
+  "sub09GetSubscriptionsEndpoint" should {
+    "return correct value" in new Setup {
+      appConfig.sub09GetSubscriptionsEndpoint mustBe
+        "http://localhost:9753/customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
     }
+  }
+
+  "sub09BearerToken" should {
+    "return correct value" in new Setup {
+      appConfig.sub09BearerToken mustBe "Bearer secret-token"
+    }
+  }
+
+  "sub21EORIHistoryEndpoint" should {
+    "return correct value" in new Setup {
+      appConfig.sub21EORIHistoryEndpoint mustBe "http://localhost:9753/customs-financials-hods-stub/eorihistory/"
+    }
+  }
+
+  "sub21BearerToken" should {
+    "return correct value" in new Setup {
+      appConfig.sub21BearerToken mustBe "Bearer secret-token"
+    }
+  }
+
+  "sub22UpdateVerifiedEmailEndpoint" should {
+    "return correct value" in new Setup {
+      appConfig.sub22UpdateVerifiedEmailEndpoint mustBe
+        "http://localhost:9753/customs-financials-hods-stub/subscriptions/updateverifiedemail/v1"
+    }
+  }
+
+  "sub22BearerToken" should {
+    "return correct value" in new Setup {
+      appConfig.sub22BearerToken mustBe "Bearer secret-token"
+    }
+  }
+
+  trait Setup {
+    val urlStringWithoutSlashes = "abcd"
+    val urlStringWithLeadingSlash = "/abcd"
+    val sampleUrl = "http://localhost"
+    val urlWithTrailingSlash = "http://localhost/"
+    val urlAfterApplyingStringWithSlash = "http://localhost/abcd"
+
+    val app: Application = application.build()
+    val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
   }
 }

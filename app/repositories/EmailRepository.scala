@@ -59,8 +59,12 @@ class DefaultEmailRepository @Inject()(
     ).toFuture().map(v => if (v.wasAcknowledged()) SuccessfulEmail else FailedToRetrieveEmail)
   }
 
-  override def findAndUpdate(id: String, undeliverableInformation: UndeliverableInformation): Future[Option[NotificationEmailMongo]] = {
-    val update = Updates.set("undeliverable", Codecs.toBson(UndeliverableInformationMongo.fromUndeliverableInformation(undeliverableInformation)))
+  override def findAndUpdate(id: String,
+                             undeliverableInformation: UndeliverableInformation): Future[Option[NotificationEmailMongo]] = {
+    val update = Updates.set("undeliverable",
+      Codecs.toBson(UndeliverableInformationMongo.fromUndeliverableInformation(undeliverableInformation))
+    )
+
     collection.findOneAndUpdate(
       equal("_id", id),
       update
@@ -104,7 +108,8 @@ class DefaultEmailRepository @Inject()(
 trait EmailRepository {
   def get(id: String): Future[Option[NotificationEmail]]
 
-  def set(id: String, notificationEmail: NotificationEmail): Future[EmailRepositoryResult]
+  def set(id: String,
+          notificationEmail: NotificationEmail): Future[EmailRepositoryResult]
 
   def resetProcessing(id: String): Future[Boolean]
 
@@ -112,9 +117,6 @@ trait EmailRepository {
 
   def nextJobs: Future[Seq[NotificationEmailMongo]]
 
-  def findAndUpdate(id: String, undeliverableInformation: UndeliverableInformation): Future[Option[NotificationEmailMongo]]
+  def findAndUpdate(id: String,
+                    undeliverableInformation: UndeliverableInformation): Future[Option[NotificationEmailMongo]]
 }
-
-
-
-

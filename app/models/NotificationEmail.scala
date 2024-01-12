@@ -24,8 +24,6 @@ case class NotificationEmail(address: String,
                              undeliverable: Option[UndeliverableInformation])
 
 
-
-
 object NotificationEmail {
   import play.api.libs.json.JodaReads._
   import play.api.libs.json.JodaWrites._

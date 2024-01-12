@@ -34,6 +34,7 @@ import scala.concurrent.Future
 class EmailRepositorySpec extends SpecBase {
 
   "successfully retrive email from repository" in new Setup {
+
     override val notificationEmail: NotificationEmail =
       NotificationEmail("123", dateTime, Some(undeliverableInformation))
 
@@ -43,6 +44,7 @@ class EmailRepositorySpec extends SpecBase {
   }
 
   "fail to retrieve email from repository after setting bad email" in new Setup {
+
     override val notificationEmail: NotificationEmail =
       NotificationEmail("123", dateTime, Some(undeliverableInformation))
 
@@ -142,6 +144,7 @@ class EmailRepositorySpec extends SpecBase {
         dateTime,
         undeliverableInformationEvent
       )
+
     await(for {
       _ <- repository.set(eori, notificationEmail)
       _ <- repository.findAndUpdate(eori, undeliverableInformation)
@@ -224,8 +227,7 @@ class EmailRepositorySpec extends SpecBase {
         "some-event-id",
         "some-group-id",
         dateTime,
-        undeliverableInformationEvent
-      )
+        undeliverableInformationEvent)
 
     val undeliverableInformationMongo: UndeliverableInformationMongo =
       UndeliverableInformationMongo(
@@ -235,8 +237,8 @@ class EmailRepositorySpec extends SpecBase {
         dateTime,
         undeliverableInformationEvent,
         notifiedApi = false,
-        processed = false
-      )
+        processed = false)
+
     val undeliverableNotificationEmail: NotificationEmail =
       NotificationEmail("some@email.com", dateTime, Some(undeliverableInformation))
 
@@ -262,6 +264,7 @@ class EmailRepositorySpec extends SpecBase {
   }
 
   "mark as successful will ensure that the next job will not pick the data up again" in new Setup {
+
     override val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
       "some event",

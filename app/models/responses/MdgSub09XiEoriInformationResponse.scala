@@ -31,5 +31,5 @@ object MdgSub09XiEoriInformationResponse {
     ((JsPath \\ "XI_EORINo").read[String] and
       (JsPath \\ "XI_ConsentToDisclose").readNullable[String] and
       (JsPath \\ "PBEAddress").readNullable[XiEoriAddressInformation]
-      ) (MdgSub09XiEoriInformationResponse.apply _)
+      )(MdgSub09XiEoriInformationResponse.apply _)
 }

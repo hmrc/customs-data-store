@@ -19,6 +19,7 @@ package models.requests
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.{Json, Writes}
 import utils.DateTimeUtils.dateTimeWritesIsoUtc
+import utils.Utils.{emptyString, hyphen}
 
 import java.time.Clock
 import java.util.UUID
@@ -31,7 +32,7 @@ object RequestCommon {
   def apply(): RequestCommon = RequestCommon(
     "CDS",
     new DateTime(Clock.systemUTC().instant().toEpochMilli, DateTimeZone.UTC),
-    UUID.randomUUID().toString.replace("-", "")
+    UUID.randomUUID().toString.replace(hyphen, emptyString)
   )
 
   implicit val dateTimeWrites: Writes[DateTime] = dateTimeWritesIsoUtc
