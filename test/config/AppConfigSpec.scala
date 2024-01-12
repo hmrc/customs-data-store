@@ -27,9 +27,9 @@ class AppConfigSpec extends SpecBase {
 
       import appConfig.URLSyntacticSugar
 
-      val url: String = "http://localhost/" / "abcd"
+      val url: String = urlWithTrailingSlash / urlStringWithoutSlashes
 
-      url mustBe "http://localhost/abcd"
+      url mustBe urlAfterApplyingStringWithSlash
     }
   }
 
@@ -37,27 +37,27 @@ class AppConfigSpec extends SpecBase {
 
     import appConfig.URLSyntacticSugar
 
-    val url: String = "http://localhost" / "/abcd"
+    val url: String = sampleUrl / urlStringWithLeadingSlash
 
-    url mustBe "http://localhost/abcd"
+    url mustBe urlAfterApplyingStringWithSlash
   }
 
   "remove left and right hand side slashes" in new Setup {
 
     import appConfig.URLSyntacticSugar
 
-    val url: String = "http://localhost/" / "/abcd"
+    val url: String = urlWithTrailingSlash / urlStringWithLeadingSlash
 
-    url mustBe "http://localhost/abcd"
+    url mustBe urlAfterApplyingStringWithSlash
   }
 
   "No slashes" in new Setup {
 
     import appConfig.URLSyntacticSugar
 
-    val url: String = "http://localhost" / "abcd"
+    val url: String = sampleUrl / "abcd"
 
-    url mustBe "http://localhost/abcd"
+    url mustBe urlAfterApplyingStringWithSlash
   }
 
   "schedulerDelay" should {
@@ -111,6 +111,12 @@ class AppConfigSpec extends SpecBase {
   }
 
   trait Setup {
+    val urlStringWithoutSlashes = "abcd"
+    val urlStringWithLeadingSlash = "/abcd"
+    val sampleUrl = "http://localhost"
+    val urlWithTrailingSlash = "http://localhost/"
+    val urlAfterApplyingStringWithSlash = "http://localhost/abcd"
+
     val app: Application = application.build()
     val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
   }
