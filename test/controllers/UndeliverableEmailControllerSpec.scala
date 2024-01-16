@@ -179,7 +179,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         "some event",
         "some@email.com",
         detectedDate.toString(),
-        Some(12),
+        Some(code),
         Some("unknown reason"),
         s"HMRC-cus-ORG~EORINUMBER~$testEori",
         Some("sdds")
@@ -256,7 +256,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         "some event",
         "some@email.com",
         detectedDate.toString(),
-        Some(12),
+        Some(code),
         Some("unknown reason"),
         s"HMRC-cus-ORG~EORINUMBER~$testEori",
         Some("sdds")
@@ -331,6 +331,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
     val notificationEmailMongo: NotificationEmailMongo = NotificationEmailMongo("someAddress", DateTime.now(), None)
     val testEori = "EoriNumber"
     val currentDateTimeString: String = DateTime.now().toString()
+    val code = 12
 
     val postRoute: String = routes.UndeliverableEmailController.makeUndeliverable().url
 

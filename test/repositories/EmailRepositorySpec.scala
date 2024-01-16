@@ -60,7 +60,7 @@ class EmailRepositorySpec extends SpecBase {
       "some event",
       "some@email.com",
       "detected",
-      Some(12),
+      Some(code),
       Some("unknown reason"),
       s"HMRC-CUS-ORG~EORINumber~$eori",
       Some("sdds")
@@ -97,7 +97,7 @@ class EmailRepositorySpec extends SpecBase {
       "some event",
       "some@email.com",
       "detected",
-      Some(12),
+      Some(code),
       Some("unknown reason"),
       s"HMRC-CUS-ORG~EORINumber~$eori",
       Some("sdds")
@@ -130,7 +130,7 @@ class EmailRepositorySpec extends SpecBase {
       "some event",
       "some@email.com",
       "detected",
-      Some(12),
+      Some(code),
       Some("unknown reason"),
       s"HMRC-CUS-ORG~EORINumber~$eori",
       Some("sdds")
@@ -165,7 +165,7 @@ class EmailRepositorySpec extends SpecBase {
       "some event",
       "some@email.com",
       "detected",
-      Some(12),
+      Some(code),
       Some("unknown reason"),
       s"HMRC-CUS-ORG~EORINumber~$eori",
       Some("sdds")
@@ -215,7 +215,7 @@ class EmailRepositorySpec extends SpecBase {
       "some event",
       "some@email.com",
       "detected",
-      Some(12),
+      Some(code),
       Some("unknown reason"),
       s"HMRC-CUS-ORG~EORINumber~$eori",
       Some("sdds")
@@ -270,7 +270,7 @@ class EmailRepositorySpec extends SpecBase {
       "some event",
       "some@email.com",
       "detected",
-      Some(12),
+      Some(code),
       Some("unknown reason"),
       s"HMRC-CUS-ORG~EORINumber~$eori",
       Some("sdds")
@@ -303,13 +303,14 @@ class EmailRepositorySpec extends SpecBase {
     val eori = "SomeEori"
     val dateTime: DateTime = DateTime.now()
     val notificationEmail: NotificationEmail = NotificationEmail("some@email.com", dateTime, None)
+    val code = 12
 
     val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",
       "some event",
       "some@email.com",
       "detected",
-      Some(12),
+      Some(code),
       Some("unknown reason"),
       s"HMRC-CUS-ORG~EORINumber~$eori",
       Some("sdds")

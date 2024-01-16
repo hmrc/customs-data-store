@@ -20,11 +20,11 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;" +
       ".*javascript.*;.*Routes.*;.*GuiceInjector;" +
       ".*ControllerConfiguration;.*LanguageSwitchController;.*Scheduler",
-    ScoverageKeys.coverageMinimumBranchTotal := 98,
+    ScoverageKeys.coverageMinimumStmtTotal := 98,
     ScoverageKeys.coverageMinimumBranchTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
-    scalacOptions += "-P:silencer:pathFilters=routes",
+    scalacOptions ++= Seq("-P:silencer:pathFilters=routes","-Wunused:imports", "-Wunused:params"),
     libraryDependencies ++= Seq(
       compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
       "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
