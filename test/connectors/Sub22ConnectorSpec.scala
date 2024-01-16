@@ -92,6 +92,7 @@ class Sub22ConnectorSpec extends SpecBase {
     val testEori = "someEori"
     val detectedDate: DateTime = DateTime.now()
     val attemptsZero = 0
+    val code = 12
 
     val successfulUpdateVerifiedEmailResponse: UpdateVerifiedEmailResponse = UpdateVerifiedEmailResponse(
       UpdateVerifiedEmailResponseCommon(
@@ -116,7 +117,7 @@ class Sub22ConnectorSpec extends SpecBase {
       "some event",
       "some@email.com",
       "detected",
-      Some(12),
+      Some(code),
       Some("unknown reason"),
       s"HMRC-CUS-ORG~EORINumber~$testEori",
       Some("sdds")

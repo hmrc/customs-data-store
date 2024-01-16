@@ -39,6 +39,7 @@ class AuditingServiceSpec extends SpecBase {
   "AuditingService" should {
 
     "audit the bounced email request data" in new Setup {
+      val code = 605
       val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
         ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
 
@@ -52,7 +53,7 @@ class AuditingServiceSpec extends SpecBase {
           "failed",
           "hmrc-customer@some-domain.org",
           "2021-04-07T09:46:29+00:00",
-          Some(605),
+          Some(code),
           Some("Not delivering to previously bounced address"),
           "HMRC-CUS-ORG~EORINumber~GB744638982000",
           Some("sdds")
@@ -106,23 +107,23 @@ class AuditingServiceSpec extends SpecBase {
 
       val request: String =
         s"""{
-          |    "updateVerifiedEmailRequest":{
-          |      "attempts":1,
-          |      "successful": false,
-          |      "requestCommon":{
-          |        "regime":"CDS",
-          |        "receiptDate":"2021-10-06T12:32:28Z",
-          |        "acknowledgementReference":"8e61730857ae46a28d9c76ec39a52099"
-          |        },
-          |      "requestDetail":{
-          |        "IDType":"EORI",
-          |        "IDNumber":"GB333186848876",
-          |        "emailAddress":"test@email.com",
-          |        "emailVerificationTimestamp":"2021-10-06T12:32:28Z",
-          |        "emailVerified":false
-          |        }
-          |      }
-          |  }""".stripMargin
+           |    "updateVerifiedEmailRequest":{
+           |      "attempts":1,
+           |      "successful": false,
+           |      "requestCommon":{
+           |        "regime":"CDS",
+           |        "receiptDate":"2021-10-06T12:32:28Z",
+           |        "acknowledgementReference":"8e61730857ae46a28d9c76ec39a52099"
+           |        },
+           |      "requestDetail":{
+           |        "IDType":"EORI",
+           |        "IDNumber":"GB333186848876",
+           |        "emailAddress":"test@email.com",
+           |        "emailVerificationTimestamp":"2021-10-06T12:32:28Z",
+           |        "emailVerified":false
+           |        }
+           |      }
+           |  }""".stripMargin
 
       running(app) {
         when(mockAuditConnector.sendExtendedEvent(extendedDataEventCaptor.capture())(any(), any()))

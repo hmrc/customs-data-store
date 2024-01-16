@@ -132,7 +132,8 @@ object Sub09Response {
     Json.parse(response)
   }
 
-  protected def sub09Response(eori: String): String =
+  //scalastyle:off
+  protected def sub09Response(eori: String): String = {
     s"""
        |{
        |  "subscriptionDisplayResponse": {
@@ -202,5 +203,7 @@ object Sub09Response {
        |  }
        |}
     """.stripMargin.replace(eoriKey, eori)
+    //scalastyle:on
+  }
 
 }
