@@ -7,6 +7,9 @@ val bootstrap = "7.22.0"
 val silencerVersion = "1.17.13"
 
 val scala2_13_8 = "2.13.8"
+val testDirectory = "test"
+val scalaStyleConfigFile = "scalastyle-config.xml"
+val testScalaStyleConfigFile = "test-scalastyle-config.xml"
 
 ThisBuild / majorVersion := 0
 ThisBuild / scalaVersion := scala2_13_8
@@ -24,7 +27,8 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageMinimumBranchTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
-    scalacOptions ++= Seq("-P:silencer:pathFilters=routes","-Wunused:imports", "-Wunused:params"),
+    scalacOptions ++= Seq("-P:silencer:pathFilters=routes", "-Wunused:imports", "-Wunused:params", "-Wunused:patvars",
+      "-Wunused:implicits", "-Wunused:explicits", "-Wunused:privates"),
     libraryDependencies ++= Seq(
       compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
       "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
@@ -33,8 +37,14 @@ lazy val microservice = Project(appName, file("."))
   .configs(IntegrationTest)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(Test / parallelExecution := false)
+  .settings(scalastyleSettings)
   .settings(addTestReportOption(IntegrationTest, "int-test-reports"))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
+
+lazy val scalastyleSettings = Seq(
+  scalastyleConfig := baseDirectory.value / scalaStyleConfigFile,
+  (Test / scalastyleConfig) := baseDirectory.value/ testDirectory / testScalaStyleConfigFile
+)
 
 lazy val it = project
   .enablePlugins(PlayScala)
