@@ -18,9 +18,7 @@ package models.requests
 
 import play.api.libs.json.{Json, Writes}
 
-case class Sub22UpdateVerifiedEmailRequest(updateVerifiedEmailRequest: Sub22Request) {
-
-}
+case class Sub22UpdateVerifiedEmailRequest(updateVerifiedEmailRequest: Sub22Request)
 
 object Sub22UpdateVerifiedEmailRequest {
   def fromDetailAndCommon(common: RequestCommon, detail: RequestDetail): Sub22UpdateVerifiedEmailRequest =
