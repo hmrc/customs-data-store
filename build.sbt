@@ -1,6 +1,6 @@
 import play.core.PlayVersion.{current => currentPlayVersion}
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.{targetJvm, itSettings}
+import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, targetJvm, itSettings}
 
 val appName = "customs-data-store"
 
@@ -57,6 +57,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(Test / parallelExecution := false)
   .settings(scalastyleSettings)
+  .settings(addTestReportOption(IntegrationTest, "int-test-reports"))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
 lazy val scalastyleSettings = Seq(
