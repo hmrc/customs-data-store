@@ -23,6 +23,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import play.api.{Logger, LoggerLike}
 import repositories.{FailedToUpdateHistoricEori, HistoricEoriRepository, HistoricEoriSuccessful}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, NOT_FOUND}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -52,12 +53,12 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
       }
     } yield {
       updateEoriHistorySucceeded match {
-        case HistoricEoriSuccessful => NoContent
-        case _ => InternalServerError
+        case HistoricEoriSuccessful => NO_CONTENT
+        case _ => INTERNAL_SERVER_ERROR
       }
     }).recover {
       case err => log.info(s"Failed to find EoriHistory: ${err.getMessage}")
-        if (err.getMessage.contains("Not found")) NotFound else InternalServerError
+        if (err.getMessage.contains("Not found")) NOT_FOUND else INTERNAL_SERVER_ERROR
     }
   }
 
@@ -67,10 +68,10 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
       updateResult <- historicEoriRepository.set(eoriHistory)
       result <- updateResult match {
         case HistoricEoriSuccessful => historicEoriRepository.get(eori).map {
-          case Left(_) => InternalServerError
+          case Left(_) => INTERNAL_SERVER_ERROR
           case Right(value) => Ok(Json.toJson(EoriHistoryResponse(value)))
         }
-        case _ => Future.successful(InternalServerError)
+        case _ => Future.successful(INTERNAL_SERVER_ERROR)
       }
     } yield result
   }

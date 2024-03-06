@@ -57,7 +57,7 @@ class UndeliverableJobService @Inject()(
   }
 
   private def updateSub22(undeliverableInformation: UndeliverableInformation,
-                          timestamp: DateTime,
+                          timestamp: Instant,
                           eori: String,
                           attempts: Int): Future[ProcessResult] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()

@@ -117,7 +117,7 @@ class MetricsReporterServiceSpec extends SpecBase {
     val mockDateTimeService: DateTimeService = mock[DateTimeService]
     val mockHistogram: Histogram = mock[Histogram]
     val mockRegistry: MetricRegistry = mock[MetricRegistry]
-    val mockMetrics: Metrics = mock[Metrics]
+    val mockMetrics: Metrics = mock[MetricRegistry]
 
     when(mockDateTimeService.getTimeStamp)
       .thenReturn(startTimestamp)

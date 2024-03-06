@@ -25,8 +25,9 @@ import repositories.EmailRepository
 import services.AuditingService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, NOT_FOUND, BAD_REQUEST}
 
-import javax.inject.Inject
+  import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
@@ -40,17 +41,17 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
     implicit request =>
       request.body.extractEori match {
 
-        case Some(eori) => emailRepository.findAndUpdate(eori, request.body).flatMap {
+        case Some(eori: String) => emailRepository.findAndUpdate(eori, request.body).flatMap {
           case Some(record) =>
             auditingService.auditBouncedEmail(request.body)
-            updateSub22(request.body, record, eori).map { _ => NoContent }
-          case _ => Future.successful(NotFound)
+            updateSub22(request.body, record, eori).map { _ => NO_CONTENT }
+          case _ => Future.successful(NOT_FOUND)
         }.recover {
           case err =>
-            log.error(s"Failed to mark email as undeliverable: ${err.getMessage}"); InternalServerError
+            log.error(s"Failed to mark email as undeliverable: ${err.getMessage}"); INTERNAL_SERVER_ERROR
         }
 
-        case None => Future.successful(BadRequest)
+        case None => Future.successful(BAD_REQUEST)
       }
   }
 

@@ -24,6 +24,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.XiEoriInformationRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.Utils.emptyString
+import play.api.http.Status.NOT_FOUND
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,7 +43,7 @@ class XiEoriController @Inject() (xiEoriInformationRepository: XiEoriInformation
           eori,
           XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
         )
-          NotFound
+          NOT_FOUND
       }
     }
   }

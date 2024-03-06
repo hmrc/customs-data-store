@@ -22,7 +22,7 @@ import play.api.libs.json.{JsObject, Json, OWrites, Reads}
 case class UndeliverableInformation(subject: String,
                                     eventId: String,
                                     groupId: String,
-                                    timestamp: DateTime,
+                                    timestamp: Instant,
                                     event: UndeliverableInformationEvent
                                    ) {
 

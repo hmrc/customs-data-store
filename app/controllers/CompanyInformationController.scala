@@ -23,6 +23,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.CompanyInformationRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import play.api.http.Status.NOT_FOUND
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,7 +38,7 @@ class CompanyInformationController @Inject()(companyInformationRepository: Compa
       case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
       case None => retrieveCompanyInformation(eori).map {
         case Some(companyInformation) => Ok(Json.toJson(companyInformation))
-        case None => NotFound
+        case None => NOT_FOUND
       }
     }
   }

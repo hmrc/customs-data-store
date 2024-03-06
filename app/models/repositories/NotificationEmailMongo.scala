@@ -21,7 +21,7 @@ import java.time.Instant
 import play.api.libs.json.{Json, OFormat}
 
 case class NotificationEmailMongo(address: String,
-                                  timestamp: DateTime,
+                                  timestamp: Instant,
                                   undeliverable: Option[UndeliverableInformationMongo]) {
   def toNotificationEmail: NotificationEmail = NotificationEmail(
     address,

@@ -24,7 +24,7 @@ import play.api.libs.json.{Json, OFormat}
 case class UndeliverableInformationMongo(subject: String,
                                          eventId: String,
                                          groupId: String,
-                                         timestamp: DateTime,
+                                         timestamp: Instant,
                                          event: UndeliverableInformationEvent,
                                          notifiedApi: Boolean,
                                          processed: Boolean,

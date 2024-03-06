@@ -25,7 +25,7 @@ import java.time.Clock
 import java.util.UUID
 
 case class RequestCommon(regime: String,
-                         receiptDate: DateTime,
+                         receiptDate: Instant,
                          acknowledgementReference: String)
 
 object RequestCommon {
@@ -35,6 +35,6 @@ object RequestCommon {
     UUID.randomUUID().toString.replace(hyphen, emptyString)
   )
 
-  implicit val dateTimeWrites: Writes[DateTime] = dateTimeWritesIsoUtc
+  implicit val dateTimeWrites: Writes[Instant] = dateTimeWritesIsoUtc
   implicit val writes: Writes[RequestCommon] = Json.writes[RequestCommon]
 }

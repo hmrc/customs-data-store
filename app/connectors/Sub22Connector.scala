@@ -33,11 +33,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class Sub22Connector @Inject()(httpClient: HttpClient,
                                appConfig: AppConfig,
-                               auditingService: AuditingService)(
-                                implicit executionContext: ExecutionContext) extends Logging {
+                               auditingService: AuditingService)
+                              (implicit executionContext: ExecutionContext) extends Logging {
 
   def updateUndeliverable(undeliverableInformation: UndeliverableInformation,
-                          verifiedTimestamp: DateTime, attempts: Int)(implicit hc: HeaderCarrier): Future[Boolean] = {
+                          verifiedTimestamp: Instant, attempts: Int)(implicit hc: HeaderCarrier): Future[Boolean] = {
 
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
     val localDate = LocalDateTime.now().format(dateFormat)

@@ -17,7 +17,7 @@
 package services
 
 import com.google.inject.Inject
-import play.api.http.Status
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import uk.gov.hmrc.http.{BadRequestException, NotFoundException, UpstreamErrorResponse}
 import java.time.OffsetDateTime
 import javax.inject.Singleton
@@ -32,11 +32,11 @@ class MetricsReporterService @Inject()(metrics: com.codahale.metrics.MetricRegis
     val startTime = dateTimeService.getTimeStamp
     future.andThen { case response =>
       val httpResponseCode = response match {
-        case Success(_) => Status.OK
+        case Success(_) => OK
         case Failure(exception: NotFoundException) => exception.responseCode
         case Failure(exception: BadRequestException) => exception.responseCode
         case Failure(exception: UpstreamErrorResponse) => exception.statusCode
-        case Failure(_) => Status.INTERNAL_SERVER_ERROR
+        case Failure(_) => INTERNAL_SERVER_ERROR
       }
       updateResponseTimeHistogram(resourceName, httpResponseCode, startTime, dateTimeService.getTimeStamp)
     }
@@ -47,6 +47,7 @@ class MetricsReporterService @Inject()(metrics: com.codahale.metrics.MetricRegis
     val RESPONSE_TIMES_METRIC = "responseTimes"
     val histogramName = s"$RESPONSE_TIMES_METRIC.$resourceName.$httpResponseCode"
     val elapsedTimeInMillis = endTimestamp.toInstant.toEpochMilli - startTimestamp.toInstant.toEpochMilli
-    metrics.defaultRegistry.histogram(histogramName).update(elapsedTimeInMillis)
+
+    metrics.histogram(histogramName).update(elapsedTimeInMillis)
   }
 }

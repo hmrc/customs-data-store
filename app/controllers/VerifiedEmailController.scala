@@ -26,15 +26,15 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.EmailRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, NOT_FOUND}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class VerifiedEmailController @Inject()(
-                                         emailRepo: EmailRepository,
-                                         subscriptionInfoConnector: Sub09Connector,
-                                         cc: ControllerComponents
-                                       )(implicit executionContext: ExecutionContext) extends BackendController(cc) {
+class VerifiedEmailController @Inject()(emailRepo: EmailRepository,
+                                        subscriptionInfoConnector: Sub09Connector,
+                                        cc: ControllerComponents)
+                                       (implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async {
     def retrieveAndStoreEmail: Future[Result] = {
@@ -42,9 +42,9 @@ class VerifiedEmailController @Inject()(
         notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
         result <- OptionT.liftF(emailRepo.set(eori, notificationEmail).map {
           case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
-          case _ => InternalServerError
+          case _ => INTERNAL_SERVER_ERROR
         })
-      } yield result).getOrElse(NotFound)
+      } yield result).getOrElse(NOT_FOUND)
     }
 
     emailRepo.get(eori).flatMap {
@@ -59,8 +59,8 @@ class VerifiedEmailController @Inject()(
         request.body.eori,
         NotificationEmail(request.body.address, request.body.timestamp, None)
       ).map {
-        case SuccessfulEmail => NoContent
-        case _ => InternalServerError
+        case SuccessfulEmail => NO_CONTENT
+        case _ => INTERNAL_SERVER_ERROR
       }
     }
 }

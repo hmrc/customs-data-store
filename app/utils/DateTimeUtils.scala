@@ -29,6 +29,6 @@ object DateTimeUtils {
   val rfc1123DateTimeFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern(rfc1123DateTimePattern).withZone(ZoneId.systemDefault())
 
-  def dateTimeWritesIsoUtc: Writes[DateTime] = (d: java.time.Instant) =>
+  def dateTimeWritesIsoUtc: Writes[Instant] = (d: java.time.Instant) =>
     JsString(d.toString(ISODateTimeFormat.dateTimeNoMillis().withZoneUTC()))
 }
