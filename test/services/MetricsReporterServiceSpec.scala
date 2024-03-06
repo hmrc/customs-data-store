@@ -19,6 +19,7 @@ package services
 import com.codahale.metrics.{Histogram, MetricRegistry}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import org.mockito.ArgumentMatchers.any
+import org.mockito:mockito-scala
 import org.mockito.Mockito.{verify, when}
 import play.api.http.Status
 import uk.gov.hmrc.http._

@@ -16,7 +16,9 @@
 
 package config
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor
+import org.apache.pekko.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import services.UndeliverableJobService
 
 import javax.inject.{Inject, Singleton}

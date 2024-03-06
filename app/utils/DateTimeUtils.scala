@@ -16,8 +16,7 @@
 
 package utils
 
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
+import java.time.Instant
 import play.api.libs.json.{JsString, Writes}
 
 import java.time.ZoneId
@@ -30,6 +29,6 @@ object DateTimeUtils {
   val rfc1123DateTimeFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern(rfc1123DateTimePattern).withZone(ZoneId.systemDefault())
 
-  def dateTimeWritesIsoUtc: Writes[DateTime] = (d: org.joda.time.DateTime) =>
+  def dateTimeWritesIsoUtc: Writes[DateTime] = (d: java.time.Instant) =>
     JsString(d.toString(ISODateTimeFormat.dateTimeNoMillis().withZoneUTC()))
 }

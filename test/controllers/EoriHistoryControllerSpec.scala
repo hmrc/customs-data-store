@@ -18,6 +18,7 @@ package controllers
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
+import org.mockito:mockito-scala
 import play.api.{Application, inject}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest

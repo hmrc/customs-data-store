@@ -20,6 +20,7 @@ import models.{AddressInformation, CompanyInformation, Sub09Response, XiEoriAddr
 import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
+import org.mockito:mockito-scala
 import play.api.Application
 import play.api.inject.bind
 import play.api.libs.json.JsValue

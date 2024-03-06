@@ -24,9 +24,8 @@ import javax.inject.Singleton
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-
 @Singleton
-class MetricsReporterService @Inject()(metrics: com.kenshoo.play.metrics.Metrics, dateTimeService: DateTimeService) {
+class MetricsReporterService @Inject()(metrics: com.codahale.metrics.MetricRegistry, dateTimeService: DateTimeService) {
 
   def withResponseTimeLogging[T](resourceName: String)(future: Future[T])
                                 (implicit ec: ExecutionContext): Future[T] = {

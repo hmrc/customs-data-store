@@ -19,9 +19,10 @@ package controllers
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import org.joda.time.DateTime
+import java.time.Instant
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
+import org.mockito:mockito-scala
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson
 import play.api.test.FakeRequest

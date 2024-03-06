@@ -20,7 +20,7 @@ import config.AppConfig
 import models.UndeliverableInformation
 import models.requests.{RequestCommon, RequestDetail, Sub22UpdateVerifiedEmailRequest}
 import models.responses.UpdateVerifiedEmailResponse
-import org.joda.time.DateTime
+import java.time.Instant
 import play.api.Logging
 import services.AuditingService
 import uk.gov.hmrc.http.HttpReads.Implicits._

@@ -16,7 +16,7 @@
 
 package models.requests
 
-import org.joda.time.DateTime
+import java.time.Instant
 import play.api.libs.json.{Json, Writes}
 import utils.DateTimeUtils.dateTimeWritesIsoUtc
 

@@ -17,7 +17,7 @@
 package models.repositories
 
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import org.joda.time.DateTime
+import java.time.Instant
 import play.api.libs.json.{Json, OFormat}
 
 

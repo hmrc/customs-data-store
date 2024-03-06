@@ -18,10 +18,17 @@ package connectors
 
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import models.requests.Sub22Request
-import models.responses.{UpdateVerifiedEmailResponse, UpdateVerifiedEmailResponseCommon, UpdateVerifiedEmailResponseCommonDetail}
-import org.joda.time.DateTime
+
+import models.responses.{
+  UpdateVerifiedEmailResponse,
+  UpdateVerifiedEmailResponseCommon,
+  UpdateVerifiedEmailResponseCommonDetail
+}
+
+import java.time.Instant
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
+import org.mockito:mockito-scala
 import play.api
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder

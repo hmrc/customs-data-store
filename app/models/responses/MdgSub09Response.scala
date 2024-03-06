@@ -16,7 +16,7 @@
 
 package models.responses
 
-import org.joda.time.DateTime
+import java.time.Instant
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 

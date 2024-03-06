@@ -18,7 +18,7 @@ package services
 
 import connectors.Sub22Connector
 import models.{FailedToProcess, NoDataToProcess, ProcessResult, ProcessSucceeded, UndeliverableInformation}
-import org.joda.time.DateTime
+import java.time.Instant
 import play.api.Logging
 import repositories.EmailRepository
 import uk.gov.hmrc.http.HeaderCarrier

@@ -16,7 +16,7 @@
 
 package models
 
-import org.joda.time.DateTime
+import java.time.Instant
 import play.api.libs.json.{JsObject, Json, OWrites, Reads}
 
 case class UndeliverableInformation(subject: String,

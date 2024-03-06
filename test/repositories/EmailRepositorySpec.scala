@@ -20,7 +20,7 @@ import com.mongodb.WriteConcern
 import config.AppConfig
 import models.repositories.{FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
 import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
-import org.joda.time.DateTime
+import java.time.Instant
 import org.mongodb.scala.MongoCollection
 import play.api.Application
 import uk.gov.hmrc.mongo.MongoComponent
