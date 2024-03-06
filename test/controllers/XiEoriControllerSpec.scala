@@ -20,7 +20,6 @@ import connectors.Sub09Connector
 import models.{XiEoriAddressInformation, XiEoriInformation}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.mockito:mockito-scala
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.{Application, inject}

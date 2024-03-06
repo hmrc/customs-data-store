@@ -22,7 +22,6 @@ import java.time.Instant
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.mockito:mockito-scala
 import org.scalatest.matchers.should.Matchers._
 import play.api._
 import play.api.inject.guice.GuiceApplicationBuilder

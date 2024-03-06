@@ -28,7 +28,6 @@ import models.responses.{
 import java.time.Instant
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.mockito:mockito-scala
 import play.api
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder

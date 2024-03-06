@@ -22,7 +22,6 @@ import models.responses.{GetEORIHistoryResponse, ResponseCommon, ResponseDetail}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.mockito:mockito-scala
 import play.api
 import play.api.Application
 import play.api.http.Status.NOT_FOUND
@@ -173,5 +172,4 @@ class Sub21ConnectorSpec extends SpecBase {
 
     calcHistory(allEoris, Seq.empty[EORIHistory])
   }
-
 }

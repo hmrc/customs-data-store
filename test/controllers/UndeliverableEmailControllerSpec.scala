@@ -22,7 +22,6 @@ import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import java.time.Instant
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
-import org.mockito:mockito-scala
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson
 import play.api.test.FakeRequest

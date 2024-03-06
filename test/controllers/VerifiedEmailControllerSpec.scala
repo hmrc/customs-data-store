@@ -22,7 +22,6 @@ import models.{NotificationEmail, TraderData}
 import java.time.Instant
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verifyNoInteractions, when}
-import org.mockito:mockito-scala
 import play.api.{Application, inject}
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson}
