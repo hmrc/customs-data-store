@@ -22,16 +22,16 @@ import utils.Utils.{emptyString, hyphen}
 
 import java.time.Clock
 import java.util.UUID
-import java.time.LocalDateTime
+import java.time.{DateTime, LocalDateTime}
 
 case class RequestCommon(regime: String,
                          receiptDate: LocalDateTime,
                          acknowledgementReference: String)
 
 object RequestCommon {
-  def apply(): RequestCommon = RequestCommon(
-    "CDS",
-    new DateTime(Clock.systemUTC().instant().toEpochMilli, DateTimeZone.UTC),
+  val cl = Clock.systemUTC
+
+  def apply(): RequestCommon = RequestCommon("CDS", LocalDateTime.now(cl),
     UUID.randomUUID().toString.replace(hyphen, emptyString)
   )
 

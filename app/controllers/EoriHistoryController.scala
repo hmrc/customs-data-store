@@ -22,7 +22,6 @@ import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import play.api.{Logger, LoggerLike}
 import repositories.{FailedToUpdateHistoricEori, HistoricEoriRepository, HistoricEoriSuccessful}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, NOT_FOUND}
 
 import javax.inject.Inject
@@ -31,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
                                       eoriHistoryConnector: Sub21Connector,
                                       cc: ControllerComponents)
-                                     (implicit executionContext: ExecutionContext) extends BackendController {
+                                     (implicit executionContext: ExecutionContext) {
 
   val log: LoggerLike = Logger(this.getClass)
 

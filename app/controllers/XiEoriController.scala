@@ -22,7 +22,6 @@ import models.{XiEoriAddressInformation, XiEoriInformation}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.XiEoriInformationRepository
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.Utils.emptyString
 import play.api.http.Status.NOT_FOUND
 
@@ -32,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class XiEoriController @Inject() (xiEoriInformationRepository: XiEoriInformationRepository,
                                   subscriptionInfoConnector: Sub09Connector,
                                   cc: ControllerComponents)
-                                 (implicit executionContext: ExecutionContext) extends BackendController {
+                                 (implicit executionContext: ExecutionContext) {
 
   def getXiEoriInformation(eori: String): Action[AnyContent] = Action.async {
     xiEoriInformationRepository.get(eori).flatMap {

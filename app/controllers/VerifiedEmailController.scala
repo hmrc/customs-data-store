@@ -25,7 +25,6 @@ import models.requests.UpdateVerifiedEmailRequest
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.EmailRepository
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, NOT_FOUND}
 
 import javax.inject.Inject
@@ -34,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class VerifiedEmailController @Inject()(emailRepo: EmailRepository,
                                         subscriptionInfoConnector: Sub09Connector,
                                         cc: ControllerComponents)
-                                       (implicit executionContext: ExecutionContext) extends BackendController {
+                                       (implicit executionContext: ExecutionContext) {
 
   def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async {
     def retrieveAndStoreEmail: Future[Result] = {

@@ -24,7 +24,6 @@ import play.api.{Logger, LoggerLike}
 import repositories.EmailRepository
 import services.AuditingService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, NOT_FOUND, BAD_REQUEST}
 
 import javax.inject.Inject
@@ -34,7 +33,7 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
                                              cc: ControllerComponents,
                                              auditingService: AuditingService,
                                              sub22Connector: Sub22Connector)
-                                            (implicit executionContext: ExecutionContext) extends BackendController {
+                                            (implicit executionContext: ExecutionContext) {
   val log: LoggerLike = Logger(this.getClass)
 
   def makeUndeliverable(): Action[UndeliverableInformation] = Action.async(parse.json[UndeliverableInformation]) {
