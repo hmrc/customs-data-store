@@ -30,8 +30,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
                                       eoriHistoryConnector: Sub21Connector,
-                                      cc: ControllerComponents
-                                     )(implicit executionContext: ExecutionContext) extends BackendController(cc) {
+                                      cc: ControllerComponents)
+                                     (implicit executionContext: ExecutionContext) extends BackendController {
 
   val log: LoggerLike = Logger(this.getClass)
 

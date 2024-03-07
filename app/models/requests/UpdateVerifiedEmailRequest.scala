@@ -16,13 +16,12 @@
 
 package models.requests
 
-import java.time.Instant
+import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
-
 
 case class UpdateVerifiedEmailRequest(eori: String,
                                       address: String,
-                                      timestamp: Instant)
+                                      timestamp: LocalDateTime)
 
 object UpdateVerifiedEmailRequest {
   import play.api.libs.json.JodaReads._

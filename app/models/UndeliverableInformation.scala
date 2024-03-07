@@ -16,15 +16,14 @@
 
 package models
 
-import java.time.Instant
+import java.time.LocalDateTime
 import play.api.libs.json.{JsObject, Json, OWrites, Reads}
 
 case class UndeliverableInformation(subject: String,
                                     eventId: String,
                                     groupId: String,
-                                    timestamp: Instant,
-                                    event: UndeliverableInformationEvent
-                                   ) {
+                                    timestamp: LocalDateTime,
+                                    event: UndeliverableInformationEvent) {
 
   def toAuditDetail: JsObject = {
     Json.obj(

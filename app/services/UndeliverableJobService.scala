@@ -18,7 +18,7 @@ package services
 
 import connectors.Sub22Connector
 import models.{FailedToProcess, NoDataToProcess, ProcessResult, ProcessSucceeded, UndeliverableInformation}
-import java.time.Instant
+import java.time.LocalDateTime
 import play.api.Logging
 import repositories.EmailRepository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -26,10 +26,9 @@ import uk.gov.hmrc.http.HeaderCarrier
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class UndeliverableJobService @Inject()(
-                                         sub22Connector: Sub22Connector,
-                                         emailRepository: EmailRepository
-                                       )(implicit executionContext: ExecutionContext) extends Logging {
+class UndeliverableJobService @Inject()(sub22Connector: Sub22Connector,
+                                        emailRepository: EmailRepository)
+                                       (implicit executionContext: ExecutionContext) extends Logging {
   def processJob(): Future[Seq[ProcessResult]] = {
 
     emailRepository.nextJobs.flatMap { notificationEmails =>
@@ -57,7 +56,7 @@ class UndeliverableJobService @Inject()(
   }
 
   private def updateSub22(undeliverableInformation: UndeliverableInformation,
-                          timestamp: Instant,
+                          timestamp: LocalDateTime,
                           eori: String,
                           attempts: Int): Future[ProcessResult] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()

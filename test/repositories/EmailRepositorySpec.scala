@@ -18,9 +18,16 @@ package repositories
 
 import com.mongodb.WriteConcern
 import config.AppConfig
-import models.repositories.{FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
+
+import models.repositories.{
+  FailedToRetrieveEmail,
+  NotificationEmailMongo,
+  SuccessfulEmail,
+  UndeliverableInformationMongo
+}
+
 import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
-import java.time.Instant
+import java.time.LocalDateTime
 import org.mongodb.scala.MongoCollection
 import play.api.Application
 import uk.gov.hmrc.mongo.MongoComponent

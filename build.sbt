@@ -22,8 +22,6 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= compileDeps ++ testDeps,
     PlayKeys.playDefaultPort := 9893,
 
-    libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always),
-
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;" +
       ".*javascript.*;.*Routes.*;.*GuiceInjector;" +
       ".*ControllerConfiguration;.*LanguageSwitchController;.*Scheduler",
@@ -64,7 +62,7 @@ lazy val microservice = Project(appName, file("."))
 
 lazy val scalastyleSettings = Seq(
   scalastyleConfig := baseDirectory.value / scalaStyleConfigFile,
-  (Test / scalastyleConfig) := baseDirectory.value/ testDirectory / testScalaStyleConfigFile
+  (Test / scalastyleConfig) := baseDirectory.value / testDirectory / testScalaStyleConfigFile
 )
 
 lazy val it = project

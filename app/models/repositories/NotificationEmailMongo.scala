@@ -17,11 +17,11 @@
 package models.repositories
 
 import models.NotificationEmail
-import java.time.Instant
+import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
 
 case class NotificationEmailMongo(address: String,
-                                  timestamp: Instant,
+                                  timestamp: LocalDateTime,
                                   undeliverable: Option[UndeliverableInformationMongo]) {
   def toNotificationEmail: NotificationEmail = NotificationEmail(
     address,

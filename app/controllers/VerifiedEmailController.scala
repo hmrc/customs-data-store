@@ -34,14 +34,14 @@ import scala.concurrent.{ExecutionContext, Future}
 class VerifiedEmailController @Inject()(emailRepo: EmailRepository,
                                         subscriptionInfoConnector: Sub09Connector,
                                         cc: ControllerComponents)
-                                       (implicit executionContext: ExecutionContext) extends BackendController(cc) {
+                                       (implicit executionContext: ExecutionContext) extends BackendController {
 
   def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async {
     def retrieveAndStoreEmail: Future[Result] = {
       (for {
         notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
         result <- OptionT.liftF(emailRepo.set(eori, notificationEmail).map {
-          case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
+          case SuccessfulEmail => OK(Json.toJson(notificationEmail))
           case _ => INTERNAL_SERVER_ERROR
         })
       } yield result).getOrElse(NOT_FOUND)

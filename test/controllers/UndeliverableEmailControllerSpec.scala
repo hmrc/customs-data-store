@@ -19,7 +19,7 @@ package controllers
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import java.time.Instant
+import java.time.LocalDateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
 import play.api.libs.json.Json

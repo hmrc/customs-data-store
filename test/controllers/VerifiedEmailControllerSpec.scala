@@ -19,7 +19,7 @@ package controllers
 import connectors.Sub09Connector
 import models.repositories.{FailedToRetrieveEmail, SuccessfulEmail}
 import models.{NotificationEmail, TraderData}
-import java.time.Instant
+import java.time.LocalDateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verifyNoInteractions, when}
 import play.api.{Application, inject}

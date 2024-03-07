@@ -32,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class XiEoriController @Inject() (xiEoriInformationRepository: XiEoriInformationRepository,
                                   subscriptionInfoConnector: Sub09Connector,
                                   cc: ControllerComponents)
-                                 (implicit executionContext: ExecutionContext) extends BackendController(cc) {
+                                 (implicit executionContext: ExecutionContext) extends BackendController {
 
   def getXiEoriInformation(eori: String): Action[AnyContent] = Action.async {
     xiEoriInformationRepository.get(eori).flatMap {

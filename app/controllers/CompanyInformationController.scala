@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class CompanyInformationController @Inject()(companyInformationRepository: CompanyInformationRepository,
                                              subscriptionInfoConnector: Sub09Connector,
                                              cc: ControllerComponents)
-                                             (implicit executionContext: ExecutionContext) extends BackendController(cc) {
+                                             (implicit executionContext: ExecutionContext) extends BackendController {
 
   def getCompanyInformation(eori: String): Action[AnyContent] = Action.async {
     companyInformationRepository.get(eori).flatMap {

@@ -16,11 +16,11 @@
 
 package models
 
-import java.time.Instant
+import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
 
 case class NotificationEmail(address: String,
-                             timestamp: Instant,
+                             timestamp: LocalDateTime,
                              undeliverable: Option[UndeliverableInformation])
 
 

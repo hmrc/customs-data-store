@@ -16,16 +16,16 @@
 
 package models.requests
 
-import java.time.{Instant, zone}
 import play.api.libs.json.{Json, Writes}
 import utils.DateTimeUtils.dateTimeWritesIsoUtc
 import utils.Utils.{emptyString, hyphen}
 
 import java.time.Clock
 import java.util.UUID
+import java.time.LocalDateTime
 
 case class RequestCommon(regime: String,
-                         receiptDate: Instant,
+                         receiptDate: LocalDateTime,
                          acknowledgementReference: String)
 
 object RequestCommon {
@@ -35,6 +35,6 @@ object RequestCommon {
     UUID.randomUUID().toString.replace(hyphen, emptyString)
   )
 
-  implicit val dateTimeWrites: Writes[Instant] = dateTimeWritesIsoUtc
+  implicit val dateTimeWrites: Writes[LocalDateTime] = dateTimeWritesIsoUtc
   implicit val writes: Writes[RequestCommon] = Json.writes[RequestCommon]
 }

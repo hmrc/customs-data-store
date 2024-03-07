@@ -17,14 +17,13 @@
 package models.repositories
 
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import java.time.Instant
+import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
-
 
 case class UndeliverableInformationMongo(subject: String,
                                          eventId: String,
                                          groupId: String,
-                                         timestamp: Instant,
+                                         timestamp: LocalDateTime,
                                          event: UndeliverableInformationEvent,
                                          notifiedApi: Boolean,
                                          processed: Boolean,

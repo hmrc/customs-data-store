@@ -19,7 +19,7 @@ package services
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
 import models.{FailedToProcess, NoDataToProcess, ProcessSucceeded, UndeliverableInformationEvent}
-import java.time.Instant
+import java.time.LocalDateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.test.Helpers._

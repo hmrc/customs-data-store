@@ -16,19 +16,19 @@
 
 package models.responses
 
-import java.time.Instant
+import java.time.LocalDateTime
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class MdgSub09Response(emailAddress: Option[String],
-                             verifiedTimestamp: Option[Instant])
+  case class MdgSub09Response(emailAddress: Option[String],
+                              verifiedTimestamp: Option[LocalDateTime])
 
 object MdgSub09Response {
-  implicit val dateTimeFormat: Format[Instant] =
-    Format[Instant](JodaReads.DefaultJodaDateTimeReads, JodaWrites.JodaDateTimeWrites)
+  implicit val dateTimeFormat: Format[LocalDateTime] = Format[LocalDateTime](
+    JavaReads.DefaultJavaDateTimeReads, JavaWrites.JavaDateTimeWrites)
 
   implicit val sub09Reads: Reads[MdgSub09Response] =
     ((JsPath \\ "emailAddress").readNullable[String] and
-      (JsPath \\ "emailVerificationTimestamp").readNullable[Instant]
+      (JsPath \\ "emailVerificationTimestamp").readNullable[LocalDateTime]
       )(MdgSub09Response.apply _)
 }
