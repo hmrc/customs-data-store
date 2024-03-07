@@ -25,7 +25,7 @@ import models.requests.UpdateVerifiedEmailRequest
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.EmailRepository
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, NOT_FOUND}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,17 +33,17 @@ import scala.concurrent.{ExecutionContext, Future}
 class VerifiedEmailController @Inject()(emailRepo: EmailRepository,
                                         subscriptionInfoConnector: Sub09Connector,
                                         cc: ControllerComponents)
-                                       (implicit executionContext: ExecutionContext) {
+                                       (implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async {
     def retrieveAndStoreEmail: Future[Result] = {
       (for {
         notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
         result <- OptionT.liftF(emailRepo.set(eori, notificationEmail).map {
-          case SuccessfulEmail => OK(Json.toJson(notificationEmail))
-          case _ => INTERNAL_SERVER_ERROR
+          case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
+          case _ => InternalServerError
         })
-      } yield result).getOrElse(NOT_FOUND)
+      } yield result).getOrElse(NotFound)
     }
 
     emailRepo.get(eori).flatMap {
@@ -58,8 +58,8 @@ class VerifiedEmailController @Inject()(emailRepo: EmailRepository,
         request.body.eori,
         NotificationEmail(request.body.address, request.body.timestamp, None)
       ).map {
-        case SuccessfulEmail => NO_CONTENT
-        case _ => INTERNAL_SERVER_ERROR
+        case SuccessfulEmail => NoContent
+        case _ => InternalServerError
       }
     }
 }

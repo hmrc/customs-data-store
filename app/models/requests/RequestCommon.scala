@@ -22,7 +22,7 @@ import utils.Utils.{emptyString, hyphen}
 
 import java.time.Clock
 import java.util.UUID
-import java.time.{DateTime, LocalDateTime}
+import java.time.LocalDateTime
 
 case class RequestCommon(regime: String,
                          receiptDate: LocalDateTime,

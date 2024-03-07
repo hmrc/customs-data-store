@@ -22,6 +22,8 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= compileDeps ++ testDeps,
     PlayKeys.playDefaultPort := 9893,
 
+    libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always),
+
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;" +
       ".*javascript.*;.*Routes.*;.*GuiceInjector;" +
       ".*ControllerConfiguration;.*LanguageSwitchController;.*Scheduler",
@@ -73,10 +75,9 @@ lazy val it = project
 
 val compileDeps = Seq(
   play.sbt.PlayImport.ws,
-  "uk.gov.hmrc" %% "bootstrap-frontend-play-29" % bootstrapVersion,
+  "uk.gov.hmrc" %% "bootstrap-backend-play-29" % bootstrapVersion,
   "org.typelevel" %% "cats-core" % "2.10.0",
   "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-29" % "1.6.0",
-  "com.typesafe.play" %% "play-json-joda" % "2.9.4"
 )
 
 val testDeps = Seq(

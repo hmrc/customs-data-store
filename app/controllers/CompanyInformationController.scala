@@ -22,7 +22,7 @@ import models.CompanyInformation
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.CompanyInformationRepository
-import play.api.http.Status.NOT_FOUND
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,14 +30,14 @@ import scala.concurrent.{ExecutionContext, Future}
 class CompanyInformationController @Inject()(companyInformationRepository: CompanyInformationRepository,
                                              subscriptionInfoConnector: Sub09Connector,
                                              cc: ControllerComponents)
-                                             (implicit executionContext: ExecutionContext) {
+                                             (implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   def getCompanyInformation(eori: String): Action[AnyContent] = Action.async {
     companyInformationRepository.get(eori).flatMap {
       case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
       case None => retrieveCompanyInformation(eori).map {
         case Some(companyInformation) => Ok(Json.toJson(companyInformation))
-        case None => NOT_FOUND
+        case None => NotFound
       }
     }
   }

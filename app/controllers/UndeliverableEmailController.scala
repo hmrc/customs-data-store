@@ -24,7 +24,7 @@ import play.api.{Logger, LoggerLike}
 import repositories.EmailRepository
 import services.AuditingService
 import uk.gov.hmrc.http.HeaderCarrier
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, NOT_FOUND, BAD_REQUEST}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,7 +33,7 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
                                              cc: ControllerComponents,
                                              auditingService: AuditingService,
                                              sub22Connector: Sub22Connector)
-                                            (implicit executionContext: ExecutionContext) {
+                                            (implicit executionContext: ExecutionContext) extends BackendController(cc) {
   val log: LoggerLike = Logger(this.getClass)
 
   def makeUndeliverable(): Action[UndeliverableInformation] = Action.async(parse.json[UndeliverableInformation]) {
@@ -42,15 +42,16 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
 
         case Some(eori: String) => emailRepository.findAndUpdate(eori, request.body).flatMap {
           case Some(record) =>
+            implicit val hc: HeaderCarrier = HeaderCarrier()
             auditingService.auditBouncedEmail(request.body)
-            updateSub22(request.body, record, eori).map { _ => NO_CONTENT }
-          case _ => Future.successful(NOT_FOUND)
+            updateSub22(request.body, record, eori).map { _ => NoContent }
+          case _ => Future.successful(NotFound)
         }.recover {
           case err =>
-            log.error(s"Failed to mark email as undeliverable: ${err.getMessage}"); INTERNAL_SERVER_ERROR
+            log.error(s"Failed to mark email as undeliverable: ${err.getMessage}"); InternalServerError
         }
 
-        case None => Future.successful(BAD_REQUEST)
+        case None => Future.successful(BadRequest)
       }
   }
 

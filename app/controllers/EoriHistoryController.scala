@@ -22,7 +22,7 @@ import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import play.api.{Logger, LoggerLike}
 import repositories.{FailedToUpdateHistoricEori, HistoricEoriRepository, HistoricEoriSuccessful}
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, NOT_FOUND}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
                                       eoriHistoryConnector: Sub21Connector,
                                       cc: ControllerComponents)
-                                     (implicit executionContext: ExecutionContext) {
+                                     (implicit executionContext: ExecutionContext) extends BackendController(cc) {
 
   val log: LoggerLike = Logger(this.getClass)
 
@@ -52,12 +52,12 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
       }
     } yield {
       updateEoriHistorySucceeded match {
-        case HistoricEoriSuccessful => NO_CONTENT
-        case _ => INTERNAL_SERVER_ERROR
+        case HistoricEoriSuccessful => NoContent
+        case _ => InternalServerError
       }
     }).recover {
       case err => log.info(s"Failed to find EoriHistory: ${err.getMessage}")
-        if (err.getMessage.contains("Not found")) NOT_FOUND else INTERNAL_SERVER_ERROR
+        if (err.getMessage.contains("Not found")) NotFound else InternalServerError
     }
   }
 
@@ -67,10 +67,10 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
       updateResult <- historicEoriRepository.set(eoriHistory)
       result <- updateResult match {
         case HistoricEoriSuccessful => historicEoriRepository.get(eori).map {
-          case Left(_) => INTERNAL_SERVER_ERROR
+          case Left(_) => InternalServerError
           case Right(value) => Ok(Json.toJson(EoriHistoryResponse(value)))
         }
-        case _ => Future.successful(INTERNAL_SERVER_ERROR)
+        case _ => Future.successful(InternalServerError)
       }
     } yield result
   }

@@ -30,8 +30,6 @@ case class NotificationEmailMongo(address: String,
 }
 
 object NotificationEmailMongo {
-  import play.api.libs.json.JodaReads._
-  import play.api.libs.json.JodaWrites._
 
   implicit val emailFormat: OFormat[NotificationEmailMongo] = Json.format[NotificationEmailMongo]
 

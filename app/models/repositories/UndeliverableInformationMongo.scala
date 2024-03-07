@@ -45,8 +45,5 @@ object UndeliverableInformationMongo {
       processed = false
     )
 
-  import play.api.libs.json.JodaReads._
-  import play.api.libs.json.JodaWrites._
-
   implicit val format: OFormat[UndeliverableInformationMongo] = Json.format[UndeliverableInformationMongo]
 }

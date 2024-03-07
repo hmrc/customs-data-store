@@ -24,7 +24,5 @@ case class UpdateVerifiedEmailRequest(eori: String,
                                       timestamp: LocalDateTime)
 
 object UpdateVerifiedEmailRequest {
-  import play.api.libs.json.JodaReads._
-  import play.api.libs.json.JodaWrites._
   implicit val format: OFormat[UpdateVerifiedEmailRequest] = Json.format[UpdateVerifiedEmailRequest]
 }
