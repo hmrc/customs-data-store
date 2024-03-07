@@ -172,7 +172,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
     }
 
     "return 204 if the update was successful to the database" in new Setup {
-      val detectedDate: DateTime = DateTime.now()
+      val detectedDate: LocalDateTime = LocalDateTime.now()
 
       val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
         "some-id",
@@ -249,7 +249,7 @@ class UndeliverableEmailControllerSpec extends SpecBase {
     }
 
     "return 204 if the update failed to SUB22" in new Setup {
-      val detectedDate: DateTime = DateTime.now()
+      val detectedDate: LocalDateTime = LocalDateTime.now()
 
       val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
         "some-id",
@@ -328,9 +328,9 @@ class UndeliverableEmailControllerSpec extends SpecBase {
   }
 
   trait Setup {
-    val notificationEmailMongo: NotificationEmailMongo = NotificationEmailMongo("someAddress", DateTime.now(), None)
+    val notificationEmailMongo: NotificationEmailMongo = NotificationEmailMongo("someAddress", LocalDateTime.now(), None)
     val testEori = "EoriNumber"
-    val currentDateTimeString: String = DateTime.now().toString()
+    val currentDateTimeString: String = LocalDateTime.now().toString()
     val code = 12
 
     val postRoute: String = routes.UndeliverableEmailController.makeUndeliverable().url

@@ -24,8 +24,6 @@ import play.api.libs.json._
                               verifiedTimestamp: Option[LocalDateTime])
 
 object MdgSub09Response {
-  implicit val dateTimeFormat: Format[LocalDateTime] = Format[LocalDateTime](
-    JavaReads.DefaultJavaDateTimeReads, JavaWrites.JavaDateTimeWrites)
 
   implicit val sub09Reads: Reads[MdgSub09Response] =
     ((JsPath \\ "emailAddress").readNullable[String] and

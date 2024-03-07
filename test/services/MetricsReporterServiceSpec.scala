@@ -17,7 +17,6 @@
 package services
 
 import com.codahale.metrics.{Histogram, MetricRegistry}
-import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
 import play.api.http.Status
@@ -117,16 +116,14 @@ class MetricsReporterServiceSpec extends SpecBase {
     val mockDateTimeService: DateTimeService = mock[DateTimeService]
     val mockHistogram: Histogram = mock[Histogram]
     val mockRegistry: MetricRegistry = mock[MetricRegistry]
-    val mockMetrics: Metrics = mock[MetricRegistry]
 
     when(mockDateTimeService.getTimeStamp)
       .thenReturn(startTimestamp)
       .thenReturn(endTimestamp)
 
     when(mockRegistry.histogram(any())).thenReturn(mockHistogram)
-    when(mockMetrics.defaultRegistry).thenReturn(mockRegistry)
 
-    val metricsReporterService = new MetricsReporterService(mockMetrics, mockDateTimeService)
+    val metricsReporterService = new MetricsReporterService(mockRegistry, mockDateTimeService)
   }
 
 }

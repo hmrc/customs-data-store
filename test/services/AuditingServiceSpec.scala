@@ -47,7 +47,7 @@ class AuditingServiceSpec extends SpecBase {
         "bounced-email",
         "77ed39b7-d5d8-46ed-abab-a5a8ff416dae",
         "20180622211249.1.2A6098970A380E12@example.org",
-        DateTime.parse("2021-04-07T09:46:29+00:00"),
+        LocalDateTime.parse("2021-04-07T09:46:29+00:00"),
         UndeliverableInformationEvent(
           "L4XgfOuWSpCJVjF8T9ipRw",
           "failed",
@@ -96,7 +96,7 @@ class AuditingServiceSpec extends SpecBase {
       val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
         ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
 
-      val time: DateTime = DateTime.parse("2021-10-06T12:32:28Z")
+      val time: LocalDateTime = LocalDateTime.parse("2021-10-06T12:32:28Z")
 
       val sub22Request: Sub22UpdateVerifiedEmailRequest = Sub22UpdateVerifiedEmailRequest(
         Sub22Request(

@@ -308,7 +308,7 @@ class EmailRepositorySpec extends SpecBase {
 
   trait Setup {
     val eori = "SomeEori"
-    val dateTime: DateTime = DateTime.now()
+    val dateTime: LocalDateTime = LocalDateTime.now()
     val notificationEmail: NotificationEmail = NotificationEmail("some@email.com", dateTime, None)
     val code = 12
 

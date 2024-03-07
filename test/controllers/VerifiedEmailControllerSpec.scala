@@ -33,7 +33,6 @@ import utils.SpecBase
 import java.time.LocalDate
 import scala.concurrent.Future
 
-
 class VerifiedEmailControllerSpec extends SpecBase {
 
   "getVerifiedEmail" should {
@@ -162,7 +161,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
   trait Setup {
     val testEori = "testEori"
     val testTime1: LocalDate = LocalDate.now()
-    val testTime: DateTime = DateTime.now()
+    val testTime: LocalDateTime = LocalDateTime.now()
     val testAddress = "test@email.com"
 
     val getRoute: String = routes.VerifiedEmailController.getVerifiedEmail(testEori).url
