@@ -40,9 +40,8 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
     implicit request =>
       request.body.extractEori match {
 
-        case Some(eori: String) => emailRepository.findAndUpdate(eori, request.body).flatMap {
+        case Some(eori) => emailRepository.findAndUpdate(eori, request.body).flatMap {
           case Some(record) =>
-            implicit val hc: HeaderCarrier = HeaderCarrier()
             auditingService.auditBouncedEmail(request.body)
             updateSub22(request.body, record, eori).map { _ => NoContent }
           case _ => Future.successful(NotFound)

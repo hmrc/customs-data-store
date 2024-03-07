@@ -172,4 +172,5 @@ class Sub21ConnectorSpec extends SpecBase {
 
     calcHistory(allEoris, Seq.empty[EORIHistory])
   }
+
 }

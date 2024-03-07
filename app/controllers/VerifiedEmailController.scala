@@ -24,8 +24,8 @@ import models.repositories.SuccessfulEmail
 import models.requests.UpdateVerifiedEmailRequest
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import repositories.EmailRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import repositories.EmailRepository
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
