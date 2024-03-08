@@ -37,7 +37,7 @@ import scala.concurrent._
 class AuditingServiceSpec extends SpecBase {
 
   "AuditingService" should {
-/*
+
     "audit the bounced email request data" in new Setup {
       val code = 605
       val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
@@ -139,7 +139,6 @@ class AuditingServiceSpec extends SpecBase {
         result.tags.get("transactionName") mustBe Some("Update Verification Timestamp")
       }
     }
-     */
   }
 
   trait Setup {
