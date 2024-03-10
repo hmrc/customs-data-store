@@ -51,7 +51,7 @@ class AuditingServiceSpec extends SpecBase {
           "L4XgfOuWSpCJVjF8T9ipRw",
           "failed",
           "hmrc-customer@some-domain.org",
-          "2021-04-07T09:46:29+00:00",
+          "2021-04-07T09:46:29:00",
           Some(code),
           Some("Not delivering to previously bounced address"),
           "HMRC-CUS-ORG~EORINumber~GB744638982000",
@@ -64,7 +64,7 @@ class AuditingServiceSpec extends SpecBase {
           |    "subject": "bounced-email",
           |    "eventId" : "77ed39b7-d5d8-46ed-abab-a5a8ff416dae",
           |    "groupId": "20180622211249.1.2A6098970A380E12@example.org",
-          |    "timestamp" : "2021-04-07T09:46:29.000Z",
+          |    "timestamp" : "2021-04-07T09:46:29:00",
           |    "event" : {
           |        "id": "L4XgfOuWSpCJVjF8T9ipRw",
           |        "event": "failed",
@@ -95,7 +95,7 @@ class AuditingServiceSpec extends SpecBase {
       val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
         ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
 
-      val time: LocalDateTime = LocalDateTime.parse("2021-10-06T12:32:28Z")
+      val time: LocalDateTime = LocalDateTime.parse("2021-10-06T12:32:28")
 
       val sub22Request: Sub22UpdateVerifiedEmailRequest = Sub22UpdateVerifiedEmailRequest(
         Sub22Request(
