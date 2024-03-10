@@ -18,13 +18,11 @@ package services
 
 import models.requests.{RequestCommon, RequestDetail, Sub22Request, Sub22UpdateVerifiedEmailRequest}
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import java.time.LocalDateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers._
 import play.api._
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.running
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,6 +30,7 @@ import uk.gov.hmrc.play.audit.http.connector._
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import utils.SpecBase
 
+import java.time.LocalDateTime
 import scala.concurrent._
 
 class AuditingServiceSpec extends SpecBase {
@@ -147,7 +146,7 @@ class AuditingServiceSpec extends SpecBase {
 
     val mockAuditConnector: AuditConnector = mock[AuditConnector]
 
-    val app: Application = GuiceApplicationBuilder().overrides(
+    val app: Application = application.overrides(
       inject.bind[AuditConnector].toInstance(mockAuditConnector)
     ).build()
 
