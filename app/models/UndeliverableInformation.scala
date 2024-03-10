@@ -16,8 +16,11 @@
 
 package models
 
-import java.time.LocalDateTime
-import play.api.libs.json.{JsObject, Json, OWrites, Reads}
+import play.api.libs.json._
+
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.time.{LocalDateTime, ZoneOffset}
 
 case class UndeliverableInformation(subject: String,
                                     eventId: String,
@@ -45,6 +48,31 @@ case class UndeliverableInformation(subject: String,
 }
 
 object UndeliverableInformation {
+
+  implicit val timestampFormat: Format[LocalDateTime] = Format[LocalDateTime](
+    Reads[LocalDateTime](js => JsSuccess(LocalDateTime.parse(js.toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))),
+    Writes[LocalDateTime](d => {
+      println("========== in writes and date is ========"+d.toString)
+      JsString(
+        d.atOffset(ZoneOffset.UTC).truncatedTo(ChronoUnit.MILLIS).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+    }
+    )
+  )
+  /*
+  implicit val lastUpdatedDateTimeFormat: Format[LocalDateTime] = Format[LocalDateTime](
+    Reads[LocalDateTime](js =>
+      js.validate[Long] match {
+        case JsSuccess(epoc, _) => JsSuccess(Instant.ofEpochMilli(epoc).atOffset(ZoneOffset.UTC).toLocalDateTime)
+        case _ =>
+          JsSuccess(Instant.now().atOffset(ZoneOffset.UTC).toLocalDateTime)
+      }
+    ),
+    Writes[LocalDateTime](d =>
+      JsNumber(d.toInstant(ZoneOffset.UTC).toEpochMilli)
+    )
+  )
+   */
+
   implicit val reads: Reads[UndeliverableInformation] = Json.reads[UndeliverableInformation]
   implicit val writes: OWrites[UndeliverableInformation] = Json.writes[UndeliverableInformation]
 }
