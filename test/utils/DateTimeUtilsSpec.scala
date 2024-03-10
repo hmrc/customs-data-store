@@ -16,6 +16,7 @@
 
 package utils
 
+import play.api.libs.json.{JsString, Json}
 import utils.DateTimeUtils.{rfc1123DateTimeFormatter, rfc1123DateTimePattern}
 
 import java.time.LocalDateTime
@@ -42,6 +43,22 @@ class DateTimeUtilsSpec extends SpecBase {
       val result = date.format(rfc1123DateTimeFormatter)
 
       result.contains("Wed, 10 Jan 2024 08:10:08") mustBe true
+    }
+  }
+
+  "dateTimeWritesIsoUtc" should {
+    "return correct value" in {
+
+      val year = 2024
+      val month = 1
+      val dayOfMonth = 10
+      val hourOfTheDay = 8
+      val minutesOfTheHour = 10
+      val secondsOfTheMinute = 10
+
+      val date = LocalDateTime.of(year, month, dayOfMonth, hourOfTheDay, minutesOfTheHour, secondsOfTheMinute)
+
+      Json.toJson(date)(DateTimeUtils.dateTimeWritesIsoUtc) mustBe JsString("2024-01-10T08:10:10Z")
     }
   }
 }
