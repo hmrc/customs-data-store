@@ -52,7 +52,7 @@ class AuditingServiceSpec extends SpecBase {
           "L4XgfOuWSpCJVjF8T9ipRw",
           "failed",
           "hmrc-customer@some-domain.org",
-          "2021-04-07T09:46:29:00",
+          "2021-04-07T09:46:29+00:00",
           Some(code),
           Some("Not delivering to previously bounced address"),
           "HMRC-CUS-ORG~EORINumber~GB744638982000",
@@ -65,7 +65,7 @@ class AuditingServiceSpec extends SpecBase {
           |    "subject": "bounced-email",
           |    "eventId" : "77ed39b7-d5d8-46ed-abab-a5a8ff416dae",
           |    "groupId": "20180622211249.1.2A6098970A380E12@example.org",
-          |    "timestamp" : "2021-04-07T09:46:29:00",
+          |    "timestamp" : "2021-04-07T09:46:29Z",
           |    "event" : {
           |        "id": "L4XgfOuWSpCJVjF8T9ipRw",
           |        "event": "failed",
@@ -92,7 +92,7 @@ class AuditingServiceSpec extends SpecBase {
       }
     }
 
-    "audit the SUB22 request data" ignore new Setup {
+    "audit the SUB22 request data" in new Setup {
       val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
         ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
 

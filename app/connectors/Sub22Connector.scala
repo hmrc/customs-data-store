@@ -53,7 +53,6 @@ class Sub22Connector @Inject()(httpClient: HttpClient,
       case Some(eori) =>
         val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
-        println("============== value of date is =======")
 
         httpClient.PUT[Sub22UpdateVerifiedEmailRequest, UpdateVerifiedEmailResponse](
           appConfig.sub22UpdateVerifiedEmailEndpoint, request, headers
