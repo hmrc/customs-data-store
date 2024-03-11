@@ -18,13 +18,11 @@ package services
 
 import models.requests.{RequestCommon, RequestDetail, Sub22Request, Sub22UpdateVerifiedEmailRequest}
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import java.time.LocalDateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers._
 import play.api._
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.running
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,6 +30,8 @@ import uk.gov.hmrc.play.audit.http.connector._
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import utils.SpecBase
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import scala.concurrent._
 
 class AuditingServiceSpec extends SpecBase {
@@ -47,7 +47,7 @@ class AuditingServiceSpec extends SpecBase {
         "bounced-email",
         "77ed39b7-d5d8-46ed-abab-a5a8ff416dae",
         "20180622211249.1.2A6098970A380E12@example.org",
-        LocalDateTime.parse("2021-04-07T09:46:29+00:00"),
+        LocalDateTime.parse("2021-04-07T09:46:29+00:00", DateTimeFormatter.ISO_DATE_TIME),
         UndeliverableInformationEvent(
           "L4XgfOuWSpCJVjF8T9ipRw",
           "failed",
@@ -65,7 +65,7 @@ class AuditingServiceSpec extends SpecBase {
           |    "subject": "bounced-email",
           |    "eventId" : "77ed39b7-d5d8-46ed-abab-a5a8ff416dae",
           |    "groupId": "20180622211249.1.2A6098970A380E12@example.org",
-          |    "timestamp" : "2021-04-07T09:46:29.000Z",
+          |    "timestamp" : "2021-04-07T09:46:29Z",
           |    "event" : {
           |        "id": "L4XgfOuWSpCJVjF8T9ipRw",
           |        "event": "failed",
@@ -96,7 +96,7 @@ class AuditingServiceSpec extends SpecBase {
       val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
         ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
 
-      val time: LocalDateTime = LocalDateTime.parse("2021-10-06T12:32:28Z")
+      val time: LocalDateTime = LocalDateTime.parse("2021-10-06T12:32:28")
 
       val sub22Request: Sub22UpdateVerifiedEmailRequest = Sub22UpdateVerifiedEmailRequest(
         Sub22Request(
@@ -147,7 +147,7 @@ class AuditingServiceSpec extends SpecBase {
 
     val mockAuditConnector: AuditConnector = mock[AuditConnector]
 
-    val app: Application = GuiceApplicationBuilder().overrides(
+    val app: Application = application.overrides(
       inject.bind[AuditConnector].toInstance(mockAuditConnector)
     ).build()
 

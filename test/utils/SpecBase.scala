@@ -16,12 +16,16 @@
 
 package utils
 
+
+import com.codahale.metrics.MetricRegistry
 import org.scalatest.{BeforeAndAfterEach, OptionValues}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
+import play.api.inject.bind
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 class SpecBase
   extends AnyWordSpecLike
@@ -32,5 +36,11 @@ class SpecBase
     with OptionValues
     with BeforeAndAfterEach {
 
-  def application: GuiceApplicationBuilder = new GuiceApplicationBuilder().configure("metrics.enabled" -> "false")
+  def application: GuiceApplicationBuilder = new GuiceApplicationBuilder().overrides(
+    bind[Metrics].toInstance(new FakeMetrics)
+  ).configure("metrics.enabled" -> "false")
+
+  class FakeMetrics extends Metrics {
+    override val defaultRegistry: MetricRegistry = new MetricRegistry
+  }
 }

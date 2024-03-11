@@ -17,7 +17,7 @@
 package models
 
 import java.time.LocalDateTime
-import play.api.libs.json.{JsObject, Json, OWrites, Reads}
+import play.api.libs.json._
 
 case class UndeliverableInformation(subject: String,
                                     eventId: String,
@@ -30,7 +30,7 @@ case class UndeliverableInformation(subject: String,
       "subject" -> subject,
       "eventId" -> eventId,
       "groupId" -> groupId,
-      "timestamp" -> timestamp.toString(),
+      "timestamp" -> s"${timestamp.toString}Z",
       "event" -> event.toAuditDetail
     )
   }

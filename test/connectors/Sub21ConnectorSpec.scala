@@ -25,7 +25,6 @@ import org.mockito.Mockito.when
 import play.api
 import play.api.Application
 import play.api.http.Status.NOT_FOUND
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HttpReads.notFoundMessage
@@ -136,7 +135,7 @@ class Sub21ConnectorSpec extends SpecBase {
     val someEori = "testEori"
     val mockHttp: HttpClient = mock[HttpClient]
 
-    val app: Application = new GuiceApplicationBuilder().overrides(
+    val app: Application = application.overrides(
       api.inject.bind[HttpClient].toInstance(mockHttp)
     ).build()
 

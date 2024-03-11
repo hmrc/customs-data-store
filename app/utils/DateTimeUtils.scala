@@ -30,6 +30,6 @@ object DateTimeUtils {
     DateTimeFormatter.ofPattern(rfc1123DateTimePattern).withZone(ZoneId.systemDefault())
 
   def dateTimeWritesIsoUtc: Writes[LocalDateTime] = (d: java.time.LocalDateTime) =>
-    JsString(d.atOffset(ZoneOffset.of("UTC")).truncatedTo(
+    JsString(d.atOffset(ZoneOffset.UTC).truncatedTo(
       ChronoUnit.MILLIS).format(DateTimeFormatter.ISO_DATE_TIME))
 }
