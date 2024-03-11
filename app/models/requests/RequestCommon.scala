@@ -29,9 +29,11 @@ case class RequestCommon(regime: String,
                          acknowledgementReference: String)
 
 object RequestCommon {
-  val cl = Clock.systemUTC
+  private val cl = Clock.systemUTC
 
-  def apply(): RequestCommon = RequestCommon("CDS", LocalDateTime.now(cl),
+  def apply(): RequestCommon = RequestCommon(
+    "CDS",
+    LocalDateTime.now(cl),
     UUID.randomUUID().toString.replace(hyphen, emptyString)
   )
 

@@ -31,5 +31,5 @@ object DateTimeUtils {
 
   def dateTimeWritesIsoUtc: Writes[LocalDateTime] = (d: java.time.LocalDateTime) =>
     JsString(d.atOffset(ZoneOffset.UTC).truncatedTo(
-      ChronoUnit.MILLIS).format(DateTimeFormatter.ISO_DATE_TIME))
+      ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_DATE_TIME))
 }

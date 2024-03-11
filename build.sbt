@@ -5,7 +5,7 @@ import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, targetJvm, itSetti
 val appName = "customs-data-store"
 
 val silencerVersion = "1.7.16"
-val bootstrapVersion = "8.4.0"
+val bootstrapVersion = "8.5.0"
 val scala2_13_12 = "2.13.12"
 
 val testDirectory = "test"
@@ -77,7 +77,7 @@ val compileDeps = Seq(
   play.sbt.PlayImport.ws,
   "uk.gov.hmrc" %% "bootstrap-backend-play-29" % bootstrapVersion,
   "org.typelevel" %% "cats-core" % "2.10.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-29" % "1.6.0",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-29" % "1.7.0",
 )
 
 val testDeps = Seq(
@@ -89,5 +89,5 @@ val testDeps = Seq(
   "org.scalatestplus" %% "mockito-3-12" % "3.2.10.0",
   "com.vladsch.flexmark" % "flexmark-all" % "0.64.8" % "test,it",
   "uk.gov.hmrc" %% "bootstrap-test-play-29" % bootstrapVersion % "test,it",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-29" % "1.6.0"
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-29" % "1.7.0"
 )

@@ -23,7 +23,6 @@ case class NotificationEmail(address: String,
                              timestamp: LocalDateTime,
                              undeliverable: Option[UndeliverableInformation])
 
-
 object NotificationEmail {
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]
 }
