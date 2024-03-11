@@ -17,11 +17,11 @@
 package models.repositories
 
 import models.NotificationEmail
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
 
 case class NotificationEmailMongo(address: String,
-                                  timestamp: DateTime,
+                                  timestamp: LocalDateTime,
                                   undeliverable: Option[UndeliverableInformationMongo]) {
   def toNotificationEmail: NotificationEmail = NotificationEmail(
     address,
@@ -30,8 +30,6 @@ case class NotificationEmailMongo(address: String,
 }
 
 object NotificationEmailMongo {
-  import play.api.libs.json.JodaReads._
-  import play.api.libs.json.JodaWrites._
 
   implicit val emailFormat: OFormat[NotificationEmailMongo] = Json.format[NotificationEmailMongo]
 

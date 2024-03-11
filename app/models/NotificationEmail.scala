@@ -16,16 +16,13 @@
 
 package models
 
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
 
 case class NotificationEmail(address: String,
-                             timestamp: DateTime,
+                             timestamp: LocalDateTime,
                              undeliverable: Option[UndeliverableInformation])
 
-
 object NotificationEmail {
-  import play.api.libs.json.JodaReads._
-  import play.api.libs.json.JodaWrites._
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]
 }

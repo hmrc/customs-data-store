@@ -19,7 +19,7 @@ package services
 import connectors.Sub22Connector
 import models.repositories.{NotificationEmailMongo, UndeliverableInformationMongo}
 import models.{FailedToProcess, NoDataToProcess, ProcessSucceeded, UndeliverableInformationEvent}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.test.Helpers._
@@ -120,7 +120,7 @@ class UndeliverableJobServiceSpec extends SpecBase {
         "id",
         "someEvent",
         "some@email.com",
-        DateTime.now().toString(),
+        LocalDateTime.now().toString(),
         None,
         None,
         "invalid-eori",
@@ -132,7 +132,7 @@ class UndeliverableJobServiceSpec extends SpecBase {
         "id",
         "someEvent",
         "some@email.com",
-        DateTime.now().toString(),
+        LocalDateTime.now().toString(),
         None,
         None,
         "HMRC-CUS-ORG~EORINumber~GB123456789012",
@@ -144,7 +144,7 @@ class UndeliverableJobServiceSpec extends SpecBase {
         "someSubject",
         "someEventId",
         "someGroupId",
-        DateTime.now(),
+        LocalDateTime.now(),
         invalidEoriUndeliverableInformationEvent,
         notifiedApi = false,
         processed = false)
@@ -154,12 +154,13 @@ class UndeliverableJobServiceSpec extends SpecBase {
         "someSubject",
         "someEventId",
         "someGroupId",
-        DateTime.now(),
+        LocalDateTime.now(),
         undeliverableInformationEvent,
         notifiedApi = false,
         processed = false)
 
-    val notificationEmail: NotificationEmailMongo = NotificationEmailMongo("some@email.com", DateTime.now(), None)
+    val notificationEmail: NotificationEmailMongo = NotificationEmailMongo(
+      "some@email.com", LocalDateTime.now(), None)
 
     val mockSub22Connector: Sub22Connector = mock[Sub22Connector]
     val mockEmailRepository: EmailRepository = mock[EmailRepository]

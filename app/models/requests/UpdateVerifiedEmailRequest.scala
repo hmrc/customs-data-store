@@ -16,16 +16,13 @@
 
 package models.requests
 
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
-
 
 case class UpdateVerifiedEmailRequest(eori: String,
                                       address: String,
-                                      timestamp: DateTime)
+                                      timestamp: LocalDateTime)
 
 object UpdateVerifiedEmailRequest {
-  import play.api.libs.json.JodaReads._
-  import play.api.libs.json.JodaWrites._
   implicit val format: OFormat[UpdateVerifiedEmailRequest] = Json.format[UpdateVerifiedEmailRequest]
 }

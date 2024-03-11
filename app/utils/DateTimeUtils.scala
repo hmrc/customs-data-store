@@ -16,12 +16,11 @@
 
 package utils
 
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
 import play.api.libs.json.{JsString, Writes}
 
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 object DateTimeUtils {
 
@@ -30,6 +29,7 @@ object DateTimeUtils {
   val rfc1123DateTimeFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern(rfc1123DateTimePattern).withZone(ZoneId.systemDefault())
 
-  def dateTimeWritesIsoUtc: Writes[DateTime] = (d: org.joda.time.DateTime) =>
-    JsString(d.toString(ISODateTimeFormat.dateTimeNoMillis().withZoneUTC()))
+  def dateTimeWritesIsoUtc: Writes[LocalDateTime] = (d: java.time.LocalDateTime) =>
+    JsString(d.atOffset(ZoneOffset.UTC).truncatedTo(
+      ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_DATE_TIME))
 }

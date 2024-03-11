@@ -22,8 +22,8 @@ import models.{XiEoriAddressInformation, XiEoriInformation}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.XiEoriInformationRepository
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.Utils.emptyString
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

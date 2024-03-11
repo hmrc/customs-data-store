@@ -17,14 +17,13 @@
 package models.repositories
 
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
-
 
 case class UndeliverableInformationMongo(subject: String,
                                          eventId: String,
                                          groupId: String,
-                                         timestamp: DateTime,
+                                         timestamp: LocalDateTime,
                                          event: UndeliverableInformationEvent,
                                          notifiedApi: Boolean,
                                          processed: Boolean,
@@ -45,9 +44,6 @@ object UndeliverableInformationMongo {
       notifiedApi = false,
       processed = false
     )
-
-  import play.api.libs.json.JodaReads._
-  import play.api.libs.json.JodaWrites._
 
   implicit val format: OFormat[UndeliverableInformationMongo] = Json.format[UndeliverableInformationMongo]
 }

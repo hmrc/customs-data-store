@@ -16,38 +16,43 @@
 
 package services
 
+import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
-import play.api.http.Status
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import uk.gov.hmrc.http.{BadRequestException, NotFoundException, UpstreamErrorResponse}
+
 import java.time.OffsetDateTime
 import javax.inject.Singleton
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-
 @Singleton
-class MetricsReporterService @Inject()(metrics: com.kenshoo.play.metrics.Metrics, dateTimeService: DateTimeService) {
+class MetricsReporterService @Inject()(metrics: MetricRegistry, dateTimeService: DateTimeService) {
 
   def withResponseTimeLogging[T](resourceName: String)(future: Future[T])
                                 (implicit ec: ExecutionContext): Future[T] = {
     val startTime = dateTimeService.getTimeStamp
+
     future.andThen { case response =>
       val httpResponseCode = response match {
-        case Success(_) => Status.OK
+        case Success(_) => OK
         case Failure(exception: NotFoundException) => exception.responseCode
         case Failure(exception: BadRequestException) => exception.responseCode
         case Failure(exception: UpstreamErrorResponse) => exception.statusCode
-        case Failure(_) => Status.INTERNAL_SERVER_ERROR
+        case Failure(_) => INTERNAL_SERVER_ERROR
       }
       updateResponseTimeHistogram(resourceName, httpResponseCode, startTime, dateTimeService.getTimeStamp)
     }
   }
 
-  private def updateResponseTimeHistogram(resourceName: String, httpResponseCode: Int,
-                                  startTimestamp: OffsetDateTime, endTimestamp: OffsetDateTime): Unit = {
+  private def updateResponseTimeHistogram(resourceName: String,
+                                          httpResponseCode: Int,
+                                          startTimestamp: OffsetDateTime,
+                                          endTimestamp: OffsetDateTime): Unit = {
     val RESPONSE_TIMES_METRIC = "responseTimes"
     val histogramName = s"$RESPONSE_TIMES_METRIC.$resourceName.$httpResponseCode"
     val elapsedTimeInMillis = endTimestamp.toInstant.toEpochMilli - startTimestamp.toInstant.toEpochMilli
-    metrics.defaultRegistry.histogram(histogramName).update(elapsedTimeInMillis)
+
+    metrics.histogram(histogramName).update(elapsedTimeInMillis)
   }
 }

@@ -19,7 +19,7 @@ package controllers
 import connectors.Sub09Connector
 import models.repositories.{FailedToRetrieveEmail, SuccessfulEmail}
 import models.{NotificationEmail, TraderData}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verifyNoInteractions, when}
 import play.api.{Application, inject}
@@ -32,7 +32,6 @@ import utils.SpecBase
 
 import java.time.LocalDate
 import scala.concurrent.Future
-
 
 class VerifiedEmailControllerSpec extends SpecBase {
 
@@ -162,7 +161,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
   trait Setup {
     val testEori = "testEori"
     val testTime1: LocalDate = LocalDate.now()
-    val testTime: DateTime = DateTime.now()
+    val testTime: LocalDateTime = LocalDateTime.now()
     val testAddress = "test@email.com"
 
     val getRoute: String = routes.VerifiedEmailController.getVerifiedEmail(testEori).url

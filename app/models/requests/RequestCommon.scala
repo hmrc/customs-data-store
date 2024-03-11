@@ -16,25 +16,27 @@
 
 package models.requests
 
-import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.{Json, Writes}
 import utils.DateTimeUtils.dateTimeWritesIsoUtc
 import utils.Utils.{emptyString, hyphen}
 
 import java.time.Clock
 import java.util.UUID
+import java.time.LocalDateTime
 
 case class RequestCommon(regime: String,
-                         receiptDate: DateTime,
+                         receiptDate: LocalDateTime,
                          acknowledgementReference: String)
 
 object RequestCommon {
+  private val cl = Clock.systemUTC
+
   def apply(): RequestCommon = RequestCommon(
     "CDS",
-    new DateTime(Clock.systemUTC().instant().toEpochMilli, DateTimeZone.UTC),
+    LocalDateTime.now(cl),
     UUID.randomUUID().toString.replace(hyphen, emptyString)
   )
 
-  implicit val dateTimeWrites: Writes[DateTime] = dateTimeWritesIsoUtc
+  implicit val dateTimeWrites: Writes[LocalDateTime] = dateTimeWritesIsoUtc
   implicit val writes: Writes[RequestCommon] = Json.writes[RequestCommon]
 }

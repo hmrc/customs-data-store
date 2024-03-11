@@ -18,9 +18,16 @@ package repositories
 
 import com.mongodb.WriteConcern
 import config.AppConfig
-import models.repositories.{FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
+
+import models.repositories.{
+  FailedToRetrieveEmail,
+  NotificationEmailMongo,
+  SuccessfulEmail,
+  UndeliverableInformationMongo
+}
+
 import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import org.mongodb.scala.MongoCollection
 import play.api.Application
 import uk.gov.hmrc.mongo.MongoComponent
@@ -301,7 +308,7 @@ class EmailRepositorySpec extends SpecBase {
 
   trait Setup {
     val eori = "SomeEori"
-    val dateTime: DateTime = DateTime.now()
+    val dateTime: LocalDateTime = LocalDateTime.now()
     val notificationEmail: NotificationEmail = NotificationEmail("some@email.com", dateTime, None)
     val code = 12
 

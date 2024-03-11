@@ -16,22 +16,21 @@
 
 package models
 
-import org.joda.time.DateTime
-import play.api.libs.json.{JsObject, Json, OWrites, Reads}
+import java.time.LocalDateTime
+import play.api.libs.json._
 
 case class UndeliverableInformation(subject: String,
                                     eventId: String,
                                     groupId: String,
-                                    timestamp: DateTime,
-                                    event: UndeliverableInformationEvent
-                                   ) {
+                                    timestamp: LocalDateTime,
+                                    event: UndeliverableInformationEvent) {
 
   def toAuditDetail: JsObject = {
     Json.obj(
       "subject" -> subject,
       "eventId" -> eventId,
       "groupId" -> groupId,
-      "timestamp" -> timestamp.toString(),
+      "timestamp" -> s"${timestamp.toString}Z",
       "event" -> event.toAuditDetail
     )
   }
@@ -46,10 +45,6 @@ case class UndeliverableInformation(subject: String,
 }
 
 object UndeliverableInformation {
-
-  import play.api.libs.json.JodaReads._
-  import play.api.libs.json.JodaWrites._
-
   implicit val reads: Reads[UndeliverableInformation] = Json.reads[UndeliverableInformation]
   implicit val writes: OWrites[UndeliverableInformation] = Json.writes[UndeliverableInformation]
 }

@@ -18,8 +18,14 @@ package connectors
 
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import models.requests.Sub22Request
-import models.responses.{UpdateVerifiedEmailResponse, UpdateVerifiedEmailResponseCommon, UpdateVerifiedEmailResponseCommonDetail}
-import org.joda.time.DateTime
+
+import models.responses.{
+  UpdateVerifiedEmailResponse,
+  UpdateVerifiedEmailResponseCommon,
+  UpdateVerifiedEmailResponseCommonDetail
+}
+
+import java.time.LocalDateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api
@@ -43,7 +49,7 @@ class Sub22ConnectorSpec extends SpecBase {
     running(app) {
       val result = await(connector.updateUndeliverable(
         undeliverableInformation,
-        DateTime.now(),
+        LocalDateTime.now(),
         attemptsZero))
 
       result mustBe false
@@ -55,7 +61,8 @@ class Sub22ConnectorSpec extends SpecBase {
       .thenReturn(Future.successful(failedUpdateVerifiedEmailResponse))
 
     running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, DateTime.now(), attemptsZero))
+      val result = await(connector.updateUndeliverable(
+        undeliverableInformation, LocalDateTime.now(), attemptsZero))
 
       result mustBe false
     }
@@ -65,7 +72,7 @@ class Sub22ConnectorSpec extends SpecBase {
     running(app) {
       val result = await(connector.updateUndeliverable(
         undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")),
-        DateTime.now(),
+        LocalDateTime.now(),
         attemptsZero))
 
       result mustBe false
@@ -79,7 +86,7 @@ class Sub22ConnectorSpec extends SpecBase {
     running(app) {
       val result = await(connector.updateUndeliverable(
         undeliverableInformation,
-        DateTime.now(),
+        LocalDateTime.now(),
         attemptsZero))
 
       result mustBe true
@@ -90,7 +97,7 @@ class Sub22ConnectorSpec extends SpecBase {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val testEori = "someEori"
-    val detectedDate: DateTime = DateTime.now()
+    val detectedDate: LocalDateTime = LocalDateTime.now()
     val attemptsZero = 0
     val code = 12
 
@@ -134,5 +141,4 @@ class Sub22ConnectorSpec extends SpecBase {
 
     val connector: Sub22Connector = app.injector.instanceOf[Sub22Connector]
   }
-
 }

@@ -16,20 +16,20 @@
 
 package models.requests
 
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 import play.api.libs.json.{Json, Writes}
 import utils.DateTimeUtils.dateTimeWritesIsoUtc
 
 case class RequestDetail(IDType: String,
                          IDNumber: String,
                          emailAddress: String,
-                         emailVerificationTimestamp: DateTime,
+                         emailVerificationTimestamp: LocalDateTime,
                          emailVerified: Boolean)
 
 object RequestDetail {
   def fromEmailAndEori(email: String,
                        eori: String,
-                       timestamp: DateTime): RequestDetail =
+                       timestamp: LocalDateTime): RequestDetail =
     RequestDetail(
       IDType = "EORI",
       IDNumber = eori,
@@ -38,6 +38,6 @@ object RequestDetail {
       emailVerified = false
     )
 
-  implicit val dateTimeWrites: Writes[DateTime] = dateTimeWritesIsoUtc
+  implicit val dateTimeWrites: Writes[LocalDateTime] = dateTimeWritesIsoUtc
   implicit val writes: Writes[RequestDetail] = Json.writes[RequestDetail]
 }
