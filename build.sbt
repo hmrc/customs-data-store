@@ -80,7 +80,6 @@ val compileDeps = Seq(
 
 val testDeps = Seq(
   "org.scalatest" %% "scalatest" % "3.2.18" % "test",
-  "org.mockito" % "mockito-core" % "5.11.0" % "test,it",
   "org.scalatestplus" %% "mockito-3-12" % "3.2.10.0",
   "com.vladsch.flexmark" % "flexmark-all" % "0.64.8" % "test,it",
   "uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % "test,it",
