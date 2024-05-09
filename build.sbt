@@ -32,6 +32,7 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageMinimumBranchTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
+    
 
     scalacOptions ++= Seq(
       "-P:silencer:pathFilters=routes",
