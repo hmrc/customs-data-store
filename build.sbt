@@ -1,11 +1,10 @@
-import play.core.PlayVersion.{current => currentPlayVersion}
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, targetJvm, itSettings}
+import uk.gov.hmrc.DefaultBuildSettings.{targetJvm, itSettings}
 
 val appName = "customs-data-store"
 
 val silencerVersion = "1.7.16"
-val bootstrapVersion = "8.5.0"
+val bootstrapVersion = "8.6.0"
 val scala2_13_12 = "2.13.12"
 
 val testDirectory = "test"
@@ -55,11 +54,9 @@ lazy val microservice = Project(appName, file("."))
       "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
     )
   )
-  .configs(IntegrationTest)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(Test / parallelExecution := false)
   .settings(scalastyleSettings)
-  .settings(addTestReportOption(IntegrationTest, "int-test-reports"))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
 lazy val scalastyleSettings = Seq(
@@ -71,23 +68,18 @@ lazy val it = project
   .enablePlugins(PlayScala)
   .dependsOn(microservice % "test->test")
   .settings(itSettings())
-  .settings(libraryDependencies ++= Seq("uk.gov.hmrc" %% "bootstrap-test-play-29" % bootstrapVersion % Test))
+  .settings(libraryDependencies ++= Seq("uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % Test))
 
 val compileDeps = Seq(
   play.sbt.PlayImport.ws,
-  "uk.gov.hmrc" %% "bootstrap-backend-play-29" % bootstrapVersion,
+  "uk.gov.hmrc" %% "bootstrap-backend-play-30" % bootstrapVersion,
   "org.typelevel" %% "cats-core" % "2.10.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-29" % "1.7.0",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "1.9.0",
 )
 
 val testDeps = Seq(
-  "org.scalatest" %% "scalatest" % "3.2.16" % "test",
-  "com.typesafe.play" %% "play-test" % currentPlayVersion % "test",
-  "org.pegdown" % "pegdown" % "1.6.0" % "test, it",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % "test, it",
-  "org.mockito" % "mockito-core" % "5.4.0" % "test,it",
+  "org.scalatest" %% "scalatest" % "3.2.18" % "test",
   "org.scalatestplus" %% "mockito-3-12" % "3.2.10.0",
-  "com.vladsch.flexmark" % "flexmark-all" % "0.64.8" % "test,it",
-  "uk.gov.hmrc" %% "bootstrap-test-play-29" % bootstrapVersion % "test,it",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-29" % "1.7.0"
+  "uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % "test" ,
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "1.9.0"
 )
