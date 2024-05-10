@@ -74,7 +74,7 @@ val compileDeps = Seq(
   play.sbt.PlayImport.ws,
   "uk.gov.hmrc" %% "bootstrap-backend-play-30" % bootstrapVersion,
   "org.typelevel" %% "cats-core" % "2.10.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "1.8.0",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "1.9.0",
 )
 
 val testDeps = Seq(
