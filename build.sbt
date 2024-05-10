@@ -1,11 +1,10 @@
-import play.core.PlayVersion.{current => currentPlayVersion}
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, targetJvm, itSettings}
+import uk.gov.hmrc.DefaultBuildSettings.{targetJvm, itSettings}
 
 val appName = "customs-data-store"
 
 val silencerVersion = "1.7.16"
-val bootstrapVersion = "8.5.0"
+val bootstrapVersion = "8.6.0"
 val scala2_13_12 = "2.13.12"
 
 val testDirectory = "test"
@@ -82,5 +81,5 @@ val testDeps = Seq(
   "org.scalatest" %% "scalatest" % "3.2.18" % "test",
   "org.scalatestplus" %% "mockito-3-12" % "3.2.10.0",
   "uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % "test" ,
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "1.8.0"
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "1.9.0"
 )
