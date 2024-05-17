@@ -16,7 +16,7 @@
 
 package models.requests
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 import play.api.libs.json.{Json, Writes}
 import utils.DateTimeUtils.dateTimeWritesIsoUtc
 
@@ -38,6 +38,6 @@ object RequestDetail {
       emailVerified = false
     )
 
-  implicit val dateTimeWrites: Writes[Instant] = dateTimeWritesIsoUtc
+  implicit val dateTimeWrites: Writes[LocalDateTime] = dateTimeWritesIsoUtc
   implicit val writes: Writes[RequestDetail] = Json.writes[RequestDetail]
 }

@@ -62,7 +62,6 @@ class DateTimeUtilsSpec extends SpecBase {
       val zone = ZoneId.of("UTC")
       val datetime = LocalDate.ofInstant(instant, zone)
 
-
       Json.toJson(date)(DateTimeUtils.dateTimeWritesIsoUtc) mustBe JsString("2024-01-10T08:10:10Z")
     }
   }

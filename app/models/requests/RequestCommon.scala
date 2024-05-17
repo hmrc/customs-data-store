@@ -35,6 +35,6 @@ object RequestCommon {
     UUID.randomUUID().toString.replace(hyphen, emptyString)
   )
 
-  implicit val dateTimeWrites: Writes[Instant] = dateTimeWritesIsoUtc
+  implicit val dateTimeWrites: Writes[LocalDateTime] = dateTimeWritesIsoUtc
   implicit val writes: Writes[RequestCommon] = Json.writes[RequestCommon]
 }
