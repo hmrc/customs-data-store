@@ -18,7 +18,8 @@ package services
 
 import connectors.Sub22Connector
 import models.{FailedToProcess, NoDataToProcess, ProcessResult, ProcessSucceeded, UndeliverableInformation}
-import java.time.LocalDateTime
+
+import java.time.{Instant, ZoneOffset}
 import play.api.Logging
 import repositories.EmailRepository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -45,7 +46,7 @@ class UndeliverableJobService @Inject()(sub22Connector: Sub22Connector,
 
             updateSub22(
               undeliverableInformation,
-              notificationEmail.timestamp,
+              notificationEmail.timestamp.toInstant(ZoneOffset.UTC),
               eori,
               notificationEmailMongo.undeliverable.map(_.attempts).getOrElse(firstAttempt)
             )
@@ -56,7 +57,7 @@ class UndeliverableJobService @Inject()(sub22Connector: Sub22Connector,
   }
 
   private def updateSub22(undeliverableInformation: UndeliverableInformation,
-                          timestamp: LocalDateTime,
+                          timestamp: Instant,
                           eori: String,
                           attempts: Int): Future[ProcessResult] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()

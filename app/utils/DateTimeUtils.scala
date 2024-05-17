@@ -16,7 +16,7 @@
 
 package utils
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.time.{Instant, ZoneId, ZoneOffset}
 import play.api.libs.json.{JsString, Writes}
 
 import java.time.format.DateTimeFormatter
@@ -29,7 +29,7 @@ object DateTimeUtils {
   val rfc1123DateTimeFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern(rfc1123DateTimePattern).withZone(ZoneId.systemDefault())
 
-  def dateTimeWritesIsoUtc: Writes[LocalDateTime] = (d: java.time.LocalDateTime) =>
+  def dateTimeWritesIsoUtc: Writes[Instant] = (d: java.time.Instant) =>
     JsString(d.atOffset(ZoneOffset.UTC).truncatedTo(
       ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_DATE_TIME))
 }

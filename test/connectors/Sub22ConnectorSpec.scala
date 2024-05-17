@@ -18,14 +18,9 @@ package connectors
 
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import models.requests.Sub22Request
+import models.responses.{UpdateVerifiedEmailResponse, UpdateVerifiedEmailResponseCommon, UpdateVerifiedEmailResponseCommonDetail}
 
-import models.responses.{
-  UpdateVerifiedEmailResponse,
-  UpdateVerifiedEmailResponseCommon,
-  UpdateVerifiedEmailResponseCommonDetail
-}
-
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneOffset}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api
@@ -49,7 +44,7 @@ class Sub22ConnectorSpec extends SpecBase {
     running(app) {
       val result = await(connector.updateUndeliverable(
         undeliverableInformation,
-        LocalDateTime.now(),
+        LocalDateTime.now().toInstant(ZoneOffset.UTC),
         attemptsZero))
 
       result mustBe false
@@ -62,7 +57,7 @@ class Sub22ConnectorSpec extends SpecBase {
 
     running(app) {
       val result = await(connector.updateUndeliverable(
-        undeliverableInformation, LocalDateTime.now(), attemptsZero))
+        undeliverableInformation, LocalDateTime.now().toInstant(ZoneOffset.UTC), attemptsZero))
 
       result mustBe false
     }
@@ -72,7 +67,7 @@ class Sub22ConnectorSpec extends SpecBase {
     running(app) {
       val result = await(connector.updateUndeliverable(
         undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")),
-        LocalDateTime.now(),
+        LocalDateTime.now().toInstant(ZoneOffset.UTC),
         attemptsZero))
 
       result mustBe false
@@ -86,7 +81,7 @@ class Sub22ConnectorSpec extends SpecBase {
     running(app) {
       val result = await(connector.updateUndeliverable(
         undeliverableInformation,
-        LocalDateTime.now(),
+        LocalDateTime.now().toInstant(ZoneOffset.UTC),
         attemptsZero))
 
       result mustBe true

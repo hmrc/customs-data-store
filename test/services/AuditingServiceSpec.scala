@@ -30,7 +30,7 @@ import uk.gov.hmrc.play.audit.http.connector._
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import utils.SpecBase
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
 import scala.concurrent._
 
@@ -96,7 +96,7 @@ class AuditingServiceSpec extends SpecBase {
       val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
         ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
 
-      val time: LocalDateTime = LocalDateTime.parse("2021-10-06T12:32:28")
+      val time: Instant = LocalDateTime.parse("2021-10-06T12:32:28").toInstant(ZoneOffset.UTC)
 
       val sub22Request: Sub22UpdateVerifiedEmailRequest = Sub22UpdateVerifiedEmailRequest(
         Sub22Request(

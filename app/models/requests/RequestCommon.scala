@@ -20,23 +20,21 @@ import play.api.libs.json.{Json, Writes}
 import utils.DateTimeUtils.dateTimeWritesIsoUtc
 import utils.Utils.{emptyString, hyphen}
 
-import java.time.Clock
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.UUID
-import java.time.LocalDateTime
 
 case class RequestCommon(regime: String,
-                         receiptDate: LocalDateTime,
+                         receiptDate: Instant,
                          acknowledgementReference: String)
 
 object RequestCommon {
-  private val cl = Clock.systemUTC
 
   def apply(): RequestCommon = RequestCommon(
     "CDS",
-    LocalDateTime.now(cl),
+    LocalDateTime.now.toInstant(ZoneOffset.UTC),
     UUID.randomUUID().toString.replace(hyphen, emptyString)
   )
 
-  implicit val dateTimeWrites: Writes[LocalDateTime] = dateTimeWritesIsoUtc
+  implicit val dateTimeWrites: Writes[Instant] = dateTimeWritesIsoUtc
   implicit val writes: Writes[RequestCommon] = Json.writes[RequestCommon]
 }

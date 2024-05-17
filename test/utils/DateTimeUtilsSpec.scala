@@ -19,7 +19,7 @@ package utils
 import play.api.libs.json.{JsString, Json}
 import utils.DateTimeUtils.{rfc1123DateTimeFormatter, rfc1123DateTimePattern}
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 
 class DateTimeUtilsSpec extends SpecBase {
 
@@ -57,6 +57,11 @@ class DateTimeUtilsSpec extends SpecBase {
       val secondsOfTheMinute = 10
 
       val date = LocalDateTime.of(year, month, dayOfMonth, hourOfTheDay, minutesOfTheHour, secondsOfTheMinute)
+
+      val instant = Instant.parse("2024-01-10T08:10:10Z")
+      val zone = ZoneId.of("UTC")
+      val datetime = LocalDate.ofInstant(instant, zone)
+
 
       Json.toJson(date)(DateTimeUtils.dateTimeWritesIsoUtc) mustBe JsString("2024-01-10T08:10:10Z")
     }

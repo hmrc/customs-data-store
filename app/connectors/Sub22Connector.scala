@@ -26,7 +26,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDateTime, ZoneId}
+import java.time.{Instant, LocalDateTime, ZoneId}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,7 +36,7 @@ class Sub22Connector @Inject()(httpClient: HttpClient,
                               (implicit executionContext: ExecutionContext) extends Logging {
 
   def updateUndeliverable(undeliverableInformation: UndeliverableInformation,
-                          verifiedTimestamp: LocalDateTime, attempts: Int)(implicit hc: HeaderCarrier): Future[Boolean] = {
+                          verifiedTimestamp: Instant, attempts: Int)(implicit hc: HeaderCarrier): Future[Boolean] = {
 
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
     val localDate = LocalDateTime.now().format(dateFormat)
@@ -51,7 +51,10 @@ class Sub22Connector @Inject()(httpClient: HttpClient,
 
     undeliverableInformation.extractEori match {
       case Some(eori) =>
-        val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
+
+        val detail = RequestDetail.fromEmailAndEori(
+          undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
+
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
 
         httpClient.PUT[Sub22UpdateVerifiedEmailRequest, UpdateVerifiedEmailResponse](

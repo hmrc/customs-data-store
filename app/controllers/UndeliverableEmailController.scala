@@ -26,6 +26,7 @@ import services.AuditingService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.time.ZoneOffset
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -60,7 +61,7 @@ class UndeliverableEmailController @Inject()(emailRepository: EmailRepository,
 
     sub22Connector.updateUndeliverable(
       undeliverableInformation,
-      record.timestamp,
+      record.timestamp.toInstant(ZoneOffset.UTC),
       record.undeliverable.map(_.attempts).getOrElse(1)
 
     ).flatMap { updateSuccessful =>
