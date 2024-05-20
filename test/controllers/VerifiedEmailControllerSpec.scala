@@ -64,7 +64,9 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
         status(result) mustBe OK
 
-        contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> testTime.toString)
+        contentAsJson(result) mustBe Json.obj(
+          "address" -> testAddress,
+          "timestamp" -> s"${testTime.toString}Z")
 
         verifyNoInteractions(mockSubscriptionInfoService)
       }
@@ -89,7 +91,9 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
         status(result) mustBe OK
 
-        contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> testTime.toString)
+        contentAsJson(result) mustBe Json.obj(
+          "address" -> testAddress,
+          "timestamp" -> s"${testTime.toString}Z")
       }
     }
 

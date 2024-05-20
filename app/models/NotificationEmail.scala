@@ -16,13 +16,19 @@
 
 package models
 
+import play.api.libs.json.{JsString, Json, OFormat, Writes}
+
 import java.time.LocalDateTime
-import play.api.libs.json.{Json, OFormat}
 
 case class NotificationEmail(address: String,
                              timestamp: LocalDateTime,
                              undeliverable: Option[UndeliverableInformation])
 
 object NotificationEmail {
+
+  implicit val timestampWrites: Writes[LocalDateTime] = {
+    Writes[LocalDateTime](d => JsString(s"${d.toString}Z"))
+  }
+
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]
 }
