@@ -19,7 +19,7 @@ package utils
 import play.api.libs.json.{JsString, Json}
 import utils.DateTimeUtils.{rfc1123DateTimeFormatter, rfc1123DateTimePattern}
 
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
+import java.time.LocalDateTime
 
 class DateTimeUtilsSpec extends SpecBase {
 
