@@ -19,18 +19,17 @@ package controllers
 import connectors.Sub09Connector
 import models.repositories.{FailedToRetrieveEmail, SuccessfulEmail}
 import models.{NotificationEmail, TraderData}
-import java.time.LocalDateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verifyNoInteractions, when}
-import play.api.{Application, inject}
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.api.{Application, inject}
 import repositories.EmailRepository
 import utils.SpecBase
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.Future
 
 class VerifiedEmailControllerSpec extends SpecBase {
@@ -90,6 +89,8 @@ class VerifiedEmailControllerSpec extends SpecBase {
         val result = route(app, request).value
 
         status(result) mustBe OK
+
+        println("======== response is ========"+contentAsJson(result))
 
         contentAsJson(result) mustBe Json.obj(
           "address" -> testAddress,
