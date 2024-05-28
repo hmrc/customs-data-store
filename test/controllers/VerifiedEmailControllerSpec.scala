@@ -29,6 +29,7 @@ import play.api.{Application, inject}
 import repositories.EmailRepository
 import utils.SpecBase
 
+import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.Future
 
@@ -166,7 +167,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
   trait Setup {
     val testEori = "testEori"
     val testTime1: LocalDate = LocalDate.now()
-    val testTime: LocalDateTime = LocalDateTime.now()
+    val testTime: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
     val testAddress = "test@email.com"
 
     val getRoute: String = routes.VerifiedEmailController.getVerifiedEmail(testEori).url
