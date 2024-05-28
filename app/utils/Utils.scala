@@ -21,4 +21,5 @@ object Utils {
   val hyphen = "-"
   val emptyString = ""
   val singleSpace = " "
+  val acknowledgementRefLength = 32
 }
