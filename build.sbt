@@ -83,3 +83,5 @@ val testDeps = Seq(
   "uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % "test" ,
   "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "1.9.0"
 )
+
+addCommandAlias("runAllChecks", ";clean;compile;coverage;test;it/test;scalastyle;Test/scalastyle;coverageReport")
