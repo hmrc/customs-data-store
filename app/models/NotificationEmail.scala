@@ -17,7 +17,7 @@
 package models
 
 import play.api.libs.json.{JsString, Json, OFormat, Writes}
-import utils.DateTimeUtils.appendDefaultSeconds
+import utils.DateTimeUtils.appendDefaultSecondsInDateTime
 
 import java.time.LocalDateTime
 
@@ -28,7 +28,7 @@ case class NotificationEmail(address: String,
 object NotificationEmail {
 
   implicit val timestampWrites: Writes[LocalDateTime] = {
-    Writes[LocalDateTime](d => JsString(s"${appendDefaultSeconds(d.toString)}Z"))
+    Writes[LocalDateTime](d => JsString(s"${appendDefaultSecondsInDateTime(d.toString)}Z"))
   }
 
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]

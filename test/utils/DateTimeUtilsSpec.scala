@@ -17,7 +17,7 @@
 package utils
 
 import play.api.libs.json.{JsString, Json}
-import utils.DateTimeUtils.{appendDefaultSeconds, rfc1123DateTimeFormatter, rfc1123DateTimePattern}
+import utils.DateTimeUtils.{appendDefaultSecondsInDateTime, rfc1123DateTimeFormatter, rfc1123DateTimePattern}
 
 import java.time.LocalDateTime
 
@@ -62,16 +62,16 @@ class DateTimeUtilsSpec extends SpecBase {
     }
   }
 
-  "appendDefaultSeconds" should {
+  "appendDefaultSecondsInDateTime" should {
 
     "append 00 seconds at the end if seconds' part is missing from DateTime" in {
-      appendDefaultSeconds("2007-03-20T01:02") mustBe "2007-03-20T01:02:00"
-      appendDefaultSeconds("2007-03-20T21:44") mustBe "2007-03-20T21:44:00"
+      appendDefaultSecondsInDateTime("2007-03-20T01:02") mustBe "2007-03-20T01:02:00"
+      appendDefaultSecondsInDateTime("2007-03-20T21:44") mustBe "2007-03-20T21:44:00"
     }
 
     "not modify the DateTime if seconds' part is already present" in {
-      appendDefaultSeconds("2007-03-20T01:02:46") mustBe "2007-03-20T01:02:46"
-      appendDefaultSeconds("2007-03-20T12:22:00") mustBe "2007-03-20T12:22:00"
+      appendDefaultSecondsInDateTime("2007-03-20T01:02:46") mustBe "2007-03-20T01:02:46"
+      appendDefaultSecondsInDateTime("2007-03-20T12:22:00") mustBe "2007-03-20T12:22:00"
     }
   }
 }

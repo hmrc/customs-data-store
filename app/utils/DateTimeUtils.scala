@@ -34,9 +34,9 @@ object DateTimeUtils {
     JsString(d.atOffset(ZoneOffset.UTC).truncatedTo(
       ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_DATE_TIME))
 
-  def appendDefaultSeconds(dateTimeString: String):String = {
-    val dateTimeStringSplitList = dateTimeString.split(colon)
+  def appendDefaultSecondsInDateTime(incomingDateTimeString: String):String = {
+    val dateTimeStringSplitList = incomingDateTimeString.split(colon)
 
-    if(dateTimeStringSplitList.size > 2) dateTimeString else s"$dateTimeString:00"
+    if(dateTimeStringSplitList.size > 2) incomingDateTimeString else s"$incomingDateTimeString:00"
   }
 }
