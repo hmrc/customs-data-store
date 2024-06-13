@@ -18,6 +18,7 @@ package utils
 
 import java.time.{LocalDateTime, ZoneId, ZoneOffset}
 import play.api.libs.json.{JsString, Writes}
+import utils.Utils.colon
 
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -32,4 +33,10 @@ object DateTimeUtils {
   def dateTimeWritesIsoUtc: Writes[LocalDateTime] = (d: java.time.LocalDateTime) =>
     JsString(d.atOffset(ZoneOffset.UTC).truncatedTo(
       ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_DATE_TIME))
+
+  def appendDefaultSecondsInDateTime(incomingDateTimeString: String):String = {
+    val dateTimeStringSplitList = incomingDateTimeString.split(colon)
+
+    if(dateTimeStringSplitList.size > 2) incomingDateTimeString else s"$incomingDateTimeString:00"
+  }
 }

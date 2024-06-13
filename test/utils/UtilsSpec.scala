@@ -16,7 +16,7 @@
 
 package utils
 
-import utils.Utils.{emptyString, hyphen, singleSpace}
+import utils.Utils.{colon, emptyString, hyphen, singleSpace}
 
 class UtilsSpec extends SpecBase {
 
@@ -37,4 +37,11 @@ class UtilsSpec extends SpecBase {
       singleSpace mustBe " "
     }
   }
+
+  "colon" should {
+    "return correct value" in {
+      colon mustBe ":"
+    }
+  }
+
 }

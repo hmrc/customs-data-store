@@ -39,6 +39,10 @@ class NotificationEmailSpec extends SpecBase {
     "generate correct output" in new Setup {
       Json.toJson(notifMailOb) mustBe Json.parse(notificationEmailJsStringForWrites)
     }
+
+    "generate correct output when time has no seconds" in new Setup {
+      Json.toJson(notifMailObWithNoSeconds) mustBe Json.parse(notificationEmailWith00SecondsJsStringForWrites)
+    }
   }
 
   trait Setup {
@@ -50,6 +54,7 @@ class NotificationEmailSpec extends SpecBase {
     val seconds = 44
 
     val timeStamp: LocalDateTime = LocalDateTime.of(year, month, dayOfTheMonth, hourOfTheDay, minutes, seconds)
+    val timeStampWith00Seconds: LocalDateTime = LocalDateTime.of(year, month, dayOfTheMonth, hourOfTheDay, minutes)
 
     val undeliverableEvent: UndeliverableInformationEvent =
       UndeliverableInformationEvent(id = "test_id",
@@ -63,6 +68,11 @@ class NotificationEmailSpec extends SpecBase {
 
     val notifMailOb: NotificationEmail = NotificationEmail(address = "test_address",
       timeStamp,
+      undeliverable =
+        Some(UndeliverableInformation("test_sub", "test_event_id", "test_group_id", timeStamp, undeliverableEvent)))
+
+    val notifMailObWithNoSeconds: NotificationEmail = NotificationEmail(address = "test_address",
+      timeStampWith00Seconds,
       undeliverable =
         Some(UndeliverableInformation("test_sub", "test_event_id", "test_group_id", timeStamp, undeliverableEvent)))
 
@@ -87,6 +97,23 @@ class NotificationEmailSpec extends SpecBase {
       """
         |{"address":"test_address",
         |"timestamp":"2024-05-17T12:55:44Z",
+        |"undeliverable":{
+        |"subject":"test_sub",
+        |"eventId":"test_event_id",
+        |"groupId":"test_group_id",
+        |"timestamp":"2024-05-17T12:55:44",
+        |"event":{
+        |"id":"test_id",
+        |"event":"circuit_breaker",
+        |"emailAddress":"test@abc.com",
+        |"detected":"test",
+        |"enrolment":"test_enrol"
+        |}}}""".stripMargin
+
+    val notificationEmailWith00SecondsJsStringForWrites: String =
+      """
+        |{"address":"test_address",
+        |"timestamp":"2024-05-17T12:55:00Z",
         |"undeliverable":{
         |"subject":"test_sub",
         |"eventId":"test_event_id",
