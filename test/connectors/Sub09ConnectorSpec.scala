@@ -162,7 +162,7 @@ class Sub09ConnectorSpec extends SpecBase {
     val companyName = "Example Ltd"
     val consent = "1"
 
-    val address: AddressInformation = AddressInformation("Example Rd", "Example", Some("AA00 0AA"), "GB")
+    val address: AddressInformation = AddressInformation("Address Line 1", "City", Some("postCode"), "GB")
 
     val companyInformation: CompanyInformation = CompanyInformation(companyName, consent, address)
 
