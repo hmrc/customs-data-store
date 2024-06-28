@@ -16,8 +16,8 @@
 
 package connectors
 
-import models.{AddressInformation, CompanyInformation, Sub09Response, XiEoriAddressInformation, XiEoriInformation}
-import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse}
+import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
+import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse, Sub09Response}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.Application

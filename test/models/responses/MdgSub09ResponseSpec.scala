@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package models
+package models.responses
 
-import models.responses.MdgSub09Response
 import play.api.libs.json.{JsValue, Json}
 import utils.SpecBase
 import utils.Utils.emptyString
