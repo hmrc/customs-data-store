@@ -28,6 +28,7 @@ object MdgSub09CompanyInformationResponse {
   implicit val sub09CompanyInformation: Reads[MdgSub09CompanyInformationResponse] =
     ((JsPath \\ "CDSFullName").read[String] and
       (JsPath \\ "consentToDisclosureOfPersonalData").readNullable[String] and
-      (JsPath \\ "CDSEstablishmentAddress").read[AddressInformation]
+      (JsPath \\ "contactInformation").read[AddressInformation].orElse(
+        (JsPath \\ "CDSEstablishmentAddress").read[AddressInformation])
       )(MdgSub09CompanyInformationResponse.apply _)
 }
