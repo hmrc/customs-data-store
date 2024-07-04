@@ -28,12 +28,13 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import org.mongodb.scala.SingleObservableFuture
+import org.mongodb.scala.ToSingleObservablePublisher
 
 @Singleton
-class DefaultCompanyInformationRepository @Inject()(
-                                                      config: Configuration,
-                                                      mongoComponent: MongoComponent
-                                                    )(implicit executionContext: ExecutionContext)
+class DefaultCompanyInformationRepository @Inject()(config: Configuration,
+                                                    mongoComponent: MongoComponent
+                                                   )(implicit executionContext: ExecutionContext)
   extends PlayMongoRepository[CompanyInformationMongo](
     collectionName = "business-information",
     mongoComponent = mongoComponent,
@@ -42,7 +43,7 @@ class DefaultCompanyInformationRepository @Inject()(
       IndexModel(
         ascending("lastUpdated"),
         IndexOptions().name("business-information-last-updated-index")
-          .expireAfter(config.get[Int]("mongodb.timeToLiveInHoursBusinessInformation"), TimeUnit.HOURS)
+          .expireAfter(config.get[Long]("mongodb.timeToLiveInHoursBusinessInformation"), TimeUnit.HOURS)
       ))
   ) with CompanyInformationRepository {
 

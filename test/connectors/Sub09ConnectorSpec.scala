@@ -16,8 +16,13 @@
 
 package connectors
 
-import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
-import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse, Sub09Response}
+import models.responses.{
+  MdgSub09CompanyInformationResponse,
+  MdgSub09Response,
+  MdgSub09XiEoriInformationResponse,
+  Sub09Response
+}
+
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.Application
@@ -27,6 +32,7 @@ import play.api.test.Helpers.running
 import utils.SpecBase
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, ServiceUnavailableException}
 import utils.Utils.emptyString
+import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
 
 import java.net.URL
 import scala.concurrent.ExecutionContext.Implicits.global

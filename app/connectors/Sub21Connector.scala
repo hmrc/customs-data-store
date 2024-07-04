@@ -19,7 +19,7 @@ package connectors
 import config.AppConfig
 import models._
 import services.MetricsReporterService
-import uk.gov.hmrc.http.HttpReads.notFoundMessage
+import uk.gov.hmrc.http.HttpErrorFunctions.notFoundMessage
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, NotFoundException, StringContextOps}
 import javax.inject.Inject
