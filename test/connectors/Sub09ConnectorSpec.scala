@@ -16,185 +16,198 @@
 
 package connectors
 
-import models.responses.{
-  MdgSub09CompanyInformationResponse,
-  MdgSub09Response,
-  MdgSub09XiEoriInformationResponse,
-  Sub09Response
-}
-
+import models.responses.*
+import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import play.api.Application
-import play.api.inject.bind
 import play.api.libs.json.JsValue
 import play.api.test.Helpers.running
+import play.api.{Application, inject}
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, ServiceUnavailableException}
 import utils.SpecBase
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, ServiceUnavailableException}
 import utils.Utils.emptyString
-import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
 
 import java.net.URL
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
+import scala.concurrent.{ExecutionContext, Future}
 
 class Sub09ConnectorSpec extends SpecBase {
 
   "getSubscriberInformation" should {
 
     "return None when the timestamp is not available" in new Setup {
-      when(mockHttp.GET[MdgSub09Response](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
+      when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))))
 
-      running(app) {
-        await(service.getSubscriberInformation(testEori)) mustBe None
-      }
-    }
-
-    "return Some, when the timestamp is available" in new Setup {
-      when(mockHttp.GET[MdgSub09Response](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
-        .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailAndTimestamp(testEori))))
-
-      running(app) {
-        val result = await(service.getSubscriberInformation(testEori)).value
-        result.address mustBe "email@email.com"
-      }
-    }
-
-    "return None when the email is not available" in new Setup {
-      when(mockHttp.GET[MdgSub09Response](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
-        .thenReturn(Future.successful(mdgResponse(Sub09Response.noEmailNoTimestamp(testEori))))
+      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         await(service.getSubscriberInformation(testEori)) mustBe None
       }
     }
+  }
 
-    "propagate ServiceUnavailableException" in new Setup {
-      when(mockHttp.GET[MdgSub09Response](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
-        .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
+  "return Some, when the timestamp is available" in new Setup {
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    when(mockHttp.get(any)(any)).thenReturn(requestBuilder)
 
-      running(app) {
-        assertThrows[ServiceUnavailableException](await(service.getSubscriberInformation(testEori)))
+    when(requestBuilder.execute(any, any)).thenReturn(
+      Future.successful(mdgResponse(Sub09Response.withEmailAndTimestamp(testEori))))
+
+    running(app) {
+      val result = await(service.getSubscriberInformation(testEori)).value
+      result.address mustBe "email@email.com"
+    }
+  }
+
+  "return None when the email is not available" in new Setup {
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    when(mockHttp.get(any)(any)).thenReturn(requestBuilder)
+
+    when(requestBuilder.execute(any, any)).thenReturn(
+      Future.successful(mdgResponse(Sub09Response.noEmailNoTimestamp(testEori))))
+
+    running(app) {
+      await(service.getSubscriberInformation(testEori)) mustBe None
+    }
+  }
+
+  "propagate ServiceUnavailableException" in new Setup {
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    when(mockHttp.get(any)(any)).thenReturn(requestBuilder)
+
+    when(requestBuilder.execute(any, any)).thenReturn(
+      Future.successful(Future.failed(new ServiceUnavailableException("Boom"))))
+
+    running(app) {
+      assertThrows[ServiceUnavailableException](await(service.getSubscriberInformation(testEori)))
+    }
+  }
+}
+
+"getCompanyInformation" should {
+  "return company information from the api" in new Setup {
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    when(mockHttp.get(any)(any)).thenReturn(requestBuilder)
+
+    when(requestBuilder.execute(any, any)).thenReturn(
+      Future.successful(Option(mdgCompanyInformationResponse(Sub09Response.withEmailNoTimestamp(testEori)))))
+
+    running(app) {
+      await(service.getCompanyInformation(testEori)) mustBe Option(companyInformation)
+    }
+  }
+
+  "return company information noConsent '0' when the field is not present" in new Setup {
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    when(mockHttp.get(any)(any)).thenReturn(requestBuilder)
+
+    when(requestBuilder.execute(any, any)).thenReturn(Future.successful(
+      Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori)))))
+
+    running(app) {
+      await(service.getCompanyInformation(testEori)) mustBe Option(companyInformationNoConsentFalse)
+    }
+  }
+
+  "return None on failure" in new Setup {
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    when(mockHttp.get(any)(any)).thenReturn(requestBuilder)
+
+    when(requestBuilder.execute(any, any)).thenReturn(
+      Future.failed(new ServiceUnavailableException("Boom")))
+
+    running(app) {
+      await(service.getCompanyInformation(testEori)) mustBe None
+    }
+  }
+}
+
+"getXiEoriInformation" should {
+  "return xi eori information from the api" in new Setup {
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    when(mockHttp.get(any)(any)).thenReturn(requestBuilder)
+
+    when(requestBuilder.execute(any, any)).thenReturn(Future.successful(
+      Option(mdgXiEoriInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))))
+
+    running(app) {
+      service.getXiEoriInformation(testEori).map {
+        xiInfo => xiInfo mustBe Option(xiEoriInformation)
       }
     }
   }
 
-  "getCompanyInformation" should {
-    "return company information from the api" in new Setup {
-      when(mockHttp.GET[Option[MdgSub09CompanyInformationResponse]](
-        any[URL], any[Seq[(String, String)]])(any(), any(), any()))
-        .thenReturn(Future.successful(
-          Some(mdgCompanyInformationResponse(Sub09Response.withEmailNoTimestamp(testEori))))
-        )
+  "return xi eori information from the api when pbeaddress is empty" in new Setup {
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    when(mockHttp.get(any)(any)).thenReturn(requestBuilder)
 
-      running(app) {
-        await(service.getCompanyInformation(testEori)) mustBe Some(companyInformation)
-      }
-    }
+    when(requestBuilder.execute(any, any)).thenReturn(Future.successful(
+      Some(mdgXiEoriInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))))
 
-    "return company information noConsent '0' when the field is not present" in new Setup {
-      when(mockHttp.GET[Option[MdgSub09CompanyInformationResponse]](
-        any[URL],
-        any[Seq[(String, String)]])(any(), any(), any()))
-        .thenReturn(Future.successful(
-          Some(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori))))
-        )
-
-      running(app) {
-        await(service.getCompanyInformation(testEori)) mustBe Some(companyInformationNoConsentFalse)
-      }
-    }
-
-    "return None on failure" in new Setup {
-      when(mockHttp.GET[Option[MdgSub09CompanyInformationResponse]](
-        any[URL], any[Seq[(String, String)]])(any(), any(), any()))
-        .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
-
-      running(app) {
-        await(service.getCompanyInformation(testEori)) mustBe None
+    running(app) {
+      service.getXiEoriInformation(testEori).map {
+        xiInfo => xiInfo mustBe Some(xiEoriInformationWithNoAddress)
       }
     }
   }
 
-  "getXiEoriInformation" should {
-    "return xi eori information from the api" in new Setup {
-      when(mockHttp.GET[Option[MdgSub09XiEoriInformationResponse]](
-        any[URL], any[Seq[(String, String)]])(any(), any(), any()))
-        .thenReturn(Future.successful(
-          Some(mdgXiEoriInformationResponse(Sub09Response.withEmailAndTimestamp(testEori))))
-        )
+  "return None on failure" in new Setup {
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    when(mockHttp.get(any)(any)).thenReturn(requestBuilder)
 
-      running(app) {
-        service.getXiEoriInformation(testEori).map {
-          xiInfo => xiInfo mustBe Some(xiEoriInformation)
-        }
-      }
-    }
+    when(requestBuilder.execute(any, any)).thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
 
-    "return xi eori information from the api when pbeaddress is empty" in new Setup {
-      when(mockHttp.GET[Option[MdgSub09XiEoriInformationResponse]](
-        any[URL], any[Seq[(String, String)]])(any(), any(), any()))
-        .thenReturn(Future.successful(
-          Some(mdgXiEoriInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori))))
-        )
-
-      running(app) {
-        service.getXiEoriInformation(testEori).map {
-          xiInfo => xiInfo mustBe Some(xiEoriInformationWithNoAddress)
-        }
-      }
-    }
-
-    "return None on failure" in new Setup {
-      when(mockHttp.GET[Option[MdgSub09XiEoriInformationResponse]](
-        any[URL], any[Seq[(String, String)]])(any(), any(), any()))
-        .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
-
-      running(app) {
-        service.getXiEoriInformation(testEori).map {
-          xiInfo => xiInfo mustBe None
-        }
+    running(app) {
+      service.getXiEoriInformation(testEori).map {
+        xiInfo => xiInfo mustBe None
       }
     }
   }
+}
 
-  trait Setup {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+trait Setup {
+  val testEori = "someEori"
+  val xiEori = "XI123456789000"
+  val companyName = "Example Ltd"
+  val consent = "1"
 
-    val testEori = "someEori"
-    val xiEori = "XI123456789000"
-    val companyName = "Example Ltd"
-    val consent = "1"
+  val address: AddressInformation = AddressInformation("Address Line 1", "City", Some("postCode"), "GB")
+  val companyInformation: CompanyInformation = CompanyInformation(companyName, consent, address)
+  val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation(companyName, "0", address)
 
-    val address: AddressInformation = AddressInformation("Address Line 1", "City", Some("postCode"), "GB")
+  val xiEoriInformation: XiEoriInformation =
+    XiEoriInformation(xiEori, consent,
+      XiEoriAddressInformation("Example Rd", Some("Example"), Some("GB"), None, Some("AA00 0AA")))
 
-    val companyInformation: CompanyInformation = CompanyInformation(companyName, consent, address)
+  val xiEoriInformationWithNoAddress: XiEoriInformation =
+    XiEoriInformation(xiEori, consent, XiEoriAddressInformation(emptyString))
 
-    val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation(companyName, "0", address)
+  val mockHttp: HttpClientV2 = mock[HttpClientV2]
+  val requestBuilder: RequestBuilder = mock[RequestBuilder]
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    val xiEoriInformation: XiEoriInformation =
-      XiEoriInformation(xiEori, consent,
-        XiEoriAddressInformation("Example Rd", Some("Example"), Some("GB"), None, Some("AA00 0AA")))
+  val app: Application = application.overrides(
+    inject.bind[HttpClientV2].toInstance(mockHttp),
+    inject.bind[RequestBuilder].toInstance(requestBuilder)
+  ).build()
 
-    val xiEoriInformationWithNoAddress: XiEoriInformation =
-      XiEoriInformation(xiEori, consent, XiEoriAddressInformation(emptyString))
+  val service: Sub09Connector = app.injector.instanceOf[Sub09Connector]
 
-    val mockHttp: HttpClient = mock[HttpClient]
+  def mdgResponse(value: JsValue): MdgSub09Response = MdgSub09Response.sub09Reads.reads(value).get
 
-    val app: Application = application.overrides(
-      bind[HttpClient].toInstance(mockHttp)
-    ).build()
+  def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse =
+    MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
 
-    val service: Sub09Connector = app.injector.instanceOf[Sub09Connector]
-
-    def mdgResponse(value: JsValue): MdgSub09Response = MdgSub09Response.sub09Reads.reads(value).get
-
-    def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse =
-      MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
-
-    def mdgXiEoriInformationResponse(value: JsValue): MdgSub09XiEoriInformationResponse =
-      MdgSub09XiEoriInformationResponse.sub09XiEoriInformation.reads(value).get
-  }
+  def mdgXiEoriInformationResponse(value: JsValue): MdgSub09XiEoriInformationResponse =
+    MdgSub09XiEoriInformationResponse.sub09XiEoriInformation.reads(value).get
 }

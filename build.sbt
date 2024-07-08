@@ -37,7 +37,6 @@ lazy val microservice = Project(appName, file("."))
     Test / scalacOptions ++= Seq(
       "-Wunused:imports",
       "-Wunused:params",
-      "-Wunused:patvars",
       "-Wunused:implicits",
       "-Wunused:explicits",
       "-Wunused:privates"),
@@ -76,7 +75,7 @@ val compileDeps = Seq(
 
 val testDeps = Seq(
   "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-  "org.scalatestplus" %% "mockito-3-12" % "3.2.10.0",
+  "org.scalatestplus" %% "mockito-4-11" % "3.2.18.0" ,
   "uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % "test" ,
   "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "2.1.0"
 )

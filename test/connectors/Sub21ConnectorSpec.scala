@@ -27,7 +27,7 @@ import play.api.Application
 import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.Json
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.HttpReads.notFoundMessage
+import uk.gov.hmrc.http.HttpErrorFunctions.notFoundMessage
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient, NotFoundException, UpstreamErrorResponse}
 import utils.SpecBase
 
@@ -107,8 +107,7 @@ class Sub21ConnectorSpec extends SpecBase {
       val compare: Future[Nothing] = Future.failed(
         UpstreamErrorResponse(
           notFoundMessage("GET", actualURL.toString, "error1"),
-          NOT_FOUND)
-      )
+          NOT_FOUND))
 
       when(mockHttp.GET[HistoricEoriResponse](
         actualURL.capture(), any[Seq[(String, String)]])(any(), any(), any()))
@@ -116,7 +115,7 @@ class Sub21ConnectorSpec extends SpecBase {
 
       running(app) {
         assertThrows[NotFoundException] {
-          await(connector.getEoriHistory(someEori)) mustBe 404
+          await(connector.getEoriHistory(someEori))
         }
       }
     }
@@ -171,5 +170,4 @@ class Sub21ConnectorSpec extends SpecBase {
 
     calcHistory(allEoris, Seq.empty[EORIHistory])
   }
-
 }
