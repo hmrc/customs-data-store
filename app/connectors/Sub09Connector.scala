@@ -21,8 +21,9 @@ import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, M
 import models.{CompanyInformation, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
 import utils.Utils.emptyString
 
@@ -34,7 +35,7 @@ import scala.util.Random
 
 
 class Sub09Connector @Inject()(appConfig: AppConfig,
-                               http: HttpClient,
+                               http: HttpClientV2,
                                metricsReporter: MetricsReporterService)(implicit executionContext: ExecutionContext) {
 
   val log: LoggerLike = Logger(this.getClass)
@@ -46,9 +47,12 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.GET[MdgSub09Response](uri(eori), headers = createHeaders(localDate)).map {
-        case MdgSub09Response(Some(email), Some(timestamp)) => Some(NotificationEmail(email, timestamp, None))
-        case _ => None
+      http.get(url"$eori").execute[MdgSub09Response].flatMap {
+
+        case MdgSub09Response(Some(email), Some(timestamp)) => Future.successful(
+          Option(NotificationEmail(email, timestamp, None)))
+
+        case _ => Future.successful(None)
       }
     }
   }
@@ -57,8 +61,12 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.GET[Option[MdgSub09CompanyInformationResponse]](uri(eori), headers = createHeaders(localDate))
-        .map(_.map(v => CompanyInformation(v.name, v.consent.getOrElse(defaultConsent), v.address))).recover {
+      http.get(url"$eori").execute[Option[MdgSub09CompanyInformationResponse]].flatMap {
+        response =>
+          Future.successful(
+            response.map(v => CompanyInformation(v.name, v.consent.getOrElse(defaultConsent), v.address))
+          )
+      }.recover {
         case e => log.error(s"Failed to retrieve company information with error: $e"); None
       }
     }
@@ -68,16 +76,17 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.GET[Option[MdgSub09XiEoriInformationResponse]](uri(eori), headers = createHeaders(localDate))
-        .map(_.map(v =>
-          XiEoriInformation(
-            v.xiEori,
-            v.consent.getOrElse(defaultConsent),
-            v.address.getOrElse(XiEoriAddressInformation(emptyString)))
-        ))
-        .recover {
-          case e => log.error(s"Failed to retrieve xi eori information with error: $e"); None
-        }
+      http.get(url"$eori").execute[Option[MdgSub09XiEoriInformationResponse]].flatMap {
+        response =>
+          Future.successful(
+            response.map(v => XiEoriInformation(
+              v.xiEori,
+              v.consent.getOrElse(defaultConsent),
+              v.address.getOrElse(XiEoriAddressInformation(emptyString))))
+        )
+      }.recover {
+        case e => log.error(s"Failed to retrieve xi eori information with error: $e"); None
+      }
     }
   }
 
