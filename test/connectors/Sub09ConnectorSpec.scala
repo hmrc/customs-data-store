@@ -16,7 +16,7 @@
 
 package connectors
 
-import models.responses.*
+import models.responses._
 import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when

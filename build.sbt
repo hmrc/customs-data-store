@@ -15,7 +15,7 @@ ThisBuild / majorVersion := 0
 ThisBuild / scalaVersion := scala3_3_3
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(
     targetJvm := "jvm-11",
     libraryDependencies ++= compileDeps ++ testDeps,
