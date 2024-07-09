@@ -20,16 +20,16 @@ import config.AppConfig
 import models.*
 import models.responses.{GetEORIHistoryResponse, ResponseCommon, ResponseDetail}
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when
 import play.api
 import play.api.Application
 import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.Json
 import play.api.test.Helpers.*
+import uk.gov.hmrc.http.*
 import uk.gov.hmrc.http.HttpErrorFunctions.notFoundMessage
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpReads, NotFoundException, UpstreamErrorResponse}
 import utils.SpecBase
 
 import java.net.URL
@@ -40,18 +40,17 @@ import scala.concurrent.{ExecutionContext, Future}
 class Sub21ConnectorSpec extends SpecBase {
 
   "EoriHistoryConnector" should {
-
     "hit the expected URL" in new Setup {
       when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
       when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext]))
         .thenReturn(Future.successful(generateResponse(List(someEori))))
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttpClient.get(eqTo(url"${appConfig.sub21EORIHistoryEndpoint}$someEori"))(any()))
+        .thenReturn(requestBuilder)
 
       running(app) {
         await(connector.getEoriHistory(someEori))
-        //actualURL.getValue.toString mustBe appConfig.sub21EORIHistoryEndpoint + someEori
       }
     }
 
