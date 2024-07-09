@@ -16,35 +16,35 @@
 
 package connectors
 
+import models.responses._
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import models.requests.Sub22Request
-
-import models.responses.{
-  UpdateVerifiedEmailResponse,
-  UpdateVerifiedEmailResponseCommon,
-  UpdateVerifiedEmailResponseCommonDetail
-}
-
-import java.time.LocalDateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.Helpers._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
+import play.api.test.Helpers.*
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, UpstreamErrorResponse}
 import utils.SpecBase
 
-import scala.concurrent.Future
+import java.net.URL
+import java.time.LocalDateTime
+import scala.concurrent.{ExecutionContext, Future}
 
 class Sub22ConnectorSpec extends SpecBase {
+
   "return false if a non 200 response returned from SUB22" in new Setup {
     val errorMsg = "some error"
     val statusCode500 = 500
     val reportAs500 = 500
 
-    when(mockHttp.PUT[Sub22Request, UpdateVerifiedEmailResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+
+    when(requestBuilder.execute(any[HttpReads[UpdateVerifiedEmailResponse]], any[ExecutionContext]))
       .thenReturn(Future.failed(UpstreamErrorResponse(errorMsg, statusCode500, reportAs500)))
+
+    when(mockHttpClient.put(any[URL])(any)).thenReturn(requestBuilder)
 
     running(app) {
       val result = await(connector.updateUndeliverable(
@@ -57,8 +57,12 @@ class Sub22ConnectorSpec extends SpecBase {
   }
 
   "return false if a 200 response returned but 'statusText' is returned indicating an error" in new Setup {
-    when(mockHttp.PUT[Sub22Request, UpdateVerifiedEmailResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+
+    when(requestBuilder.execute(any[HttpReads[UpdateVerifiedEmailResponse]], any[ExecutionContext]))
       .thenReturn(Future.successful(failedUpdateVerifiedEmailResponse))
+
+    when(mockHttpClient.put(any[URL])(any)).thenReturn(requestBuilder)
 
     running(app) {
       val result = await(connector.updateUndeliverable(
@@ -80,8 +84,12 @@ class Sub22ConnectorSpec extends SpecBase {
   }
 
   "return true if the request was successful" in new Setup {
-    when(mockHttp.PUT[Sub22Request, UpdateVerifiedEmailResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+
+    when(requestBuilder.execute(any[HttpReads[UpdateVerifiedEmailResponse]], any[ExecutionContext]))
       .thenReturn(Future.successful(successfulUpdateVerifiedEmailResponse))
+
+    when(mockHttpClient.put(any[URL])(any)).thenReturn(requestBuilder)
 
     running(app) {
       val result = await(connector.updateUndeliverable(
@@ -94,6 +102,7 @@ class Sub22ConnectorSpec extends SpecBase {
   }
 
   trait Setup {
+    implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val testEori = "someEori"
@@ -113,10 +122,12 @@ class Sub22ConnectorSpec extends SpecBase {
       )
     )
 
-    val mockHttp: HttpClient = mock[HttpClient]
+    val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
+    val requestBuilder: RequestBuilder = mock[RequestBuilder]
 
     val app: Application = new GuiceApplicationBuilder().overrides(
-      api.inject.bind[HttpClient].toInstance(mockHttp)
+      api.inject.bind[HttpClientV2].toInstance(mockHttpClient),
+      api.inject.bind[RequestBuilder].toInstance(requestBuilder)
     ).build()
 
     val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(

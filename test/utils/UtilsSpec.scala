@@ -16,7 +16,7 @@
 
 package utils
 
-import utils.Utils.{colon, emptyString, hyphen, singleSpace}
+import utils.Utils.{acknowledgementReference, colon, emptyString, hyphen, singleSpace}
 
 class UtilsSpec extends SpecBase {
 
@@ -44,4 +44,13 @@ class UtilsSpec extends SpecBase {
     }
   }
 
+  "acknowledgementReference" should {
+    "should be the correct length" in {
+      acknowledgementReference.length mustBe 32
+    }
+
+    "should contain only Alphanumerics" in {
+      acknowledgementReference.forall(_.isLetterOrDigit) mustBe true
+    }
+  }
 }

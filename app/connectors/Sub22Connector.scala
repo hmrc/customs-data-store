@@ -26,6 +26,7 @@ import services.AuditingService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import utils.Utils.getUri
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
@@ -57,7 +58,7 @@ class Sub22Connector @Inject()(httpClient: HttpClientV2,
         val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
 
-        httpClient.put(url"{$appConfig.sub22UpdateVerifiedEmailEndpoint}")
+        httpClient.put(getUri(eori, appConfig.sub22UpdateVerifiedEmailEndpoint))
           .withBody[Sub22UpdateVerifiedEmailRequest](request)
           .execute[UpdateVerifiedEmailResponse]
           .flatMap {
