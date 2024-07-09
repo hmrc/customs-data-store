@@ -18,7 +18,7 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(
     targetJvm := "jvm-11",
-    libraryDependencies ++= compileDeps ++ testDeps,
+    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     PlayKeys.playDefaultPort := 9893,
 
     libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always),
@@ -64,19 +64,5 @@ lazy val it = project
   .dependsOn(microservice % "test->test")
   .settings(itSettings())
   .settings(libraryDependencies ++= Seq("uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % Test))
-
-val compileDeps = Seq(
-  play.sbt.PlayImport.ws,
-  "uk.gov.hmrc" %% "bootstrap-backend-play-30" % bootstrapVersion,
-  "org.typelevel" %% "cats-core" % "2.12.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "2.1.0",
-)
-
-val testDeps = Seq(
-  "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-  "org.scalatestplus" %% "mockito-4-11" % "3.2.18.0" ,
-  "uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % "test" ,
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30" % "2.1.0"
-)
 
 addCommandAlias("runAllChecks", ";clean;compile;coverage;test;it/test;scalastyle;Test/scalastyle;coverageReport")

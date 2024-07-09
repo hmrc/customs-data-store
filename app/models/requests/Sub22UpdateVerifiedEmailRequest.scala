@@ -16,7 +16,8 @@
 
 package models.requests
 
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.ws.BodyWritable
 
 case class Sub22UpdateVerifiedEmailRequest(updateVerifiedEmailRequest: Sub22Request)
 
@@ -25,4 +26,9 @@ object Sub22UpdateVerifiedEmailRequest {
     Sub22UpdateVerifiedEmailRequest(Sub22Request(common, detail))
 
   implicit val writes: Writes[Sub22UpdateVerifiedEmailRequest] = Json.writes[Sub22UpdateVerifiedEmailRequest]
+
+  implicit def jsonBodyWritable[T](implicit
+                                   writes: Writes[T],
+                                   jsValueBodyWritable: BodyWritable[JsValue]
+                                  ): BodyWritable[T] = jsValueBodyWritable.map(writes.writes)
 }

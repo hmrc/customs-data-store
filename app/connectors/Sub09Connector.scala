@@ -22,7 +22,7 @@ import models.{CompanyInformation, NotificationEmail, XiEoriAddressInformation, 
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
-import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
 import utils.Utils.emptyString
@@ -103,8 +103,6 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
       ("Accept" -> "application/json"))
   }
 
-  private def uri(eori: String) = url"${
-    appConfig.sub09GetSubscriptionsEndpoint
+  private def uri(eori: String) = url"${appConfig.sub09GetSubscriptionsEndpoint
   }?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
-
 }
