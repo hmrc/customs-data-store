@@ -37,9 +37,10 @@ class Sub21Connector @Inject()(appConfig: AppConfig,
 
     metricsReporter.withResponseTimeLogging("mdg.get.eori-history") {
       val url = url"${appConfig.sub21EORIHistoryEndpoint}$eori"
-      val headers = Seq("Authorization" -> appConfig.sub21BearerToken)
+      val headers = "Authorization" -> appConfig.sub21BearerToken
 
-      http.get(url).execute[HistoricEoriResponse].flatMap {
+      http.get(url).setHeader(headers)
+        .execute[HistoricEoriResponse].flatMap {
         response => Future.successful(response.getEORIHistoryResponse.responseDetail.EORIHistory
           .map(history => EoriPeriod(history.EORI, history.validFrom, history.validTo)))
 

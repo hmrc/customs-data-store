@@ -33,6 +33,7 @@ import java.time.{LocalDateTime, ZoneId}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
+import java.util.UUID
 
 class Sub22Connector @Inject()(httpClient: HttpClientV2,
                                appConfig: AppConfig,
@@ -45,25 +46,27 @@ class Sub22Connector @Inject()(httpClient: HttpClientV2,
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
     val localDate = LocalDateTime.now().format(dateFormat)
 
-    val headers = Seq(
-      ("Authorization" -> appConfig.sub22BearerToken),
-      ("Date" -> localDate),
-      ("X-Correlation-ID" -> java.util.UUID.randomUUID().toString),
-      ("X-Forwarded-Host" -> "MDTP"),
-      ("Accept" -> "application/json")
-    )
-
     undeliverableInformation.extractEori match {
       case Some(eori) =>
         val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
 
+        val url = url"${appConfig.sub22UpdateVerifiedEmailEndpoint}$eori"
+
         httpClient.put(getUri(eori, appConfig.sub22UpdateVerifiedEmailEndpoint))
+          .setHeader(
+            ("Authorization" -> appConfig.sub22BearerToken),
+            ("Date" -> localDate),
+            ("X-Correlation-ID" -> java.util.UUID.randomUUID().toString),
+            ("X-Forwarded-Host" -> "MDTP"),
+            ("Accept" -> "application/json")
+          )
           .withBody[Sub22UpdateVerifiedEmailRequest](request)
           .execute[UpdateVerifiedEmailResponse]
           .flatMap {
 
-            response => val isSuccessful = response.updateVerifiedEmailResponse.responseCommon.statusText.isEmpty
+            response =>
+              val isSuccessful = response.updateVerifiedEmailResponse.responseCommon.statusText.isEmpty
               auditingService.auditSub22Request(request, attempts, isSuccessful)
 
               Future.successful(isSuccessful)

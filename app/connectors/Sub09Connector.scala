@@ -25,7 +25,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
-import utils.Utils.{getUri, emptyString}
+import utils.Utils.{emptyString, getUri}
 
 import java.time.LocalDateTime
 import java.util.UUID
@@ -43,17 +43,27 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
   private val defaultConsent = "0"
   private val endPoint = appConfig.sub09GetSubscriptionsEndpoint
 
+  private def localDate: String = LocalDateTime.now().format(rfc1123DateTimeFormatter)
+
   def getSubscriberInformation(eori: String): Future[Option[NotificationEmail]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.get(getUri(eori, endPoint)).execute[MdgSub09Response].flatMap {
+      http.get(getUri(eori, endPoint))
+        .setHeader(
+          "Authorization" -> appConfig.sub09BearerToken,
+          "Date" -> localDate,
+          "X-Correlation-ID" -> UUID.randomUUID().toString,
+          "X-Forwarded-Host" -> "MDTP",
+          "Accept" -> "application/json")
+        .execute[MdgSub09Response]
+        .flatMap {
 
-        case MdgSub09Response(Some(email), Some(timestamp)) => Future.successful(
-          Option(NotificationEmail(email, timestamp, None)))
+          case MdgSub09Response(Some(email), Some(timestamp)) => Future.successful(
+            Option(NotificationEmail(email, timestamp, None)))
 
-        case _ => Future.successful(None)
-      }
+          case _ => Future.successful(None)
+        }
     }
   }
 
@@ -61,14 +71,22 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.get(getUri(eori, endPoint)).execute[Option[MdgSub09CompanyInformationResponse]].flatMap {
-        response =>
-          Future.successful(
-            response.map(v => CompanyInformation(v.name, v.consent.getOrElse(defaultConsent), v.address))
-          )
-      }.recover {
-        case e => log.error(s"Failed to retrieve company information with error: $e"); None
-      }
+      http.get(getUri(eori, endPoint))
+        .setHeader(
+          "Authorization" -> appConfig.sub09BearerToken,
+          "Date" -> localDate,
+          "X-Correlation-ID" -> UUID.randomUUID().toString,
+          "X-Forwarded-Host" -> "MDTP",
+          "Accept" -> "application/json")
+        .execute[Option[MdgSub09CompanyInformationResponse]]
+        .flatMap {
+          response =>
+            Future.successful(
+              response.map(v => CompanyInformation(v.name, v.consent.getOrElse(defaultConsent), v.address))
+            )
+        }.recover {
+          case e => log.error(s"Failed to retrieve company information with error: $e"); None
+        }
     }
   }
 
@@ -77,7 +95,14 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
       http.get(getUri(eori, endPoint))
-        .execute[Option[MdgSub09XiEoriInformationResponse]].flatMap {
+        .setHeader(
+          "Authorization" -> appConfig.sub09BearerToken,
+          "Date" -> localDate,
+          "X-Correlation-ID" -> UUID.randomUUID().toString,
+          "X-Forwarded-Host" -> "MDTP",
+          "Accept" -> "application/json")
+        .execute[Option[MdgSub09XiEoriInformationResponse]]
+        .flatMap {
           response =>
             Future.successful(
               response.map(v => XiEoriInformation(
@@ -89,16 +114,5 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
           case e => log.error(s"Failed to retrieve xi eori information with error: $e"); None
         }
     }
-  }
-
-  private def localDate: String = LocalDateTime.now().format(rfc1123DateTimeFormatter)
-
-  private def createHeaders(localDate: String): Seq[(String, String)] = {
-    Seq(
-      ("Authorization" -> appConfig.sub09BearerToken),
-      ("Date" -> localDate),
-      ("X-Correlation-ID" -> UUID.randomUUID().toString),
-      ("X-Forwarded-Host" -> "MDTP"),
-      ("Accept" -> "application/json"))
   }
 }

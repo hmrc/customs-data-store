@@ -35,6 +35,8 @@ class Sub09ConnectorSpec extends SpecBase {
 
   "getSubscriberInformation" should {
     "return None when the timestamp is not available" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))))
 
@@ -47,6 +49,8 @@ class Sub09ConnectorSpec extends SpecBase {
 
 
     "return Some, when the timestamp is available" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailAndTimestamp(testEori))))
 
@@ -59,6 +63,8 @@ class Sub09ConnectorSpec extends SpecBase {
     }
 
     "return None when the email is not available" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.noEmailNoTimestamp(testEori))))
 
@@ -70,6 +76,8 @@ class Sub09ConnectorSpec extends SpecBase {
     }
 
     "propagate ServiceUnavailableException" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
 
@@ -83,6 +91,8 @@ class Sub09ConnectorSpec extends SpecBase {
 
   "getCompanyInformation" should {
     "return company information from the api" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
         .thenReturn(Future.successful(
           Option(mdgCompanyInformationResponse(Sub09Response.withEmailNoTimestamp(testEori)))))
@@ -95,6 +105,8 @@ class Sub09ConnectorSpec extends SpecBase {
     }
 
     "return company information noConsent '0' when the field is not present" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
         .thenReturn(Future.successful(
           Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori)))))
@@ -107,6 +119,8 @@ class Sub09ConnectorSpec extends SpecBase {
     }
 
     "return None on failure" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
       
@@ -120,6 +134,8 @@ class Sub09ConnectorSpec extends SpecBase {
 
   "getXiEoriInformation" should {
     "return xi eori information from the api" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09XiEoriInformationResponse]], any[ExecutionContext]))
         .thenReturn(Future.successful(
           Option(mdgXiEoriInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))))
@@ -134,6 +150,8 @@ class Sub09ConnectorSpec extends SpecBase {
     }
 
     "return xi eori information from the api when pbeaddress is empty" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09XiEoriInformationResponse]], any[ExecutionContext]))
         .thenReturn(Future.successful(
           Option(mdgXiEoriInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))))
@@ -148,6 +166,8 @@ class Sub09ConnectorSpec extends SpecBase {
     }
 
     "return None on failure" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[MdgSub09XiEoriInformationResponse]], any[ExecutionContext]))
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
 

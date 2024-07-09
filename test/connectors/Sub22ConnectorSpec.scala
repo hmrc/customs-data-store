@@ -40,6 +40,7 @@ class Sub22ConnectorSpec extends SpecBase {
     val reportAs500 = 500
 
     when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
     when(requestBuilder.execute(any[HttpReads[UpdateVerifiedEmailResponse]], any[ExecutionContext]))
       .thenReturn(Future.failed(UpstreamErrorResponse(errorMsg, statusCode500, reportAs500)))
@@ -58,6 +59,7 @@ class Sub22ConnectorSpec extends SpecBase {
 
   "return false if a 200 response returned but 'statusText' is returned indicating an error" in new Setup {
     when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
     when(requestBuilder.execute(any[HttpReads[UpdateVerifiedEmailResponse]], any[ExecutionContext]))
       .thenReturn(Future.successful(failedUpdateVerifiedEmailResponse))
@@ -85,6 +87,7 @@ class Sub22ConnectorSpec extends SpecBase {
 
   "return true if the request was successful" in new Setup {
     when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
+    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
     when(requestBuilder.execute(any[HttpReads[UpdateVerifiedEmailResponse]], any[ExecutionContext]))
       .thenReturn(Future.successful(successfulUpdateVerifiedEmailResponse))

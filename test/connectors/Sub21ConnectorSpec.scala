@@ -42,15 +42,17 @@ class Sub21ConnectorSpec extends SpecBase {
   "EoriHistoryConnector" should {
 
     "hit the expected URL" in new Setup {
-     /* when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext]))
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
+      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext]))
         .thenReturn(Future.successful(generateResponse(List(someEori))))
 
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         await(connector.getEoriHistory(someEori))
-        actualURL.getValue.toString mustBe appConfig.sub21EORIHistoryEndpoint + someEori
-      }*/
+        //actualURL.getValue.toString mustBe appConfig.sub21EORIHistoryEndpoint + someEori
+      }
     }
 
     "return a list of EoriPeriod entries" in new Setup {
@@ -87,6 +89,8 @@ class Sub21ConnectorSpec extends SpecBase {
            |  }
            |}""".stripMargin
 
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
       when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext]))
         .thenReturn(Future.successful(Json.parse(jsonResponse).as[HistoricEoriResponse]))
 
@@ -112,9 +116,10 @@ class Sub21ConnectorSpec extends SpecBase {
           notFoundMessage("GET", actualURL.toString, "error1"),
           NOT_FOUND))
 
-      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext]))
-        .thenReturn(compare)
+      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]],
+        any[ExecutionContext])).thenReturn(compare)
 
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
