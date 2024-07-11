@@ -19,20 +19,22 @@ package repositories
 import com.mongodb.client.model.Indexes.ascending
 import config.AppConfig
 import models._
-import models.repositories.{EmailRepositoryResult, FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
+import models.repositories._
 import org.mongodb.scala.model.Filters.{equal, lte}
+import org.mongodb.scala.ToSingleObservablePublisher
 import org.mongodb.scala.model._
 import play.api.Logger
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import org.mongodb.scala.SingleObservableFuture
+import org.mongodb.scala.ObservableFuture
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DefaultEmailRepository @Inject()(
-                                        mongoComponent: MongoComponent,
-                                        appConfig: AppConfig
+class DefaultEmailRepository @Inject()(mongoComponent: MongoComponent,
+                                       appConfig: AppConfig
                                       )(implicit executionContext: ExecutionContext)
   extends PlayMongoRepository[NotificationEmailMongo](
     collectionName = "email-verification",

@@ -28,12 +28,13 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import org.mongodb.scala.SingleObservableFuture
+import org.mongodb.scala.ToSingleObservablePublisher
 
 @Singleton
-class DefaultCompanyInformationRepository @Inject()(
-                                                      config: Configuration,
-                                                      mongoComponent: MongoComponent
-                                                    )(implicit executionContext: ExecutionContext)
+class DefaultCompanyInformationRepository @Inject()(config: Configuration,
+                                                    mongoComponent: MongoComponent
+                                                   )(implicit executionContext: ExecutionContext)
   extends PlayMongoRepository[CompanyInformationMongo](
     collectionName = "business-information",
     mongoComponent = mongoComponent,
@@ -42,7 +43,7 @@ class DefaultCompanyInformationRepository @Inject()(
       IndexModel(
         ascending("lastUpdated"),
         IndexOptions().name("business-information-last-updated-index")
-          .expireAfter(config.get[Int]("mongodb.timeToLiveInHoursBusinessInformation"), TimeUnit.HOURS)
+          .expireAfter(config.get[Long]("mongodb.timeToLiveInHoursBusinessInformation"), TimeUnit.HOURS)
       ))
   ) with CompanyInformationRepository {
 
@@ -83,14 +84,18 @@ trait MongoJavatimeFormats {
   final val localDateTimeReads: Reads[LocalDateTime] =
     Reads.at[String](__ \ "$date" \ "$numberLong")
       .map(dateTime => Instant.ofEpochMilli(dateTime.toLong).atZone(ZoneOffset.UTC).toLocalDateTime)
+
   final val localDateTimeWrites: Writes[LocalDateTime] =
     Writes.at[String](__ \ "$date" \ "$numberLong")
       .contramap(_.toInstant(ZoneOffset.UTC).toEpochMilli.toString)
+
   final val localDateTimeFormat: Format[LocalDateTime] =
     Format(localDateTimeReads, localDateTimeWrites)
+
   trait Implicits {
     implicit val jatLocalDateTimeFormat: Format[LocalDateTime] = outer.localDateTimeFormat
   }
+
   object Implicits extends Implicits
 }
 object MongoJavatimeFormats extends MongoJavatimeFormats

@@ -24,39 +24,31 @@ class AppConfigSpec extends SpecBase {
   "url" should {
 
     "remove left hand side slash" in new Setup {
-
       import appConfig.URLSyntacticSugar
 
       val url: String = urlWithTrailingSlash / urlStringWithoutSlashes
-
       url mustBe urlAfterApplyingStringWithSlash
     }
   }
 
   "remove right hand side slash" in new Setup {
-
     import appConfig.URLSyntacticSugar
 
     val url: String = sampleUrl / urlStringWithLeadingSlash
-
     url mustBe urlAfterApplyingStringWithSlash
   }
 
   "remove left and right hand side slashes" in new Setup {
-
     import appConfig.URLSyntacticSugar
 
     val url: String = urlWithTrailingSlash / urlStringWithLeadingSlash
-
     url mustBe urlAfterApplyingStringWithSlash
   }
 
   "No slashes" in new Setup {
-
     import appConfig.URLSyntacticSugar
 
     val url: String = sampleUrl / "abcd"
-
     url mustBe urlAfterApplyingStringWithSlash
   }
 

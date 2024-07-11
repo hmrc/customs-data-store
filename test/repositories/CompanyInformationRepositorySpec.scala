@@ -20,6 +20,7 @@ import models.{AddressInformation, CompanyInformation}
 import play.api.Application
 import play.api.test.Helpers.running
 import utils.SpecBase
+import org.mongodb.scala.SingleObservableFuture
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

@@ -24,6 +24,7 @@ import play.api.{Application, Configuration}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.CollectionFactory
 import utils.SpecBase
+import org.mongodb.scala.SingleObservableFuture
 
 import java.time.LocalDateTime
 import javax.inject.{Inject, Singleton}

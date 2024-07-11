@@ -16,7 +16,9 @@
 
 package utils
 
-import utils.Utils.{colon, emptyString, hyphen, singleSpace}
+import utils.Utils.*
+
+import java.net.URL
 
 class UtilsSpec extends SpecBase {
 
@@ -44,4 +46,36 @@ class UtilsSpec extends SpecBase {
     }
   }
 
+  "acknowledgementReference" should {
+    "return the correct length" in {
+      acknowledgementReference.length mustBe 32
+    }
+
+    "return a value containing only Alphanumerics" in {
+      acknowledgementReference.forall(_.isLetterOrDigit) mustBe true
+    }
+  }
+
+  "randomUUID" should {
+    "return a random number" in {
+      val res = randomUUID
+
+      res.isInstanceOf[String]
+      res.length mustBe 36
+    }
+  }
+
+  "uri" should {
+    "return correct URL" in {
+      val eori = "test_eori"
+      val endPoint = "http://localhost:9893/test"
+      val actualURL = uri(eori, endPoint)
+      val expectedURLPart1 = s"$endPoint?regime=CDS&acknowledgementReference="
+      val expectedURLPart2 = s"&EORI=$eori"
+
+      actualURL.isInstanceOf[URL] mustBe true
+      actualURL.toString.contains(expectedURLPart1) mustBe true
+      actualURL.toString.contains(expectedURLPart2) mustBe true
+    }
+  }
 }

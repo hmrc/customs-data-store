@@ -14,25 +14,32 @@
  * limitations under the License.
  */
 
-package utils
+package config
 
-import uk.gov.hmrc.http.StringContextOps
+import utils.SpecBase
+import config.Headers._
 
-import java.net.URL
-import scala.util.Random
+class HeadersSpec extends SpecBase {
 
-object Utils {
+  "Headers" should {
+    "return AUTHORIZATION" in {
+      AUTHORIZATION mustBe "Authorization"
+    }
 
-  val hyphen = "-"
-  val emptyString = ""
-  val singleSpace = " "
-  val colon = ":"
+    "return DATE" in {
+      DATE mustBe "Date"
+    }
 
-  def randomUUID: String = java.util.UUID.randomUUID().toString
+    "return X_CORRELATION_ID" in {
+      X_CORRELATION_ID mustBe "X-Correlation-ID"
+    }
 
-  private val acknowledgementRefLength = 32
-  def acknowledgementReference: String = Random.alphanumeric.take(acknowledgementRefLength).mkString
+    "return X_FORWARDED_HOST" in {
+      X_FORWARDED_HOST mustBe "X-Forwarded-Host"
+    }
 
-  def uri(eori: String, endpoint: String): URL =
-    url"$endpoint?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
+    "return Accept" in {
+      ACCEPT mustBe "Accept"
+    }
+  }
 }

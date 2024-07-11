@@ -18,18 +18,15 @@ package repositories
 
 import com.mongodb.WriteConcern
 import config.AppConfig
-
-import models.repositories.{
-  FailedToRetrieveEmail,
-  NotificationEmailMongo,
-  SuccessfulEmail,
-  UndeliverableInformationMongo
-}
-
+import org.mongodb.scala.SingleObservableFuture
+import models.repositories.{FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
 import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+
 import java.time.LocalDateTime
 import org.mongodb.scala.MongoCollection
-import play.api.Application
+import play.api.{Application, inject}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.CollectionFactory
 import utils.SpecBase
@@ -40,10 +37,10 @@ import scala.concurrent.Future
 
 class EmailRepositorySpec extends SpecBase {
 
-  "successfully retrive email from repository" in new Setup {
+  "successfully retrieve email from repository" in new Setup {
 
     override val notificationEmail: NotificationEmail =
-      NotificationEmail("123", dateTime, Some(undeliverableInformation))
+      NotificationEmail("123", dateTime, Option(undeliverableInformation))
 
     repository.set(eori, notificationEmail).map {
       result => result mustBe SuccessfulEmail
@@ -332,7 +329,14 @@ class EmailRepositorySpec extends SpecBase {
         undeliverableInformationEvent
       )
 
-    val app: Application = application.build()
+    val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
+    val requestBuilder: RequestBuilder = mock[RequestBuilder]
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+
+    val app: Application = application.overrides(
+      inject.bind[HttpClientV2].toInstance(mockHttpClient),
+      inject.bind[RequestBuilder].toInstance(requestBuilder)
+    ).build()
 
     val repository: DefaultEmailRepository = app.injector.instanceOf[DefaultEmailRepository]
 

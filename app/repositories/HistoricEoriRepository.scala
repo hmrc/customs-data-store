@@ -25,6 +25,8 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, Json, Reads, __}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import org.mongodb.scala.SingleObservableFuture
+import org.mongodb.scala.ObservableFuture
 
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
@@ -44,7 +46,7 @@ class DefaultHistoricEoriRepository @Inject()()(
       IndexModel(
         ascending("lastUpdated"),
         IndexOptions().name("historic-eoris-last-updated-index")
-          .expireAfter(config.get[Int]("mongodb.timeToLiveInSeconds"), TimeUnit.SECONDS)
+          .expireAfter(config.get[Long]("mongodb.timeToLiveInSeconds"), TimeUnit.SECONDS)
       ))
   ) with HistoricEoriRepository {
 
