@@ -26,11 +26,12 @@ import services.AuditingService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
-import utils.Utils.getUri
+import utils.Utils.uri
+import config.Headers._
+import utils.Utils.randomUUID
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
-import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
@@ -51,13 +52,13 @@ class Sub22Connector @Inject()(httpClient: HttpClientV2,
         val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
 
-        httpClient.put(getUri(eori, appConfig.sub22UpdateVerifiedEmailEndpoint))
+        httpClient.put(uri(eori, appConfig.sub22UpdateVerifiedEmailEndpoint))
           .setHeader(
-            ("Authorization" -> appConfig.sub22BearerToken),
-            ("Date" -> localDate),
-            ("X-Correlation-ID" -> java.util.UUID.randomUUID().toString),
-            ("X-Forwarded-Host" -> "MDTP"),
-            ("Accept" -> "application/json")
+            AUTHORIZATION -> appConfig.sub22BearerToken,
+            DATE -> localDate,
+            X_CORRELATION_ID -> randomUUID,
+            X_FORWARDED_HOST -> "MDTP",
+            ACCEPT -> "application/json"
           )
           .withBody[Sub22UpdateVerifiedEmailRequest](request)
           .execute[UpdateVerifiedEmailResponse]

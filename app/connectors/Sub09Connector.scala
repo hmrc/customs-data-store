@@ -25,10 +25,11 @@ import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
-import utils.Utils.{emptyString, getUri}
+import utils.Utils.{emptyString, uri}
+import config.Headers._
+import utils.Utils.randomUUID
 
 import java.time.LocalDateTime
-import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
@@ -49,13 +50,13 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.get(getUri(eori, endPoint))
+      http.get(uri(eori, endPoint))
         .setHeader(
-          "Authorization" -> appConfig.sub09BearerToken,
-          "Date" -> localDate,
-          "X-Correlation-ID" -> UUID.randomUUID().toString,
-          "X-Forwarded-Host" -> "MDTP",
-          "Accept" -> "application/json")
+          AUTHORIZATION -> appConfig.sub09BearerToken,
+          DATE -> localDate,
+          X_CORRELATION_ID -> randomUUID,
+          X_FORWARDED_HOST -> "MDTP",
+          ACCEPT -> "application/json")
         .execute[MdgSub09Response]
         .flatMap {
 
@@ -71,13 +72,13 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.get(getUri(eori, endPoint))
+      http.get(uri(eori, endPoint))
         .setHeader(
-          "Authorization" -> appConfig.sub09BearerToken,
-          "Date" -> localDate,
-          "X-Correlation-ID" -> UUID.randomUUID().toString,
-          "X-Forwarded-Host" -> "MDTP",
-          "Accept" -> "application/json")
+          AUTHORIZATION -> appConfig.sub09BearerToken,
+          DATE -> localDate,
+          X_CORRELATION_ID -> randomUUID,
+          X_FORWARDED_HOST -> "MDTP",
+          ACCEPT -> "application/json")
         .execute[Option[MdgSub09CompanyInformationResponse]]
         .flatMap {
           response =>
@@ -94,13 +95,13 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.get(getUri(eori, endPoint))
+      http.get(uri(eori, endPoint))
         .setHeader(
-          "Authorization" -> appConfig.sub09BearerToken,
-          "Date" -> localDate,
-          "X-Correlation-ID" -> UUID.randomUUID().toString,
-          "X-Forwarded-Host" -> "MDTP",
-          "Accept" -> "application/json")
+          AUTHORIZATION -> appConfig.sub09BearerToken,
+          DATE -> localDate,
+          X_CORRELATION_ID -> randomUUID,
+          X_FORWARDED_HOST -> "MDTP",
+          ACCEPT -> "application/json")
         .execute[Option[MdgSub09XiEoriInformationResponse]]
         .flatMap {
           response =>
