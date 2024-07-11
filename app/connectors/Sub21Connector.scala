@@ -18,6 +18,7 @@ package connectors
 
 import config.AppConfig
 import models.*
+import config.Headers.AUTHORIZATION
 import play.api.http.Status.NOT_FOUND
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpErrorFunctions.notFoundMessage
@@ -38,7 +39,7 @@ class Sub21Connector @Inject()(appConfig: AppConfig,
 
     metricsReporter.withResponseTimeLogging("mdg.get.eori-history") {
       val url = url"${appConfig.sub21EORIHistoryEndpoint}$eori"
-      val headers = "Authorization" -> appConfig.sub21BearerToken
+      val headers = AUTHORIZATION -> appConfig.sub21BearerToken
 
       http.get(url).setHeader(headers)
         .execute[HistoricEoriResponse].flatMap {

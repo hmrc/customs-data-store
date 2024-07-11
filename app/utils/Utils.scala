@@ -27,8 +27,8 @@ object Utils {
   val emptyString = ""
   val singleSpace = " "
   val colon = ":"
-  
-  val randomUUID: String = java.util.UUID.randomUUID().toString
+
+  def randomUUID: String = java.util.UUID.randomUUID().toString
 
   private val acknowledgementRefLength = 32
   def acknowledgementReference: String = Random.alphanumeric.take(acknowledgementRefLength).mkString

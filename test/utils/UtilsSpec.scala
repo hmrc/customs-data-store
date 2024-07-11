@@ -16,7 +16,6 @@
 
 package utils
 
-import utils._
 import utils.Utils.*
 
 import java.net.URL
@@ -66,7 +65,7 @@ class UtilsSpec extends SpecBase {
     }
   }
 
-  "getUri" should {
+  "uri" should {
     "return correct URL" in {
       val eori = "test_eori"
       val endPoint = "http://localhost:9893/test"
