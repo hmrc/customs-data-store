@@ -40,13 +40,12 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))))
 
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         await(service.getSubscriberInformation(testEori)) mustBe None
       }
     }
-
 
     "return Some, when the timestamp is available" in new Setup {
       when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
@@ -54,7 +53,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailAndTimestamp(testEori))))
 
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         val result = await(service.getSubscriberInformation(testEori)).value
@@ -68,7 +67,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.noEmailNoTimestamp(testEori))))
 
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         await(service.getSubscriberInformation(testEori)) mustBe None
@@ -81,7 +80,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
 
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         assertThrows[ServiceUnavailableException](await(service.getSubscriberInformation(testEori)))
@@ -97,7 +96,7 @@ class Sub09ConnectorSpec extends SpecBase {
         .thenReturn(Future.successful(
           Option(mdgCompanyInformationResponse(Sub09Response.withEmailNoTimestamp(testEori)))))
 
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         await(service.getCompanyInformation(testEori)) mustBe Option(companyInformation)
@@ -110,8 +109,8 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
         .thenReturn(Future.successful(
           Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori)))))
-      
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         await(service.getCompanyInformation(testEori)) mustBe Option(companyInformationNoConsentFalse)
@@ -123,8 +122,8 @@ class Sub09ConnectorSpec extends SpecBase {
 
       when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
-      
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         await(service.getCompanyInformation(testEori)) mustBe None
@@ -140,7 +139,7 @@ class Sub09ConnectorSpec extends SpecBase {
         .thenReturn(Future.successful(
           Option(mdgXiEoriInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))))
 
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         service.getXiEoriInformation(testEori).map {
@@ -156,7 +155,7 @@ class Sub09ConnectorSpec extends SpecBase {
         .thenReturn(Future.successful(
           Option(mdgXiEoriInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))))
 
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         service.getXiEoriInformation(testEori).map {
@@ -171,7 +170,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.execute(any[HttpReads[MdgSub09XiEoriInformationResponse]], any[ExecutionContext]))
         .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
 
-      when(mockHttp.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
         service.getXiEoriInformation(testEori).map {
@@ -200,12 +199,12 @@ class Sub09ConnectorSpec extends SpecBase {
     val xiEoriInformationWithNoAddress: XiEoriInformation =
       XiEoriInformation(xiEori, consent, XiEoriAddressInformation(emptyString))
 
-    val mockHttp: HttpClientV2 = mock[HttpClientV2]
+    val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
     val requestBuilder: RequestBuilder = mock[RequestBuilder]
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val app: Application = application.overrides(
-      inject.bind[HttpClientV2].toInstance(mockHttp),
+      inject.bind[HttpClientV2].toInstance(mockHttpClient),
       inject.bind[RequestBuilder].toInstance(requestBuilder)
     ).build()
 

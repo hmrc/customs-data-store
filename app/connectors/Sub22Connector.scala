@@ -30,10 +30,10 @@ import utils.Utils.getUri
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
+import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
-import java.util.UUID
 
 class Sub22Connector @Inject()(httpClient: HttpClientV2,
                                appConfig: AppConfig,
@@ -50,8 +50,6 @@ class Sub22Connector @Inject()(httpClient: HttpClientV2,
       case Some(eori) =>
         val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
-
-        val url = url"${appConfig.sub22UpdateVerifiedEmailEndpoint}$eori"
 
         httpClient.put(getUri(eori, appConfig.sub22UpdateVerifiedEmailEndpoint))
           .setHeader(

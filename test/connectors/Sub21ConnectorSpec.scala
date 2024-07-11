@@ -20,7 +20,7 @@ import config.AppConfig
 import models.*
 import models.responses.{GetEORIHistoryResponse, ResponseCommon, ResponseDetail}
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
 import play.api
 import play.api.Application

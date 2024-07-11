@@ -17,15 +17,16 @@
 package connectors
 
 import config.AppConfig
-import models._
+import models.*
+import play.api.http.Status.NOT_FOUND
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpErrorFunctions.notFoundMessage
 import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.UpstreamErrorResponse.WithStatusCode
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException, StringContextOps}
+
 import javax.inject.Inject
-import play.api.http.Status.NOT_FOUND
-import uk.gov.hmrc.http.UpstreamErrorResponse.WithStatusCode
 import scala.concurrent.{ExecutionContext, Future}
 
 class Sub21Connector @Inject()(appConfig: AppConfig,
@@ -41,13 +42,13 @@ class Sub21Connector @Inject()(appConfig: AppConfig,
 
       http.get(url).setHeader(headers)
         .execute[HistoricEoriResponse].flatMap {
-        response => Future.successful(response.getEORIHistoryResponse.responseDetail.EORIHistory
-          .map(history => EoriPeriod(history.EORI, history.validFrom, history.validTo)))
-
-      }.recoverWith {
-        case e@WithStatusCode(NOT_FOUND) if e.message.contains(NOT_FOUND.toString) => Future.failed(
-          new NotFoundException(notFoundMessage("GET", url.toString, e.message)))
-      }
+          response =>
+            Future.successful(response.getEORIHistoryResponse.responseDetail.EORIHistory
+              .map(history => EoriPeriod(history.EORI, history.validFrom, history.validTo)))
+        }.recoverWith {
+          case e@WithStatusCode(NOT_FOUND) if e.message.contains(NOT_FOUND.toString) => Future.failed(
+            new NotFoundException(notFoundMessage("GET", url.toString, e.message)))
+        }
     }
   }
 }
