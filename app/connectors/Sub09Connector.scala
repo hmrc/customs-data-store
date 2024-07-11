@@ -17,6 +17,7 @@
 package connectors
 
 import config.AppConfig
+import config.Headers.*
 import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse}
 import models.{CompanyInformation, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
 import play.api.{Logger, LoggerLike}
@@ -25,9 +26,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
-import utils.Utils.{emptyString, uri}
-import config.Headers._
-import utils.Utils.randomUUID
+import utils.Utils.{emptyString, randomUUID, uri}
 
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -86,7 +85,8 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
               response.map(v => CompanyInformation(v.name, v.consent.getOrElse(defaultConsent), v.address))
             )
         }.recover {
-          case e => log.error(s"Failed to retrieve company information with error: $e"); None
+          case e => log.error(s"Failed to retrieve company information with error: $e")
+            None
         }
     }
   }
@@ -112,7 +112,8 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
                 v.address.getOrElse(XiEoriAddressInformation(emptyString))))
             )
         }.recover {
-          case e => log.error(s"Failed to retrieve xi eori information with error: $e"); None
+          case e => log.error(s"Failed to retrieve xi eori information with error: $e")
+            None
         }
     }
   }

@@ -17,6 +17,7 @@
 package connectors
 
 import config.AppConfig
+import config.Headers.*
 import models.UndeliverableInformation
 import models.requests.{RequestCommon, RequestDetail, Sub22UpdateVerifiedEmailRequest}
 import models.responses.UpdateVerifiedEmailResponse
@@ -26,9 +27,7 @@ import services.AuditingService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
-import utils.Utils.uri
-import config.Headers._
-import utils.Utils.randomUUID
+import utils.Utils.{randomUUID, uri}
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
