@@ -24,8 +24,6 @@ import play.api.Configuration
 import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import org.mongodb.scala.SingleObservableFuture
-import org.mongodb.scala.ToSingleObservablePublisher
 
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
@@ -33,8 +31,9 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DefaultXiEoriInformationRepository @Inject()(config: Configuration,
-                                                   mongoComponent: MongoComponent
+class DefaultXiEoriInformationRepository @Inject()(
+                                                    config: Configuration,
+                                                    mongoComponent: MongoComponent
                                                   )(implicit executionContext: ExecutionContext)
   extends PlayMongoRepository[XiEoriInformationMongo](
     collectionName = "xieori-information",
@@ -44,7 +43,7 @@ class DefaultXiEoriInformationRepository @Inject()(config: Configuration,
       IndexModel(
         ascending("lastUpdated"),
         IndexOptions().name("xieori-information-last-updated-index")
-          .expireAfter(config.get[Long]("mongodb.timeToLiveInHoursXieoriInformation"), TimeUnit.HOURS)
+          .expireAfter(config.get[Int]("mongodb.timeToLiveInHoursXieoriInformation"), TimeUnit.HOURS)
       ))
   ) with XiEoriInformationRepository {
 

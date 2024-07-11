@@ -18,15 +18,18 @@ package repositories
 
 import com.mongodb.WriteConcern
 import config.AppConfig
-import org.mongodb.scala.SingleObservableFuture
-import models.repositories.{FailedToRetrieveEmail, NotificationEmailMongo, SuccessfulEmail, UndeliverableInformationMongo}
-import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
-import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 
+import models.repositories.{
+  FailedToRetrieveEmail,
+  NotificationEmailMongo,
+  SuccessfulEmail,
+  UndeliverableInformationMongo
+}
+
+import models.{NotificationEmail, UndeliverableInformation, UndeliverableInformationEvent}
 import java.time.LocalDateTime
 import org.mongodb.scala.MongoCollection
-import play.api.{Application, inject}
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.Application
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.CollectionFactory
 import utils.SpecBase
@@ -37,10 +40,10 @@ import scala.concurrent.Future
 
 class EmailRepositorySpec extends SpecBase {
 
-  "successfully retrieve email from repository" in new Setup {
+  "successfully retrive email from repository" in new Setup {
 
     override val notificationEmail: NotificationEmail =
-      NotificationEmail("123", dateTime, Option(undeliverableInformation))
+      NotificationEmail("123", dateTime, Some(undeliverableInformation))
 
     repository.set(eori, notificationEmail).map {
       result => result mustBe SuccessfulEmail
@@ -329,14 +332,7 @@ class EmailRepositorySpec extends SpecBase {
         undeliverableInformationEvent
       )
 
-    val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
-    val requestBuilder: RequestBuilder = mock[RequestBuilder]
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
-    val app: Application = application.overrides(
-      inject.bind[HttpClientV2].toInstance(mockHttpClient),
-      inject.bind[RequestBuilder].toInstance(requestBuilder)
-    ).build()
+    val app: Application = application.build()
 
     val repository: DefaultEmailRepository = app.injector.instanceOf[DefaultEmailRepository]
 

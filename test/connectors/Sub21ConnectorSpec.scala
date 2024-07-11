@@ -17,19 +17,18 @@
 package connectors
 
 import config.AppConfig
-import models.*
+import models._
 import models.responses.{GetEORIHistoryResponse, ResponseCommon, ResponseDetail}
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api
 import play.api.Application
 import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.Json
-import play.api.test.Helpers.*
-import uk.gov.hmrc.http.*
-import uk.gov.hmrc.http.HttpErrorFunctions.notFoundMessage
-import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import play.api.test.Helpers._
+import uk.gov.hmrc.http.HttpReads.notFoundMessage
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpClient, NotFoundException, UpstreamErrorResponse}
 import utils.SpecBase
 
 import java.net.URL
@@ -40,17 +39,16 @@ import scala.concurrent.{ExecutionContext, Future}
 class Sub21ConnectorSpec extends SpecBase {
 
   "EoriHistoryConnector" should {
+
     "hit the expected URL" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext]))
+      when(mockHttp.GET[HistoricEoriResponse](actualURL.capture(), any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.successful(generateResponse(List(someEori))))
-
-      when(mockHttpClient.get(eqTo(url"${appConfig.sub21EORIHistoryEndpoint}$someEori"))(any()))
-        .thenReturn(requestBuilder)
 
       running(app) {
         await(connector.getEoriHistory(someEori))
+
+        actualURL.getValue.toString mustBe appConfig.sub21EORIHistoryEndpoint + someEori
       }
     }
 
@@ -88,12 +86,8 @@ class Sub21ConnectorSpec extends SpecBase {
            |  }
            |}""".stripMargin
 
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
-
-      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext]))
+      when(mockHttp.GET[HistoricEoriResponse](any[URL], any[Seq[(String, String)]])(any(), any(), any()))
         .thenReturn(Future.successful(Json.parse(jsonResponse).as[HistoricEoriResponse]))
-
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
 
@@ -113,17 +107,16 @@ class Sub21ConnectorSpec extends SpecBase {
       val compare: Future[Nothing] = Future.failed(
         UpstreamErrorResponse(
           notFoundMessage("GET", actualURL.toString, "error1"),
-          NOT_FOUND))
+          NOT_FOUND)
+      )
 
-      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]],
-        any[ExecutionContext])).thenReturn(compare)
-
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      when(mockHttp.GET[HistoricEoriResponse](
+        actualURL.capture(), any[Seq[(String, String)]])(any(), any(), any()))
+        .thenReturn(compare)
 
       running(app) {
         assertThrows[NotFoundException] {
-          await(connector.getEoriHistory(someEori))
+          await(connector.getEoriHistory(someEori)) mustBe 404
         }
       }
     }
@@ -140,12 +133,10 @@ class Sub21ConnectorSpec extends SpecBase {
     val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
 
     val someEori = "testEori"
-    val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
-    val requestBuilder: RequestBuilder = mock[RequestBuilder]
+    val mockHttp: HttpClient = mock[HttpClient]
 
     val app: Application = application.overrides(
-      api.inject.bind[HttpClientV2].toInstance(mockHttpClient),
-      api.inject.bind[RequestBuilder].toInstance(requestBuilder)
+      api.inject.bind[HttpClient].toInstance(mockHttp)
     ).build()
 
     val connector: Sub21Connector = app.injector.instanceOf[Sub21Connector]
@@ -156,7 +147,9 @@ class Sub21ConnectorSpec extends SpecBase {
     HistoricEoriResponse(
       GetEORIHistoryResponse(
         ResponseCommon("OK", LocalDate.now().toString),
-        ResponseDetail(generateEoriHistory(eoris))))
+        ResponseDetail(generateEoriHistory(eoris))
+      )
+    )
   }
 
   def generateEoriHistory(allEoris: Seq[String]): Seq[EORIHistory] = {
@@ -178,4 +171,5 @@ class Sub21ConnectorSpec extends SpecBase {
 
     calcHistory(allEoris, Seq.empty[EORIHistory])
   }
+
 }

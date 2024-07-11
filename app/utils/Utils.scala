@@ -16,23 +16,10 @@
 
 package utils
 
-import uk.gov.hmrc.http.StringContextOps
-
-import java.net.URL
-import scala.util.Random
-
 object Utils {
 
   val hyphen = "-"
   val emptyString = ""
   val singleSpace = " "
   val colon = ":"
-
-  def randomUUID: String = java.util.UUID.randomUUID().toString
-
-  private val acknowledgementRefLength = 32
-  def acknowledgementReference: String = Random.alphanumeric.take(acknowledgementRefLength).mkString
-
-  def uri(eori: String, endpoint: String): URL =
-    url"$endpoint?regime=CDS&acknowledgementReference=$acknowledgementReference&EORI=$eori"
 }
