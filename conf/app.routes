@@ -1,10 +1,14 @@
 # microservice specific routes
 
-GET         /eori/:eori/verified-email             controllers.VerifiedEmailController.getVerifiedEmail(eori: String)
-GET         /eori/:eori/company-information        controllers.CompanyInformationController.getCompanyInformation(eori: String)
-GET         /eori/:eori/eori-history               controllers.EoriHistoryController.getEoriHistory(eori: String)
-GET         /eori/:eori/xieori-information         controllers.XiEoriController.getXiEoriInformation(eori: String)
+GET         /eori/:eori/verified-email                  controllers.VerifiedEmailController.getVerifiedEmail(eori: String)
+GET         /eori/:eori/company-information             controllers.CompanyInformationController.getCompanyInformation(eori: String)
+GET         /eori/:eori/eori-history                    controllers.EoriHistoryController.getEoriHistory(eori: String)
+GET         /eori/:eori/xieori-information              controllers.XiEoriController.getXiEoriInformation(eori: String)
 
-POST        /update-email                          controllers.VerifiedEmailController.updateVerifiedEmail()
-POST        /update-undeliverable-email            controllers.UndeliverableEmailController.makeUndeliverable()
-POST        /update-eori-history                   controllers.EoriHistoryController.updateEoriHistory()
+POST        /update-email                               controllers.VerifiedEmailController.updateVerifiedEmail()
+POST        /update-undeliverable-email                 controllers.UndeliverableEmailController.makeUndeliverable()
+POST        /update-eori-history                        controllers.EoriHistoryController.updateEoriHistory()
+
+GET         /subscriptions/subscriptionsdisplay         controllers.SubscriptionController.getVerifiedEmail()
+GET         /subscriptions/unverified-email-display     controllers.SubscriptionController.getUnverifiedEmail()
+GET         /subscriptions/email-display                controllers.SubscriptionController.getEmail()
