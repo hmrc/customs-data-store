@@ -23,7 +23,9 @@ import play.api.test.Helpers.running
 import play.api.{Application, inject}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.SpecBase
-import models.responses.{EmailUnverifiedResponse, EmailUnverifiedResponse, ContactInformation}
+import models.responses.*
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,7 +36,7 @@ class SubscriptionServiceSpec extends SpecBase {
     "get verifiedEmail" should {
       "return verified email when there is contactInformation with timestamp" in new Setup {
         when(mockSub09Connector.getSubscriptions(EORI("Trader EORI"))).thenReturn(
-          Future.successful(subscriptionResponseWithTimestamp))
+          Future.successful(Some(subscriptionResponseWithTimestamp)))
 
         running(app) {
           val result = service.getVerifiedEmail(EORI("Trader EORI"))
@@ -46,7 +48,7 @@ class SubscriptionServiceSpec extends SpecBase {
 
       "return None when there is no contactInformation" in new Setup {
         when(mockSub09Connector.getSubscriptions(EORI("Trader EORI"))).thenReturn(
-          Future.successful(subscriptionResponse))
+          Future.successful(Some(subscriptionResponse)))
 
         running(app) {
           val result = service.getVerifiedEmail(EORI("Trader EORI"))
@@ -58,7 +60,7 @@ class SubscriptionServiceSpec extends SpecBase {
 
       "return None when there is no timestamp in contactInformation" in new Setup {
         when(mockSub09Connector.getSubscriptions(EORI("Trader EORI"))).thenReturn(
-          Future.successful(subscriptionResponseWithContactInfo))
+          Future.successful(Some(subscriptionResponseWithContactInfo)))
 
         running(app) {
           val result = service.getVerifiedEmail(EORI("Trader EORI"))
@@ -71,7 +73,8 @@ class SubscriptionServiceSpec extends SpecBase {
 
     "getEmailAddress" should {
       "return correct output when there is no contactInformation" in new Setup {
-        when(mockSub09Connector.getSubscriptions(any)).thenReturn(Future.successful(subscriptionResponse))
+        when(mockSub09Connector.getSubscriptions(any))
+          .thenReturn(Future.successful(Some(subscriptionResponse)))
 
         running(app) {
           val result: Future[EmailVerifiedResponse] = service.getEmailAddress(EORI("Trader EORI"))
@@ -83,7 +86,8 @@ class SubscriptionServiceSpec extends SpecBase {
       }
 
       "return correct output when contactInformation is available" in new Setup {
-        when(mockSub09Connector.getSubscriptions(any)).thenReturn(Future.successful(subscriptionResponseWithContactInfo))
+        when(mockSub09Connector.getSubscriptions(any))
+          .thenReturn(Future.successful(Some(subscriptionResponseWithContactInfo)))
 
         running(app) {
           val result: Future[EmailVerifiedResponse] = service.getEmailAddress(EORI("Trader EORI"))
@@ -97,7 +101,8 @@ class SubscriptionServiceSpec extends SpecBase {
 
     "getUnverifiedEmail" should {
       "return correct output when there is no contactInformation" in new Setup {
-        when(mockSub09Connector.getSubscriptions(any)).thenReturn(Future.successful(subscriptionResponse))
+        when(mockSub09Connector.getSubscriptions(any))
+          .thenReturn(Future.successful(Some(subscriptionResponse)))
 
         running(app) {
           val result: Future[EmailUnverifiedResponse] = service.getUnverifiedEmail(EORI("Trader EORI"))
@@ -109,8 +114,8 @@ class SubscriptionServiceSpec extends SpecBase {
       }
 
       "return correct output when contactInformation is available" in new Setup {
-        when(mockSub09Connector.getSubscriptions(any)).thenReturn(Future.successful(
-          subscriptionResponseWithContactInfo))
+        when(mockSub09Connector.getSubscriptions(any))
+          .thenReturn(Future.successful(Some(subscriptionResponseWithContactInfo)))
 
         running(app) {
           val result: Future[EmailUnverifiedResponse] = service.getUnverifiedEmail(EORI("Trader EORI"))
@@ -140,7 +145,7 @@ class SubscriptionServiceSpec extends SpecBase {
 
     val service: SubscriptionService = app.injector.instanceOf[SubscriptionService]
 
-    val responseCommon: ResponseCommon = ResponseCommon("OK", None, "2020-10-05T09:30:47Z", None)
+    val responseCommon: SubResponseCommon = SubResponseCommon("OK", None, "2020-10-05T09:30:47Z", None)
     val cdsEstablishmentAddress: CdsEstablishmentAddress = CdsEstablishmentAddress(
       "1 street", "Southampton", Some("SO1 1AA"), "GB")
 
@@ -151,7 +156,7 @@ class SubscriptionServiceSpec extends SpecBase {
     val xiEoriSubscription: XiSubscription = XiSubscription("XI1234567", Some(xiEoriAddress), Some("1"),
       Some("12345"), Some(Array(euVatIds)), "1", Some("abc"))
 
-    val responseDetail: ResponseDetail = ResponseDetail(Some(EORI("someEori")), None, None, "CDSFullName",
+    val responseDetail: SubResponseDetail = SubResponseDetail(Some(EORI("someEori")), None, None, "CDSFullName",
       cdsEstablishmentAddress, Some("0"), None, None, Some(Array(vatIds)),
       None, None, None, None, None, None, ETMP_Master_Indicator = true, Some(xiEoriSubscription))
 
@@ -163,9 +168,9 @@ class SubscriptionServiceSpec extends SpecBase {
     val contactInfoWithTimeStamp: ContactInformation = ContactInformation(None, None, None, None, None, None, None, None,
       emailAddress = Some(EmailAddress(emailAddress)), Some("timestamp"))
 
-    val responseDetailWithContactInfo: ResponseDetail = responseDetail.copy(contactInformation = Some(contactInfo))
+    val responseDetailWithContactInfo: SubResponseDetail = responseDetail.copy(contactInformation = Some(contactInfo))
 
-    val responseDetailWithTimestamp: ResponseDetail =
+    val responseDetailWithTimestamp: SubResponseDetail =
       responseDetail.copy(contactInformation = Some(contactInfoWithTimeStamp))
 
     val subscriptionResponse: SubscriptionResponse = SubscriptionResponse(
