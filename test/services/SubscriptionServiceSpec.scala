@@ -23,6 +23,7 @@ import play.api.test.Helpers.running
 import play.api.{Application, inject}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.SpecBase
+import models.responses.{EmailUnverifiedResponse, EmailUnverifiedResponse, ContactInformation}
 
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -25,17 +25,17 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
+import models.EORI
 
 class SubscriptionController @Inject()(service: SubscriptionService,
-                                       authorisedRequest: AuthorisedRequest,
                                        cc: ControllerComponents)
                                       (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val log: Logger = Logger(this.getClass)
 
-  def getVerifiedEmail: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
+  def getVerifiedEmail: Action[EORI] = Action.async(parse.json[EORI]) { implicit request =>
 
-    service.getVerifiedEmail(request.eori)
+    service.getVerifiedEmail(request.body)
       .map(response => Ok(Json.toJson(response)))
       .recover {
         case NonFatal(error) =>
@@ -44,9 +44,9 @@ class SubscriptionController @Inject()(service: SubscriptionService,
       }
   }
 
-  def getEmail: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
+  def getEmail: Action[EORI] = Action.async(parse.json[EORI]) { implicit request =>
 
-    service.getEmailAddress(request.eori)
+    service.getEmailAddress(request.body)
       .map(response => Ok(Json.toJson(response)))
       .recover {
         case NonFatal(error) =>
@@ -55,10 +55,10 @@ class SubscriptionController @Inject()(service: SubscriptionService,
       }
   }
 
-  def getUnverifiedEmail: Action[AnyContent] = authorisedRequest async {
-    implicit request: RequestWithEori[AnyContent] =>
+  def getUnverifiedEmail: Action[EORI] = Action.async(parse.json[EORI]) {
+    implicit request =>
 
-      service.getUnverifiedEmail(request.eori)
+      service.getUnverifiedEmail(request.body)
         .map(response => Ok(Json.toJson(response)))
         .recover {
           case NonFatal(error) =>
