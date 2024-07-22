@@ -67,5 +67,5 @@ class SubscriptionService @Inject()(sub09Connector: Sub09Connector)(implicit ec:
       }
     }
   }
-  
+
 }
