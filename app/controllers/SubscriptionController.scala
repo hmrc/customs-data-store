@@ -36,14 +36,13 @@ class SubscriptionController @Inject()(service: SubscriptionService,
   val log: Logger = Logger(this.getClass)
 
   def getVerifiedEmail: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
-    println("======== inside getVerifiedEmail =======")
     service.getVerifiedEmail(request.eori)
-        .map(response => Ok(Json.toJson(response)))
-        .recover {
-          case NonFatal(error) =>
-            log.error(s"getSubscriptions failed: ${error.getMessage}")
-            ServiceUnavailable
-        }
+      .map(response => Ok(Json.toJson(response)))
+      .recover {
+        case NonFatal(error) =>
+          log.error(s"getSubscriptions failed: ${error.getMessage}")
+          ServiceUnavailable
+      }
   }
 
   def getEmail: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
@@ -57,13 +56,13 @@ class SubscriptionController @Inject()(service: SubscriptionService,
   }
 
   def getUnverifiedEmail: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
-      service.getUnverifiedEmail(request.eori)
-        .map(response => Ok(Json.toJson(response)))
-        .recover {
-          case NonFatal(error) =>
-            log.error(s"getSubscriptions failed: ${error.getMessage}")
-            ServiceUnavailable
-        }
+    service.getUnverifiedEmail(request.eori)
+      .map(response => Ok(Json.toJson(response)))
+      .recover {
+        case NonFatal(error) =>
+          log.error(s"getSubscriptions failed: ${error.getMessage}")
+          ServiceUnavailable
+      }
   }
 
 }
