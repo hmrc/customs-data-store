@@ -39,9 +39,7 @@ class SubscriptionController @Inject()(service: SubscriptionService,
     service.getVerifiedEmail(request.eori)
       .map(response => Ok(Json.toJson(response)))
       .recover {
-        case NonFatal(error) =>
-          log.error(s"getSubscriptions failed: ${error.getMessage}")
-          ServiceUnavailable
+        case NonFatal(error) => logErrorAndReturnServiceUnavailable(error)
       }
   }
 
@@ -49,9 +47,7 @@ class SubscriptionController @Inject()(service: SubscriptionService,
     service.getEmailAddress(request.eori)
       .map(response => Ok(Json.toJson(response)))
       .recover {
-        case NonFatal(error) =>
-          log.error(s"getSubscriptions failed: ${error.getMessage}")
-          ServiceUnavailable
+        case NonFatal(error) => logErrorAndReturnServiceUnavailable(error)
       }
   }
 
@@ -59,10 +55,13 @@ class SubscriptionController @Inject()(service: SubscriptionService,
     service.getUnverifiedEmail(request.eori)
       .map(response => Ok(Json.toJson(response)))
       .recover {
-        case NonFatal(error) =>
-          log.error(s"getSubscriptions failed: ${error.getMessage}")
-          ServiceUnavailable
+        case NonFatal(error) => logErrorAndReturnServiceUnavailable(error)
       }
+  }
+
+  private def logErrorAndReturnServiceUnavailable(error: Throwable) = {
+    log.error(s"getSubscriptions failed: ${error.getMessage}")
+    ServiceUnavailable
   }
 
 }
