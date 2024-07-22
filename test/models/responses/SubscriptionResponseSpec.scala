@@ -30,11 +30,14 @@ class SubscriptionResponseSpec extends SpecBase {
 
         val actualObject: SubscriptionResponse = Json.fromJson(Json.parse(subsResponseString)).get
 
-        actualObject.subscriptionDisplayResponse.responseDetail.XI_Subscription mustBe
-          subsResponseOb.subscriptionDisplayResponse.responseDetail.XI_Subscription
+        actualObject.subscriptionDisplayResponse.responseCommon.returnParameters.get mustBe
+          subsResponseOb.subscriptionDisplayResponse.responseCommon.returnParameters.get
 
-        actualObject.subscriptionDisplayResponse.responseDetail.contactInformation mustBe
-          subsResponseOb.subscriptionDisplayResponse.responseDetail.contactInformation
+        actualObject.subscriptionDisplayResponse.responseDetail.XI_Subscription.get mustBe
+          subsResponseOb.subscriptionDisplayResponse.responseDetail.XI_Subscription.get
+
+        actualObject.subscriptionDisplayResponse.responseDetail.contactInformation.get mustBe
+          subsResponseOb.subscriptionDisplayResponse.responseDetail.contactInformation.get
 
         actualObject.subscriptionDisplayResponse.responseDetail.CDSEstablishmentAddress mustBe
           subsResponseOb.subscriptionDisplayResponse.responseDetail.CDSEstablishmentAddress
