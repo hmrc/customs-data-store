@@ -16,7 +16,22 @@
 
 package utils
 
+import models.{EORI, EmailAddress}
+
 object TestData {
-  val EMAIL_ADDRESS = "test@test.com"
-  val TEST_EORI = "test_eori"
+  val EMAIL_ADDRESS_VALUE = "test@test.com"
+  val TEST_EORI_VALUE = "test_eori"
+  val TEST_XI_EORI_VALUE = "XI_EORI_No"
+  val TEST_EORI: EORI = EORI(TEST_EORI_VALUE)
+
+  val DATE_STRING = "2024-07-22"
+  val COMPANY_NAME = "Tony Stark"
+
+  val CITY = "London"
+  val POST_CODE = "SS99 1AA"
+  val COUNTRY_CODE_GB = "GB"
+
+  val EMAIL_ADDRESS: EmailAddress = EmailAddress(EMAIL_ADDRESS_VALUE)
+  val TIMESTAMP_STRING = "2007-03-20T01:02:03Z"
+  val VAT_ID = "242"
 }
