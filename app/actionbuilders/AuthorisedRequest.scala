@@ -63,17 +63,3 @@ class CustomAuthConnector @Inject()(appConfig: AppConfig,
 
   def httpClientV2: HttpClientV2 = httpClient
 }
-
-trait ControllerChecks extends Results {
-
-  def matchingEoriNumber(eori: EORI)(fn: EORI => Future[Result])
-                        (implicit request: RequestWithEori[_]): Future[Result] = {
-    val eoriRetrievedFromAuth = request.eori.value
-
-    if (eoriRetrievedFromAuth == eori.value) {
-      fn(eori)
-    } else {
-      successful(Forbidden(s"Enrolment Identifier EORINumber $eoriRetrievedFromAuth not matched with ${eori.value}"))
-    }
-  }
-}
