@@ -28,6 +28,8 @@ class AppConfig @Inject()(val configuration: Configuration, servicesConfig: Serv
   lazy val schedulerDelay: Int = configuration.get[Int]("scheduler.initialDelaySeconds")
   lazy val schedulerMaxAttempts: Int = configuration.get[Int]("scheduler.maxAttempts")
 
+  lazy val authUrl: String = servicesConfig.baseUrl("auth")
+
   lazy val sub09GetSubscriptionsEndpoint: String =
     servicesConfig.baseUrl("sub09") / configuration.get[String](
       "microservice.services.sub09.companyInformationEndpoint")

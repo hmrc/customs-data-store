@@ -16,6 +16,7 @@
 
 package controllers
 
+import actionbuilders.{AuthorisedRequest, RequestWithEori}
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -28,14 +29,25 @@ import scala.util.control.NonFatal
 import models.EORI
 
 class SubscriptionController @Inject()(service: SubscriptionService,
+                                       authorisedRequest: AuthorisedRequest,
                                        cc: ControllerComponents)
                                       (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val log: Logger = Logger(this.getClass)
 
-  def getVerifiedEmail: Action[EORI] = Action.async(parse.json[EORI]) { implicit request =>
+  def getVerifiedEmail: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
+    println("======== inside getVerifiedEmail =======")
+    service.getVerifiedEmail(request.eori)
+        .map(response => Ok(Json.toJson(response)))
+        .recover {
+          case NonFatal(error) =>
+            log.error(s"getSubscriptions failed: ${error.getMessage}")
+            ServiceUnavailable
+        }
+  }
 
-    service.getVerifiedEmail(request.body)
+  def getEmail: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
+    service.getEmailAddress(request.eori)
       .map(response => Ok(Json.toJson(response)))
       .recover {
         case NonFatal(error) =>
@@ -44,21 +56,8 @@ class SubscriptionController @Inject()(service: SubscriptionService,
       }
   }
 
-  def getEmail: Action[EORI] = Action.async(parse.json[EORI]) { implicit request =>
-
-    service.getEmailAddress(request.body)
-      .map(response => Ok(Json.toJson(response)))
-      .recover {
-        case NonFatal(error) =>
-          log.error(s"getSubscriptions failed: ${error.getMessage}")
-          ServiceUnavailable
-      }
-  }
-
-  def getUnverifiedEmail: Action[EORI] = Action.async(parse.json[EORI]) {
-    implicit request =>
-
-      service.getUnverifiedEmail(request.body)
+  def getUnverifiedEmail: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
+      service.getUnverifiedEmail(request.eori)
         .map(response => Ok(Json.toJson(response)))
         .recover {
           case NonFatal(error) =>

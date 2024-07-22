@@ -102,6 +102,14 @@ class AppConfigSpec extends SpecBase {
     }
   }
 
+  "authUrl" should {
+    "return correct value" in new Setup {
+      import appConfig.authUrl
+
+      authUrl mustBe "http://localhost:8500"
+    }
+  }
+
   trait Setup {
     val urlStringWithoutSlashes = "abcd"
     val urlStringWithLeadingSlash = "/abcd"
