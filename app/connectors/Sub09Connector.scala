@@ -18,7 +18,8 @@ package connectors
 
 import config.AppConfig
 import config.Headers.*
-import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse, SubscriptionResponse}
+import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse,
+  SubscriptionResponse}
 import models.{CompanyInformation, EORI, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
@@ -118,7 +119,7 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     }
   }
 
-  def getSubscriptions(eori: EORI): Future[Option[SubscriptionResponse]] = {
+  def retrieveSubscriptions(eori: EORI): Future[Option[SubscriptionResponse]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {

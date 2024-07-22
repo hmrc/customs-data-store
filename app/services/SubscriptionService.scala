@@ -28,7 +28,7 @@ class SubscriptionService @Inject()(sub09Connector: Sub09Connector)(implicit ec:
 
   def getVerifiedEmail(eori: EORI): Future[EmailVerifiedResponse] = {
     for {
-      optSubscription <- sub09Connector.getSubscriptions(eori)
+      optSubscription <- sub09Connector.retrieveSubscriptions(eori)
     } yield {
       optSubscription.fold(EmailVerifiedResponse(None)) {
         subsRes =>
@@ -42,7 +42,7 @@ class SubscriptionService @Inject()(sub09Connector: Sub09Connector)(implicit ec:
 
   def getEmailAddress(eori: EORI): Future[EmailVerifiedResponse] = {
     for {
-      optSubscription <- sub09Connector.getSubscriptions(eori)
+      optSubscription <- sub09Connector.retrieveSubscriptions(eori)
     } yield {
       optSubscription.fold(EmailVerifiedResponse(None)) {
         subsRes =>
@@ -56,7 +56,7 @@ class SubscriptionService @Inject()(sub09Connector: Sub09Connector)(implicit ec:
 
   def getUnverifiedEmail(eori: EORI): Future[EmailUnverifiedResponse] = {
     for {
-      optSubscription <- sub09Connector.getSubscriptions(eori)
+      optSubscription <- sub09Connector.retrieveSubscriptions(eori)
     } yield {
       optSubscription.fold(EmailUnverifiedResponse(None)) {
         subRes =>

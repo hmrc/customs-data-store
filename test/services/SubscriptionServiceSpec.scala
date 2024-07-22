@@ -35,7 +35,7 @@ class SubscriptionServiceSpec extends SpecBase {
 
     "get verifiedEmail" should {
       "return verified email when there is contactInformation with timestamp" in new Setup {
-        when(mockSub09Connector.getSubscriptions(EORI("Trader EORI"))).thenReturn(
+        when(mockSub09Connector.retrieveSubscriptions(EORI("Trader EORI"))).thenReturn(
           Future.successful(Some(subscriptionResponseWithTimestamp)))
 
         running(app) {
@@ -47,7 +47,7 @@ class SubscriptionServiceSpec extends SpecBase {
       }
 
       "return None when there is no contactInformation" in new Setup {
-        when(mockSub09Connector.getSubscriptions(EORI("Trader EORI"))).thenReturn(
+        when(mockSub09Connector.retrieveSubscriptions(EORI("Trader EORI"))).thenReturn(
           Future.successful(Some(subscriptionResponse)))
 
         running(app) {
@@ -59,7 +59,7 @@ class SubscriptionServiceSpec extends SpecBase {
       }
 
       "return None when there is no timestamp in contactInformation" in new Setup {
-        when(mockSub09Connector.getSubscriptions(EORI("Trader EORI"))).thenReturn(
+        when(mockSub09Connector.retrieveSubscriptions(EORI("Trader EORI"))).thenReturn(
           Future.successful(Some(subscriptionResponseWithContactInfo)))
 
         running(app) {
@@ -73,7 +73,7 @@ class SubscriptionServiceSpec extends SpecBase {
 
     "getEmailAddress" should {
       "return correct output when there is no contactInformation" in new Setup {
-        when(mockSub09Connector.getSubscriptions(any))
+        when(mockSub09Connector.retrieveSubscriptions(any))
           .thenReturn(Future.successful(Some(subscriptionResponse)))
 
         running(app) {
@@ -86,7 +86,7 @@ class SubscriptionServiceSpec extends SpecBase {
       }
 
       "return correct output when contactInformation is available" in new Setup {
-        when(mockSub09Connector.getSubscriptions(any))
+        when(mockSub09Connector.retrieveSubscriptions(any))
           .thenReturn(Future.successful(Some(subscriptionResponseWithContactInfo)))
 
         running(app) {
@@ -101,7 +101,7 @@ class SubscriptionServiceSpec extends SpecBase {
 
     "getUnverifiedEmail" should {
       "return correct output when there is no contactInformation" in new Setup {
-        when(mockSub09Connector.getSubscriptions(any))
+        when(mockSub09Connector.retrieveSubscriptions(any))
           .thenReturn(Future.successful(Some(subscriptionResponse)))
 
         running(app) {
@@ -114,7 +114,7 @@ class SubscriptionServiceSpec extends SpecBase {
       }
 
       "return correct output when contactInformation is available" in new Setup {
-        when(mockSub09Connector.getSubscriptions(any))
+        when(mockSub09Connector.retrieveSubscriptions(any))
           .thenReturn(Future.successful(Some(subscriptionResponseWithContactInfo)))
 
         running(app) {
