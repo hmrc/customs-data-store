@@ -135,7 +135,7 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
           response => Future.successful(Some(response))
         }.recover {
         case e =>
-          log.error(s"Failed to retrieve xi eori information with error: $e")
+          log.error(s"Failed to retrieve SubscriptionResponse with error: $e")
           None
       }
     }
