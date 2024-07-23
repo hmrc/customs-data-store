@@ -18,8 +18,9 @@ package connectors
 
 import config.AppConfig
 import config.Headers.*
-import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse}
-import models.{CompanyInformation, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
+import models.responses.{MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse,
+  SubscriptionResponse}
+import models.{CompanyInformation, EORI, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
@@ -34,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
 class Sub09Connector @Inject()(appConfig: AppConfig,
-                               http: HttpClientV2,
+                               httpClient: HttpClientV2,
                                metricsReporter: MetricsReporterService)(implicit executionContext: ExecutionContext) {
 
   val log: LoggerLike = Logger(this.getClass)
@@ -49,7 +50,7 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.get(uri(eori, endPoint))
+      httpClient.get(uri(eori, endPoint))
         .setHeader(
           AUTHORIZATION -> appConfig.sub09BearerToken,
           DATE -> localDate,
@@ -71,7 +72,7 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.get(uri(eori, endPoint))
+      httpClient.get(uri(eori, endPoint))
         .setHeader(
           AUTHORIZATION -> appConfig.sub09BearerToken,
           DATE -> localDate,
@@ -85,9 +86,9 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
               response.map(v => CompanyInformation(v.name, v.consent.getOrElse(defaultConsent), v.address))
             )
         }.recover {
-          case e => log.error(s"Failed to retrieve company information with error: $e")
-            None
-        }
+        case e => log.error(s"Failed to retrieve company information with error: $e")
+          None
+      }
     }
   }
 
@@ -95,7 +96,7 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      http.get(uri(eori, endPoint))
+      httpClient.get(uri(eori, endPoint))
         .setHeader(
           AUTHORIZATION -> appConfig.sub09BearerToken,
           DATE -> localDate,
@@ -112,9 +113,32 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
                 v.address.getOrElse(XiEoriAddressInformation(emptyString))))
             )
         }.recover {
-          case e => log.error(s"Failed to retrieve xi eori information with error: $e")
-            None
-        }
+        case e => log.error(s"Failed to retrieve xi eori information with error: $e")
+          None
+      }
     }
   }
+
+  def retrieveSubscriptions(eori: EORI): Future[Option[SubscriptionResponse]] = {
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+
+    metricsReporter.withResponseTimeLogging(metricsResourceName) {
+      httpClient.get(uri(eori.toString, endPoint))
+        .setHeader(
+          AUTHORIZATION -> appConfig.sub09BearerToken,
+          DATE -> localDate,
+          X_CORRELATION_ID -> randomUUID,
+          X_FORWARDED_HOST -> "MDTP",
+          ACCEPT -> "application/json")
+        .execute[SubscriptionResponse]
+        .flatMap {
+          response => Future.successful(Some(response))
+        }.recover {
+        case e =>
+          log.error(s"Failed to retrieve SubscriptionResponse with error: $e")
+          None
+      }
+    }
+  }
+
 }

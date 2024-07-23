@@ -27,6 +27,7 @@ import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, ServiceUnavailableException}
 import utils.SpecBase
 import utils.Utils.emptyString
+import utils.TestData.*
 
 import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,7 +44,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        await(service.getSubscriberInformation(testEori)) mustBe None
+        await(connector.getSubscriberInformation(testEori)) mustBe None
       }
     }
 
@@ -56,7 +57,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        val result = await(service.getSubscriberInformation(testEori)).value
+        val result = await(connector.getSubscriberInformation(testEori)).value
         result.address mustBe "email@email.com"
       }
     }
@@ -70,7 +71,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        await(service.getSubscriberInformation(testEori)) mustBe None
+        await(connector.getSubscriberInformation(testEori)) mustBe None
       }
     }
 
@@ -83,7 +84,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        assertThrows[ServiceUnavailableException](await(service.getSubscriberInformation(testEori)))
+        assertThrows[ServiceUnavailableException](await(connector.getSubscriberInformation(testEori)))
       }
     }
   }
@@ -99,7 +100,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        await(service.getCompanyInformation(testEori)) mustBe Option(companyInformation)
+        await(connector.getCompanyInformation(testEori)) mustBe Option(companyInformation)
       }
     }
 
@@ -113,7 +114,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        await(service.getCompanyInformation(testEori)) mustBe Option(companyInformationNoConsentFalse)
+        await(connector.getCompanyInformation(testEori)) mustBe Option(companyInformationNoConsentFalse)
       }
     }
 
@@ -126,7 +127,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        await(service.getCompanyInformation(testEori)) mustBe None
+        await(connector.getCompanyInformation(testEori)) mustBe None
       }
     }
   }
@@ -142,7 +143,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        service.getXiEoriInformation(testEori).map {
+        connector.getXiEoriInformation(testEori).map {
           xiInfo => xiInfo mustBe Option(xiEoriInformation)
         }
       }
@@ -158,7 +159,7 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        service.getXiEoriInformation(testEori).map {
+        connector.getXiEoriInformation(testEori).map {
           xiInfo => xiInfo mustBe Option(xiEoriInformationWithNoAddress)
         }
       }
@@ -173,8 +174,41 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        service.getXiEoriInformation(testEori).map {
+        connector.getXiEoriInformation(testEori).map {
           xiInfo => xiInfo mustBe None
+        }
+      }
+    }
+  }
+
+  "retrieveSubscriptions" should {
+
+    "retrieve the subscriptions when successful response is recieved" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
+      when(requestBuilder.execute(any[HttpReads[SubscriptionResponse]], any[ExecutionContext]))
+        .thenReturn(Future.successful(Option(subsResponseOb)))
+
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+
+      running(app) {
+        connector.retrieveSubscriptions(TEST_EORI).map {
+          res => res mustBe Option(subsResponseOb)
+        }
+      }
+    }
+
+    "return None if error occurrs while retrieving the subscriptions" in new Setup {
+      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+
+      when(requestBuilder.execute(any[HttpReads[SubscriptionResponse]], any[ExecutionContext]))
+        .thenReturn(Future.failed(new ServiceUnavailableException("Error occurred")))
+
+      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+
+      running(app) {
+        connector.retrieveSubscriptions(TEST_EORI).map {
+          res => res mustBe empty
         }
       }
     }
@@ -199,6 +233,75 @@ class Sub09ConnectorSpec extends SpecBase {
     val xiEoriInformationWithNoAddress: XiEoriInformation =
       XiEoriInformation(xiEori, consent, XiEoriAddressInformation(emptyString))
 
+    val status = "test_status"
+    val statusText = "test_status_text"
+    val endDate = "2024-10-22"
+    val paramName = "POSITION"
+    val paramValue = "LINK"
+    val returnParameters: Array[ReturnParameters] = Seq(ReturnParameters(paramName, paramValue)).toArray
+    val vatIds: Array[VatId] = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID))).toArray
+
+    val cdsEstablishmentAddress: CdsEstablishmentAddress = CdsEstablishmentAddress(
+      streetAndNumber = "86 Mysore Road",
+      city = CITY,
+      postalCode = Some("SW11 5RZ"),
+      countryCode = "GB")
+
+    val pbeAddress: PbeAddress = PbeAddress(
+      pbeAddressLine1 = "address line 1",
+      pbeAddressLine2 = Some("address line 2"),
+      pbeAddressLine3 = Some("city 1"),
+      pbeAddressLine4 = None,
+      pbePostCode = Some(POST_CODE))
+
+    val xiSubscription: XiSubscription = XiSubscription(
+      XI_EORINo = TEST_XI_EORI_VALUE,
+      PBEAddress = Some(pbeAddress),
+      establishmentInTheCustomsTerritoryOfTheUnion = Some("1"),
+      XI_VATNumber = Some("GB123456789"),
+      EU_VATNumber = None,
+      XI_ConsentToDisclose = "S",
+      XI_SICCode = Some("7600"))
+
+    val contactInformation: ContactInformation = ContactInformation(
+      personOfContact = Some("Pepper_Pott"),
+      sepCorrAddrIndicator = None,
+      streetAndNumber = Some("2nd floor, Alexander House"),
+      city = Some(CITY),
+      postalCode = Some(POST_CODE),
+      countryCode = Some(COUNTRY_CODE_GB),
+      telephoneNumber = Some("01702215001"),
+      faxNumber = Some("01702215002"),
+      emailAddress = Some(EMAIL_ADDRESS),
+      emailVerificationTimestamp = Some(TIMESTAMP_STRING))
+
+    val responseCommon: SubResponseCommon = SubResponseCommon(status = status,
+      statusText = Some(statusText),
+      processingDate = DATE_STRING,
+      returnParameters = Some(returnParameters))
+
+    val responseDetail: SubResponseDetail = SubResponseDetail(
+      EORINo = Some(TEST_EORI),
+      EORIStartDate = Some(DATE_STRING),
+      EORIEndDate = Some(endDate),
+      CDSFullName = COMPANY_NAME,
+      CDSEstablishmentAddress = cdsEstablishmentAddress,
+      establishmentInTheCustomsTerritoryOfTheUnion = Some("0"),
+      typeOfLegalEntity = Some("0001"),
+      contactInformation = Some(contactInformation),
+      VATIDs = Some(vatIds),
+      thirdCountryUniqueIdentificationNumber = Some(Seq("321", "222").toArray),
+      consentToDisclosureOfPersonalData = Some("1"),
+      shortName = Some("Robinson"),
+      dateOfEstablishment = Some("1963-04-01"),
+      typeOfPerson = Some("1"),
+      principalEconomicActivity = Some("2000"),
+      ETMP_Master_Indicator = true,
+      XI_Subscription = Some(xiSubscription))
+
+    val subsDisplayResOb: SubscriptionDisplayResponse = SubscriptionDisplayResponse(responseCommon, responseDetail)
+    val subsResponseOb: SubscriptionResponse = SubscriptionResponse(subsDisplayResOb)
+
     val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
     val requestBuilder: RequestBuilder = mock[RequestBuilder]
     implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -208,7 +311,7 @@ class Sub09ConnectorSpec extends SpecBase {
       inject.bind[RequestBuilder].toInstance(requestBuilder)
     ).build()
 
-    val service: Sub09Connector = app.injector.instanceOf[Sub09Connector]
+    val connector: Sub09Connector = app.injector.instanceOf[Sub09Connector]
 
     def mdgResponse(value: JsValue): MdgSub09Response = MdgSub09Response.sub09Reads.reads(value).get
 
