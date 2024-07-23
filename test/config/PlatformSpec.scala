@@ -16,7 +16,8 @@
 
 package config
 
-import config.Platform.*
+import _root_.config.Platform.*
+import utils.SpecBase
 
 class PlatformSpec extends SpecBase {
 
