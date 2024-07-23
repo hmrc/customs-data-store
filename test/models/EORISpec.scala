@@ -35,6 +35,18 @@ class EORISpec extends SpecBase {
     }
   }
 
+  "pathBinder" should {
+    import EORI.pathBinder
+
+    "bind the value correctly" in {
+      pathBinder.bind("EORI", TEST_EORI_VALUE) mustBe Right(EORI(TEST_EORI_VALUE))
+    }
+
+    "unbind the value correctly" in {
+      pathBinder.unbind("EORI", EORI(TEST_EORI_VALUE)) mustBe TEST_EORI_VALUE
+    }
+  }
+
   trait Setup {
     val eori: EORI = EORI(TEST_EORI_VALUE)
   }
