@@ -32,8 +32,8 @@ import repositories.EmailRepository
 
 class SubscriptionController @Inject()(service: SubscriptionService,
                                        authorisedRequest: AuthorisedRequest,
-                                       cc: ControllerComponents,
-                                       emailRepository: EmailRepository)
+                                       emailRepository: EmailRepository,
+                                       cc: ControllerComponents)
                                       (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   val log: Logger = Logger(this.getClass)
