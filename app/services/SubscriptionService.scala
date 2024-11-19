@@ -37,15 +37,17 @@ class SubscriptionService @Inject()(emailRepository: EmailRepository,
       case Some(notificationEmail) => Future.successful(
         EmailVerifiedResponse(Some(EmailAddress(notificationEmail.address))))
 
-      case None => processEmailVerificationTimestampFromETMP(eori)
+      case None => fetchAndUpdateEmailFromETMP(eori)
     }
   }
 
-  private def processEmailVerificationTimestampFromETMP(eori: EORI): Future[EmailVerifiedResponse] = {
+  private def fetchAndUpdateEmailFromETMP(eori: EORI): Future[EmailVerifiedResponse] = {
 
     getContactDetailsFromETMP(eori).flatMap {
       case Some(contactInfo) if contactInfo.emailVerificationTimestamp.isDefined =>
-        updateNotificationEmailInRepo(eori.value, contactInfo)
+        updateNotificationEmailInRepo(eori.value, contactInfo).map { _ =>
+          EmailVerifiedResponse(contactInfo.emailAddress)
+        }
 
       case _ => Future.successful(EmailVerifiedResponse(None))
     }
@@ -59,12 +61,12 @@ class SubscriptionService @Inject()(emailRepository: EmailRepository,
   }
 
   private def updateNotificationEmailInRepo(eori: String,
-                                            contactInfo: ContactInformation): Future[EmailVerifiedResponse] = {
+                                            contactInfo: ContactInformation): Future[NotificationEmail] = {
     val localDateTime = LocalDateTime.parse(
       contactInfo.emailVerificationTimestamp.get, DateTimeFormatter.ISO_DATE_TIME)
 
-    emailRepository.set(eori, NotificationEmail(contactInfo.emailAddress.get.value, localDateTime, None))
-    Future.successful(EmailVerifiedResponse(contactInfo.emailAddress))
+    val notificationEmail = NotificationEmail(contactInfo.emailAddress.get.value, localDateTime, None)
+    emailRepository.set(eori, notificationEmail).map(_ => notificationEmail)
   }
 
   def getEmailAddress(eori: EORI): Future[EmailVerifiedResponse] = {
