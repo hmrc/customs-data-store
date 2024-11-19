@@ -17,7 +17,8 @@
 package services
 
 import connectors.Sub09Connector
-import models.{EORI, EmailAddress}
+import models.repositories.SuccessfulEmail
+import models.{EORI, EmailAddress, NotificationEmail}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
 import play.api.{Application, inject}
@@ -25,8 +26,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.SpecBase
 import models.responses.*
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito
+import org.mockito.Mockito.{times, verify, when}
+import repositories.EmailRepository
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{ExecutionContext, Future}
 
 class SubscriptionServiceSpec extends SpecBase {
@@ -34,7 +39,12 @@ class SubscriptionServiceSpec extends SpecBase {
   "SubscriptionService" when {
 
     "get verifiedEmail" should {
-      "return verified email when there is contactInformation with timestamp" in new Setup {
+
+      "return verified email with timestamp from ETMP if the data is unavailable in cache" in new Setup {
+
+        when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
+        when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
+
         when(mockSub09Connector.retrieveSubscriptions(EORI("Trader EORI"))).thenReturn(
           Future.successful(Some(subscriptionResponseWithTimestamp)))
 
@@ -43,10 +53,34 @@ class SubscriptionServiceSpec extends SpecBase {
           result.map {
             ev => ev mustBe EmailVerifiedResponse(Option(EmailAddress(emailAddress)))
           }
+
+          verify(mockEmailRepository, times(1)).set(any(), any())
+          verify(mockEmailRepository, times(1)).get(any())
+          verify(mockSub09Connector, times(1)).retrieveSubscriptions(any())
         }
       }
 
-      "return None when there is no contactInformation" in new Setup {
+      "return verified email if the data is available in cache" in new Setup {
+
+        when(mockEmailRepository.get(any())).thenReturn(Future.successful(Some(notificationEmail)))
+
+        running(app) {
+          val result = service.getVerifiedEmail(EORI("Trader EORI"))
+          result.map {
+            ev => ev mustBe EmailVerifiedResponse(Option(EmailAddress(emailAddress)))
+          }
+
+          verify(mockEmailRepository, times(0)).set(any(), any())
+          verify(mockEmailRepository, times(1)).get(any())
+          verify(mockSub09Connector, times(0)).retrieveSubscriptions(any())
+        }
+      }
+
+      "return None if the data is unavailable in cache and there is no contactInformation from ETMP" in new Setup {
+
+        when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
+        when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
+
         when(mockSub09Connector.retrieveSubscriptions(EORI("Trader EORI"))).thenReturn(
           Future.successful(Some(subscriptionResponse)))
 
@@ -55,10 +89,18 @@ class SubscriptionServiceSpec extends SpecBase {
           result.map {
             ev => ev mustBe EmailVerifiedResponse(None)
           }
+
+          verify(mockEmailRepository, times(0)).set(any(), any())
+          verify(mockEmailRepository, times(1)).get(any())
+          verify(mockSub09Connector, times(1)).retrieveSubscriptions(any())
         }
       }
 
-      "return None when there is no timestamp in contactInformation" in new Setup {
+      "return None if there is no timestamp in contactInformation" in new Setup {
+
+        when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
+        when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
+
         when(mockSub09Connector.retrieveSubscriptions(EORI("Trader EORI"))).thenReturn(
           Future.successful(Some(subscriptionResponseWithContactInfo)))
 
@@ -67,6 +109,10 @@ class SubscriptionServiceSpec extends SpecBase {
           result.map {
             ev => ev mustBe EmailVerifiedResponse(None)
           }
+
+          verify(mockEmailRepository, times(0)).set(any(), any())
+          verify(mockEmailRepository, times(1)).get(any())
+          verify(mockSub09Connector, times(1)).retrieveSubscriptions(any())
         }
       }
     }
@@ -134,18 +180,24 @@ class SubscriptionServiceSpec extends SpecBase {
 
     val eori: EORI = EORI("testEORI")
     val mockSub09Connector: Sub09Connector = mock[Sub09Connector]
+    val mockEmailRepository: EmailRepository = mock[EmailRepository]
 
     val app: Application = GuiceApplicationBuilder().overrides(
-      inject.bind[Sub09Connector].toInstance(mockSub09Connector)
+      inject.bind[Sub09Connector].toInstance(mockSub09Connector),
+      inject.bind[EmailRepository].toInstance(mockEmailRepository)
     ).configure(
       "microservice.metrics.enabled" -> false,
       "metrics.enabled" -> false,
       "auditing.enabled" -> false
     ).build()
 
+
+    val dateTimeString: String = "2020-10-05T09:30:47Z"
+    val dateTime: LocalDateTime = LocalDateTime.parse(dateTimeString, DateTimeFormatter.ISO_DATE_TIME)
+
     val service: SubscriptionService = app.injector.instanceOf[SubscriptionService]
 
-    val responseCommon: SubResponseCommon = SubResponseCommon("OK", None, "2020-10-05T09:30:47Z", None)
+    val responseCommon: SubResponseCommon = SubResponseCommon("OK", None, dateTimeString, None)
     val cdsEstablishmentAddress: CdsEstablishmentAddress = CdsEstablishmentAddress(
       "1 street", "Southampton", Some("SO1 1AA"), "GB")
 
@@ -160,13 +212,13 @@ class SubscriptionServiceSpec extends SpecBase {
       cdsEstablishmentAddress, Some("0"), None, None, Some(Array(vatIds)),
       None, None, None, None, None, None, ETMP_Master_Indicator = true, Some(xiEoriSubscription))
 
-    val emailAddress = "test@gmil.com"
+    val emailAddress: String = "test@gmil.com"
 
     val contactInfo: ContactInformation = ContactInformation(None, None, None, None, None, None, None, None,
       emailAddress = Some(EmailAddress(emailAddress)), None)
 
     val contactInfoWithTimeStamp: ContactInformation = ContactInformation(None, None, None, None, None, None, None, None,
-      emailAddress = Some(EmailAddress(emailAddress)), Some("timestamp"))
+      emailAddress = Some(EmailAddress(emailAddress)), Some(dateTimeString))
 
     val responseDetailWithContactInfo: SubResponseDetail = responseDetail.copy(contactInformation = Some(contactInfo))
 
@@ -181,5 +233,7 @@ class SubscriptionServiceSpec extends SpecBase {
 
     val subscriptionResponseWithTimestamp: SubscriptionResponse = SubscriptionResponse(
       SubscriptionDisplayResponse(responseCommon, responseDetailWithTimestamp))
+
+    val notificationEmail: NotificationEmail = NotificationEmail(emailAddress, dateTime, None)
   }
 }

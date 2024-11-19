@@ -17,27 +17,54 @@
 package services
 
 import connectors.Sub09Connector
-import models.EORI
+import models.{EORI, EmailAddress, NotificationEmail}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import models.responses.{EmailUnverifiedResponse, EmailVerifiedResponse, SubscriptionResponse}
+import models.responses.{ContactInformation, EmailUnverifiedResponse, EmailVerifiedResponse}
+import repositories.EmailRepository
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Singleton
-class SubscriptionService @Inject()(sub09Connector: Sub09Connector)(implicit ec: ExecutionContext) {
+class SubscriptionService @Inject()(emailRepository: EmailRepository,
+                                    sub09Connector: Sub09Connector)(implicit ec: ExecutionContext) {
 
   def getVerifiedEmail(eori: EORI): Future[EmailVerifiedResponse] = {
-    for {
-      optSubscription <- sub09Connector.retrieveSubscriptions(eori)
-    } yield {
-      optSubscription.fold(EmailVerifiedResponse(None)) {
-        subsRes =>
-          subsRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
-            case Some(ci) if ci.emailVerificationTimestamp.isDefined => EmailVerifiedResponse(ci.emailAddress)
-            case _ => EmailVerifiedResponse(None)
-          }
-      }
+
+    emailRepository.get(eori.value).flatMap {
+      case Some(notificationEmail) => Future.successful(
+        EmailVerifiedResponse(Some(EmailAddress(notificationEmail.address))))
+
+      case None => processEmailVerificationTimestampFromETMP(eori)
     }
+  }
+
+  private def processEmailVerificationTimestampFromETMP(eori: EORI): Future[EmailVerifiedResponse] = {
+
+    getContactDetailsFromETMP(eori).flatMap {
+      case Some(contactInfo) if contactInfo.emailVerificationTimestamp.isDefined =>
+        updateNotificationEmailInRepo(eori.value, contactInfo)
+
+      case _ => Future.successful(EmailVerifiedResponse(None))
+    }
+  }
+
+  private def getContactDetailsFromETMP(eori: EORI): Future[Option[ContactInformation]] = {
+
+    sub09Connector.retrieveSubscriptions(eori).map {
+      _.flatMap(subsRes => subsRes.subscriptionDisplayResponse.responseDetail.contactInformation)
+    }
+  }
+
+  private def updateNotificationEmailInRepo(eori: String,
+                                            contactInfo: ContactInformation): Future[EmailVerifiedResponse] = {
+    val localDateTime = LocalDateTime.parse(
+      contactInfo.emailVerificationTimestamp.get, DateTimeFormatter.ISO_DATE_TIME)
+
+    emailRepository.set(eori, NotificationEmail(contactInfo.emailAddress.get.value, localDateTime, None))
+    Future.successful(EmailVerifiedResponse(contactInfo.emailAddress))
   }
 
   def getEmailAddress(eori: EORI): Future[EmailVerifiedResponse] = {
