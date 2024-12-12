@@ -21,7 +21,7 @@ import models.EORI
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import models.responses.{EmailUnverifiedResponse, EmailVerifiedResponse, SubscriptionResponse}
+import models.responses.{EmailUnverifiedResponse, EmailVerifiedResponse}
 
 @Singleton
 class SubscriptionService @Inject() (sub09Connector: Sub09Connector)(implicit ec: ExecutionContext) {

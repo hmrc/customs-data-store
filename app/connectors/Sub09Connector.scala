@@ -26,14 +26,13 @@ import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
 import utils.Utils.{emptyString, randomUUID, uri}
 
 import java.time.LocalDateTime
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Random
 
 class Sub09Connector @Inject() (
   appConfig: AppConfig,

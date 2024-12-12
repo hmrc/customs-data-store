@@ -210,6 +210,6 @@ object Sub09Response {
        |  }
        |}
     """.stripMargin.replace(eoriKey, eori)
-    // scalastyle:on
+  // scalastyle:on
 
 }

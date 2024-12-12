@@ -28,7 +28,6 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.Inject
-import scala.concurrent.Future.successful
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthorisedRequest @Inject() (override val authConnector: CustomAuthConnector, cc: ControllerComponents)(implicit

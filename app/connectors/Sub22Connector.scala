@@ -25,8 +25,8 @@ import play.api.Logging
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import services.AuditingService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
-import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
-import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.HeaderCarrier
 import utils.Utils.{randomUUID, uri}
 
 import java.time.format.DateTimeFormatter
