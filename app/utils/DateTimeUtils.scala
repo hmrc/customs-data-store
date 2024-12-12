@@ -31,12 +31,11 @@ object DateTimeUtils {
     DateTimeFormatter.ofPattern(rfc1123DateTimePattern).withZone(ZoneId.systemDefault())
 
   def dateTimeWritesIsoUtc: Writes[LocalDateTime] = (d: java.time.LocalDateTime) =>
-    JsString(d.atOffset(ZoneOffset.UTC).truncatedTo(
-      ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_DATE_TIME))
+    JsString(d.atOffset(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_DATE_TIME))
 
-  def appendDefaultSecondsInDateTime(incomingDateTimeString: String):String = {
+  def appendDefaultSecondsInDateTime(incomingDateTimeString: String): String = {
     val dateTimeStringSplitList = incomingDateTimeString.split(colon)
 
-    if(dateTimeStringSplitList.size > 2) incomingDateTimeString else s"$incomingDateTimeString:00"
+    if (dateTimeStringSplitList.size > 2) incomingDateTimeString else s"$incomingDateTimeString:00"
   }
 }

@@ -30,36 +30,39 @@ import repositories.EmailRepository
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class VerifiedEmailController @Inject()(emailRepo: EmailRepository,
-                                        subscriptionInfoConnector: Sub09Connector,
-                                        cc: ControllerComponents)
-                                       (implicit executionContext: ExecutionContext) extends BackendController(cc) {
+class VerifiedEmailController @Inject() (
+  emailRepo: EmailRepository,
+  subscriptionInfoConnector: Sub09Connector,
+  cc: ControllerComponents
+)(implicit executionContext: ExecutionContext)
+    extends BackendController(cc) {
 
   def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async {
-    def retrieveAndStoreEmail: Future[Result] = {
+    def retrieveAndStoreEmail: Future[Result] =
       (for {
         notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
-        result <- OptionT.liftF(emailRepo.set(eori, notificationEmail).map {
-          case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
-          case _ => InternalServerError
-        })
+        result            <- OptionT.liftF(emailRepo.set(eori, notificationEmail).map {
+                               case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
+                               case _               => InternalServerError
+                             })
       } yield result).getOrElse(NotFound)
-    }
 
     emailRepo.get(eori).flatMap {
       case Some(value) => Future.successful(Ok(Json.toJson(value)))
-      case None => retrieveAndStoreEmail
+      case None        => retrieveAndStoreEmail
     }
   }
 
   def updateVerifiedEmail(): Action[UpdateVerifiedEmailRequest] =
     Action.async(parse.json[UpdateVerifiedEmailRequest]) { implicit request =>
-      emailRepo.set(
-        request.body.eori,
-        NotificationEmail(request.body.address, request.body.timestamp, None)
-      ).map {
-        case SuccessfulEmail => NoContent
-        case _ => InternalServerError
-      }
+      emailRepo
+        .set(
+          request.body.eori,
+          NotificationEmail(request.body.address, request.body.timestamp, None)
+        )
+        .map {
+          case SuccessfulEmail => NoContent
+          case _               => InternalServerError
+        }
     }
 }

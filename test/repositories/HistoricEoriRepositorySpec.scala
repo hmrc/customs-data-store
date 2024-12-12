@@ -38,17 +38,17 @@ class HistoricEoriRepositorySpec extends SpecBase {
     "not retrieve trader information when the store is empty" in new Setup {
       await(for {
         eoris1 <- repository.get(period1.eori)
-        _ <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        _      <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
         eoris2 <- repository.get(period2.eori)
-        _ <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        _      <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
       } yield {})
     }
 
     "fail to UpdateHistoricEori" in new Setup {
       val eoriHistory: Seq[EoriPeriod] = Seq(period1, period2)
 
-      repoWithUnacknowledgedWrite.set(eoriHistory).map {
-        result => result mustBe FailedToUpdateHistoricEori
+      repoWithUnacknowledgedWrite.set(eoriHistory).map { result =>
+        result mustBe FailedToUpdateHistoricEori
       }
     }
 
@@ -56,41 +56,41 @@ class HistoricEoriRepositorySpec extends SpecBase {
       val history: EoriHistory = EoriHistory(Seq(period1, period2), LocalDateTime.now)
 
       await(for {
-        _ <- repository.set(Seq(period1, period2))
-        _ <- repository.set(Seq(period4, period5))
+        _  <- repository.set(Seq(period1, period2))
+        _  <- repository.set(Seq(period4, period5))
         t1 <- repository.get(period1.eori)
         t2 <- repository.get(period2.eori)
-        _ <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
-        _ <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
-        _ <- repository.collection.drop().toFuture().map(_ => ())
+        _  <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- repository.collection.drop().toFuture().map(_ => ())
       } yield ())
     }
 
     "retrieve trader information by the latest historic eori" in new Setup {
       await(for {
-        _ <- repository.set(Seq(period1, period3))
+        _     <- repository.set(Seq(period1, period3))
         eoris <- repository.get(period1.eori)
-        _ <- toFuture(eoris.getOrElse(Seq()) mustBe Seq(period1, period3))
-        _ <- repository.collection.drop().toFuture().map(_ => ())
+        _     <- toFuture(eoris.getOrElse(Seq()) mustBe Seq(period1, period3))
+        _     <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
 
     "retrieve trader information by the earliest historic eori" in new Setup {
       await(for {
-        _ <- repository.set(Seq(period1, period3))
+        _     <- repository.set(Seq(period1, period3))
         eoris <- repository.get(period3.eori)
-        _ <- toFuture(eoris.getOrElse(Seq()) mustBe Seq(period1, period3))
-        _ <- repository.collection.drop().toFuture().map(_ => ())
+        _     <- toFuture(eoris.getOrElse(Seq()) mustBe Seq(period1, period3))
+        _     <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
 
     "not retrieve trader information for eoris that are not historic eoris" in new Setup {
       await(for {
         eoris1 <- repository.get(period4.eori)
-        _ <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        _      <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
         eoris2 <- repository.get(period5.eori)
-        _ <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
-        _ <- repository.collection.drop().toFuture().map(_ => ())
+        _      <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        _      <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
   }
@@ -120,14 +120,11 @@ class HistoricEoriRepositorySpec extends SpecBase {
 }
 
 @Singleton
-class DefaultHistoricEoriRepoWithUnacknowledgedWrite @Inject()()(mongoComponent: MongoComponent,
-                                                                 config: Configuration)
-  extends DefaultHistoricEoriRepository()(mongoComponent, config) {
+class DefaultHistoricEoriRepoWithUnacknowledgedWrite @Inject() ()(mongoComponent: MongoComponent, config: Configuration)
+    extends DefaultHistoricEoriRepository()(mongoComponent, config) {
 
   override lazy val collection: MongoCollection[EoriHistory] =
-    CollectionFactory.collection(
-      mongoComponent.database,
-      collectionName,
-      domainFormat,
-      Seq.empty).withWriteConcern(WriteConcern.UNACKNOWLEDGED)
+    CollectionFactory
+      .collection(mongoComponent.database, collectionName, domainFormat, Seq.empty)
+      .withWriteConcern(WriteConcern.UNACKNOWLEDGED)
 }

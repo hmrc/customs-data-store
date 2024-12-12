@@ -60,16 +60,16 @@ class EmailVerifiedResponseSpec extends SpecBase {
   }
 
   trait Setup {
-    val emailVerifiedResString: String = """{"verifiedEmail":"test@test.com"}""".stripMargin
+    val emailVerifiedResString: String            = """{"verifiedEmail":"test@test.com"}""".stripMargin
     val emailVerifiedResStringWithNoEmail: String = """{}""".stripMargin
 
-    val emailUnverifiedResString: String = """{"unVerifiedEmail":"test@test.com"}""".stripMargin
+    val emailUnverifiedResString: String            = """{"unVerifiedEmail":"test@test.com"}""".stripMargin
     val emailUnverifiedResStringWithNoEmail: String = """{}""".stripMargin
 
-    val emailVerifiedOb: EmailVerifiedResponse = EmailVerifiedResponse(Some(EmailAddress(EMAIL_ADDRESS_VALUE)))
+    val emailVerifiedOb: EmailVerifiedResponse            = EmailVerifiedResponse(Some(EmailAddress(EMAIL_ADDRESS_VALUE)))
     val emailVerifiedObWithNoEmail: EmailVerifiedResponse = EmailVerifiedResponse(None)
 
-    val emailUnverifiedOb: EmailUnverifiedResponse = EmailUnverifiedResponse(Some(EmailAddress(EMAIL_ADDRESS_VALUE)))
+    val emailUnverifiedOb: EmailUnverifiedResponse            = EmailUnverifiedResponse(Some(EmailAddress(EMAIL_ADDRESS_VALUE)))
     val emailUnverifiedObWithNoEmail: EmailUnverifiedResponse = EmailUnverifiedResponse(None)
   }
 }

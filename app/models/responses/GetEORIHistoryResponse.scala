@@ -18,8 +18,7 @@ package models.responses
 
 import play.api.libs.json.{Json, OFormat}
 
-case class GetEORIHistoryResponse(responseCommon: ResponseCommon,
-                                  responseDetail: ResponseDetail)
+case class GetEORIHistoryResponse(responseCommon: ResponseCommon, responseDetail: ResponseDetail)
 
 object GetEORIHistoryResponse {
   implicit val getEORIHistoryResponseFormat: OFormat[GetEORIHistoryResponse] = Json.format[GetEORIHistoryResponse]

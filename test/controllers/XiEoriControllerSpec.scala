@@ -86,16 +86,18 @@ class XiEoriControllerSpec extends SpecBase {
       XiEoriAddressInformation("12 Example Street", Some("Example"), Some("GB"), None, Some("AA00 0AA"))
 
     val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", xiEoriAddressInformation)
-    val eori: String = "testEori"
+    val eori: String                         = "testEori"
 
     val getRoute: String = routes.XiEoriController.getXiEoriInformation(eori).url
 
     val mockXiEoriInformationRepository: XiEoriInformationRepository = mock[XiEoriInformationRepository]
-    val mockSubscriptionInfoConnector: Sub09Connector = mock[Sub09Connector]
+    val mockSubscriptionInfoConnector: Sub09Connector                = mock[Sub09Connector]
 
-    val app: Application = application.overrides(
-      inject.bind[XiEoriInformationRepository].toInstance(mockXiEoriInformationRepository),
-      inject.bind[Sub09Connector].toInstance(mockSubscriptionInfoConnector)
-    ).build()
+    val app: Application = application
+      .overrides(
+        inject.bind[XiEoriInformationRepository].toInstance(mockXiEoriInformationRepository),
+        inject.bind[Sub09Connector].toInstance(mockSubscriptionInfoConnector)
+      )
+      .build()
   }
 }

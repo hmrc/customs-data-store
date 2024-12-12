@@ -38,6 +38,6 @@ class AuthorisedRequestSpec extends SpecBase {
     val app: Application = application.build()
 
     val customAuthConnector: CustomAuthConnector = app.injector.instanceOf[CustomAuthConnector]
-    val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
+    val appConfig: AppConfig                     = app.injector.instanceOf[AppConfig]
   }
 }

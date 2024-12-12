@@ -18,6 +18,4 @@ package models
 
 import play.api.libs.json.JsValue
 
-case class AuditModel(transactionName: String,
-                      detail: JsValue,
-                      auditType: String)
+case class AuditModel(transactionName: String, detail: JsValue, auditType: String)

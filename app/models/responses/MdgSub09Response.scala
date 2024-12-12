@@ -20,13 +20,11 @@ import java.time.LocalDateTime
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-  case class MdgSub09Response(emailAddress: Option[String],
-                              verifiedTimestamp: Option[LocalDateTime])
+case class MdgSub09Response(emailAddress: Option[String], verifiedTimestamp: Option[LocalDateTime])
 
 object MdgSub09Response {
 
   implicit val sub09Reads: Reads[MdgSub09Response] =
     ((JsPath \\ "emailAddress").readNullable[String] and
-      (JsPath \\ "emailVerificationTimestamp").readNullable[LocalDateTime]
-      )(MdgSub09Response.apply _)
+      (JsPath \\ "emailVerificationTimestamp").readNullable[LocalDateTime])(MdgSub09Response.apply _)
 }

@@ -19,25 +19,26 @@ package models
 import java.time.LocalDateTime
 import play.api.libs.json._
 
-case class UndeliverableInformation(subject: String,
-                                    eventId: String,
-                                    groupId: String,
-                                    timestamp: LocalDateTime,
-                                    event: UndeliverableInformationEvent) {
+case class UndeliverableInformation(
+  subject: String,
+  eventId: String,
+  groupId: String,
+  timestamp: LocalDateTime,
+  event: UndeliverableInformationEvent
+) {
 
-  def toAuditDetail: JsObject = {
+  def toAuditDetail: JsObject =
     Json.obj(
-      "subject" -> subject,
-      "eventId" -> eventId,
-      "groupId" -> groupId,
+      "subject"   -> subject,
+      "eventId"   -> eventId,
+      "groupId"   -> groupId,
       "timestamp" -> s"${timestamp.toString}Z",
-      "event" -> event.toAuditDetail
+      "event"     -> event.toAuditDetail
     )
-  }
 
   def extractEori: Option[String] = event.enrolment.split('~') match {
     case Array(identifier, key, value) if validEnrolment(identifier, key) => Some(value)
-    case _ => None
+    case _                                                                => None
   }
 
   private def validEnrolment(enrolmentIdentifier: String, enrolmentKey: String): Boolean =
@@ -45,6 +46,6 @@ case class UndeliverableInformation(subject: String,
 }
 
 object UndeliverableInformation {
-  implicit val reads: Reads[UndeliverableInformation] = Json.reads[UndeliverableInformation]
+  implicit val reads: Reads[UndeliverableInformation]    = Json.reads[UndeliverableInformation]
   implicit val writes: OWrites[UndeliverableInformation] = Json.writes[UndeliverableInformation]
 }

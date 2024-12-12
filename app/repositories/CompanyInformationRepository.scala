@@ -32,20 +32,22 @@ import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.ToSingleObservablePublisher
 
 @Singleton
-class DefaultCompanyInformationRepository @Inject()(config: Configuration,
-                                                    mongoComponent: MongoComponent
-                                                   )(implicit executionContext: ExecutionContext)
-  extends PlayMongoRepository[CompanyInformationMongo](
-    collectionName = "business-information",
-    mongoComponent = mongoComponent,
-    domainFormat = CompanyInformationMongo.format,
-    indexes = Seq(
-      IndexModel(
-        ascending("lastUpdated"),
-        IndexOptions().name("business-information-last-updated-index")
-          .expireAfter(config.get[Long]("mongodb.timeToLiveInHoursBusinessInformation"), TimeUnit.HOURS)
-      ))
-  ) with CompanyInformationRepository {
+class DefaultCompanyInformationRepository @Inject() (config: Configuration, mongoComponent: MongoComponent)(implicit
+  executionContext: ExecutionContext
+) extends PlayMongoRepository[CompanyInformationMongo](
+      collectionName = "business-information",
+      mongoComponent = mongoComponent,
+      domainFormat = CompanyInformationMongo.format,
+      indexes = Seq(
+        IndexModel(
+          ascending("lastUpdated"),
+          IndexOptions()
+            .name("business-information-last-updated-index")
+            .expireAfter(config.get[Long]("mongodb.timeToLiveInHoursBusinessInformation"), TimeUnit.HOURS)
+        )
+      )
+    )
+    with CompanyInformationRepository {
 
   override def get(id: String): Future[Option[CompanyInformation]] =
     collection
@@ -55,15 +57,19 @@ class DefaultCompanyInformationRepository @Inject()(config: Configuration,
       .map(_.map(_.toCompanyInformation))
 
   override def set(id: String, companyInformation: CompanyInformation): Future[Unit] =
-    collection.replaceOne(
-      equal("_id", id),
-      CompanyInformationMongo(companyInformation.name,
-        companyInformation.consent,
-        companyInformation.address,
-        LocalDateTime.now()
-      ),
-      ReplaceOptions().upsert(true)
-    ).toFuture().map(_ => ())
+    collection
+      .replaceOne(
+        equal("_id", id),
+        CompanyInformationMongo(
+          companyInformation.name,
+          companyInformation.consent,
+          companyInformation.address,
+          LocalDateTime.now()
+        ),
+        ReplaceOptions().upsert(true)
+      )
+      .toFuture()
+      .map(_ => ())
 }
 
 trait CompanyInformationRepository {
@@ -72,21 +78,25 @@ trait CompanyInformationRepository {
   def set(id: String, businessInformation: CompanyInformation): Future[Unit]
 }
 
-case class CompanyInformationMongo(name: String,
-                                   consent: String,
-                                   address: AddressInformation,
-                                   lastUpdated: LocalDateTime) {
+case class CompanyInformationMongo(
+  name: String,
+  consent: String,
+  address: AddressInformation,
+  lastUpdated: LocalDateTime
+) {
   def toCompanyInformation: CompanyInformation = CompanyInformation(name, consent, address)
 }
 
 trait MongoJavatimeFormats {
   outer =>
   final val localDateTimeReads: Reads[LocalDateTime] =
-    Reads.at[String](__ \ "$date" \ "$numberLong")
+    Reads
+      .at[String](__ \ "$date" \ "$numberLong")
       .map(dateTime => Instant.ofEpochMilli(dateTime.toLong).atZone(ZoneOffset.UTC).toLocalDateTime)
 
   final val localDateTimeWrites: Writes[LocalDateTime] =
-    Writes.at[String](__ \ "$date" \ "$numberLong")
+    Writes
+      .at[String](__ \ "$date" \ "$numberLong")
       .contramap(_.toInstant(ZoneOffset.UTC).toEpochMilli.toString)
 
   final val localDateTimeFormat: Format[LocalDateTime] =
@@ -101,6 +111,6 @@ trait MongoJavatimeFormats {
 object MongoJavatimeFormats extends MongoJavatimeFormats
 
 object CompanyInformationMongo {
-  implicit val mongoFormat: Format[LocalDateTime] = MongoJavatimeFormats.localDateTimeFormat
+  implicit val mongoFormat: Format[LocalDateTime]       = MongoJavatimeFormats.localDateTimeFormat
   implicit val format: OFormat[CompanyInformationMongo] = Json.format[CompanyInformationMongo]
 }

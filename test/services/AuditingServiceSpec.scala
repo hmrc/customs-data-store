@@ -39,7 +39,7 @@ class AuditingServiceSpec extends SpecBase {
   "AuditingService" should {
 
     "audit the bounced email request data" in new Setup {
-      val code = 605
+      val code                                                       = 605
       val extendedDataEventCaptor: ArgumentCaptor[ExtendedDataEvent] =
         ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
 
@@ -142,14 +142,16 @@ class AuditingServiceSpec extends SpecBase {
   }
 
   trait Setup {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val hc: HeaderCarrier                  = HeaderCarrier()
     implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     val mockAuditConnector: AuditConnector = mock[AuditConnector]
 
-    val app: Application = application.overrides(
-      inject.bind[AuditConnector].toInstance(mockAuditConnector)
-    ).build()
+    val app: Application = application
+      .overrides(
+        inject.bind[AuditConnector].toInstance(mockAuditConnector)
+      )
+      .build()
 
     val service: AuditingService = app.injector.instanceOf[AuditingService]
   }

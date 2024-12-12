@@ -22,40 +22,35 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.Utils.singleSpace
 
 @Singleton
-class AppConfig @Inject()(val configuration: Configuration, servicesConfig: ServicesConfig) {
+class AppConfig @Inject() (val configuration: Configuration, servicesConfig: ServicesConfig) {
   private val bearerTokenPrefix = "Bearer"
 
-  lazy val schedulerDelay: Int = configuration.get[Int]("scheduler.initialDelaySeconds")
+  lazy val schedulerDelay: Int       = configuration.get[Int]("scheduler.initialDelaySeconds")
   lazy val schedulerMaxAttempts: Int = configuration.get[Int]("scheduler.maxAttempts")
 
   lazy val authUrl: String = servicesConfig.baseUrl("auth")
 
   lazy val sub09GetSubscriptionsEndpoint: String =
     servicesConfig.baseUrl("sub09") / configuration.get[String](
-      "microservice.services.sub09.companyInformationEndpoint")
+      "microservice.services.sub09.companyInformationEndpoint"
+    )
 
   lazy val sub09BearerToken: String =
-    s"$bearerTokenPrefix$singleSpace${
-      configuration.get[String]("microservice.services.sub09.bearer-token")
-    }"
+    s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub09.bearer-token")}"
 
   lazy val sub21EORIHistoryEndpoint: String =
-    servicesConfig.baseUrl("sub21") / configuration.get[String](
-      "microservice.services.sub21.historicEoriEndpoint")
+    servicesConfig.baseUrl("sub21") / configuration.get[String]("microservice.services.sub21.historicEoriEndpoint")
 
   lazy val sub21BearerToken: String =
-    s"$bearerTokenPrefix$singleSpace${
-      configuration.get[String]("microservice.services.sub21.bearer-token")
-    }"
+    s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub21.bearer-token")}"
 
   lazy val sub22UpdateVerifiedEmailEndpoint: String =
     servicesConfig.baseUrl("sub22") / configuration.get[String](
-      "microservice.services.sub22.updateVerifiedEmailEndpoint")
+      "microservice.services.sub22.updateVerifiedEmailEndpoint"
+    )
 
   lazy val sub22BearerToken: String =
-    s"$bearerTokenPrefix$singleSpace${
-      configuration.get[String]("microservice.services.sub22.bearer-token")
-    }"
+    s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub22.bearer-token")}"
 
   implicit class URLSyntacticSugar(left: String) {
     def /(right: String): String = removeTrailingSlash(left) + "/" + removeLeadingSlash(right)

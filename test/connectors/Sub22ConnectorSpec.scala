@@ -35,9 +35,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class Sub22ConnectorSpec extends SpecBase {
 
   "return false if a non 200 response returned from SUB22" in new Setup {
-    val errorMsg = "some error"
+    val errorMsg      = "some error"
     val statusCode500 = 500
-    val reportAs500 = 500
+    val reportAs500   = 500
 
     when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
     when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
@@ -48,10 +48,7 @@ class Sub22ConnectorSpec extends SpecBase {
     when(mockHttpClient.put(any[URL])(any)).thenReturn(requestBuilder)
 
     running(app) {
-      val result = await(connector.updateUndeliverable(
-        undeliverableInformation,
-        LocalDateTime.now(),
-        attemptsZero))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero))
 
       result mustBe false
     }
@@ -67,8 +64,7 @@ class Sub22ConnectorSpec extends SpecBase {
     when(mockHttpClient.put(any[URL])(any)).thenReturn(requestBuilder)
 
     running(app) {
-      val result = await(connector.updateUndeliverable(
-        undeliverableInformation, LocalDateTime.now(), attemptsZero))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero))
 
       result mustBe false
     }
@@ -76,10 +72,13 @@ class Sub22ConnectorSpec extends SpecBase {
 
   "return false if unable to extract the EORI from the undeliverableInformation" in new Setup {
     running(app) {
-      val result = await(connector.updateUndeliverable(
-        undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")),
-        LocalDateTime.now(),
-        attemptsZero))
+      val result = await(
+        connector.updateUndeliverable(
+          undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")),
+          LocalDateTime.now(),
+          attemptsZero
+        )
+      )
 
       result mustBe false
     }
@@ -95,10 +94,7 @@ class Sub22ConnectorSpec extends SpecBase {
     when(mockHttpClient.put(any[URL])(any)).thenReturn(requestBuilder)
 
     running(app) {
-      val result = await(connector.updateUndeliverable(
-        undeliverableInformation,
-        LocalDateTime.now(),
-        attemptsZero))
+      val result = await(connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero))
 
       result mustBe true
     }
@@ -106,12 +102,12 @@ class Sub22ConnectorSpec extends SpecBase {
 
   trait Setup {
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val hc: HeaderCarrier                     = HeaderCarrier()
 
-    val testEori = "someEori"
+    val testEori                    = "someEori"
     val detectedDate: LocalDateTime = LocalDateTime.now()
-    val attemptsZero = 0
-    val code = 12
+    val attemptsZero                = 0
+    val code                        = 12
 
     val successfulUpdateVerifiedEmailResponse: UpdateVerifiedEmailResponse = UpdateVerifiedEmailResponse(
       UpdateVerifiedEmailResponseCommon(
@@ -125,13 +121,15 @@ class Sub22ConnectorSpec extends SpecBase {
       )
     )
 
-    val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
+    val mockHttpClient: HttpClientV2   = mock[HttpClientV2]
     val requestBuilder: RequestBuilder = mock[RequestBuilder]
 
-    val app: Application = new GuiceApplicationBuilder().overrides(
-      api.inject.bind[HttpClientV2].toInstance(mockHttpClient),
-      api.inject.bind[RequestBuilder].toInstance(requestBuilder)
-    ).build()
+    val app: Application = new GuiceApplicationBuilder()
+      .overrides(
+        api.inject.bind[HttpClientV2].toInstance(mockHttpClient),
+        api.inject.bind[RequestBuilder].toInstance(requestBuilder)
+      )
+      .build()
 
     val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
       "some-id",

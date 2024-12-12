@@ -35,44 +35,46 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
-class Sub22Connector @Inject()(httpClient: HttpClientV2,
-                               appConfig: AppConfig,
-                               auditingService: AuditingService)
-                              (implicit executionContext: ExecutionContext) extends Logging {
+class Sub22Connector @Inject() (httpClient: HttpClientV2, appConfig: AppConfig, auditingService: AuditingService)(
+  implicit executionContext: ExecutionContext
+) extends Logging {
 
-  def updateUndeliverable(undeliverableInformation: UndeliverableInformation,
-                          verifiedTimestamp: LocalDateTime, attempts: Int)(implicit hc: HeaderCarrier): Future[Boolean] = {
+  def updateUndeliverable(
+    undeliverableInformation: UndeliverableInformation,
+    verifiedTimestamp: LocalDateTime,
+    attempts: Int
+  )(implicit hc: HeaderCarrier): Future[Boolean] = {
 
     val dateFormat = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.systemDefault())
-    val localDate = LocalDateTime.now().format(dateFormat)
+    val localDate  = LocalDateTime.now().format(dateFormat)
 
     undeliverableInformation.extractEori match {
       case Some(eori) =>
-        val detail = RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
+        val detail  =
+          RequestDetail.fromEmailAndEori(undeliverableInformation.event.emailAddress, eori, verifiedTimestamp)
         val request = Sub22UpdateVerifiedEmailRequest.fromDetailAndCommon(RequestCommon(), detail)
 
-        httpClient.put(uri(eori, appConfig.sub22UpdateVerifiedEmailEndpoint))
+        httpClient
+          .put(uri(eori, appConfig.sub22UpdateVerifiedEmailEndpoint))
           .setHeader(
-            AUTHORIZATION -> appConfig.sub22BearerToken,
-            DATE -> localDate,
+            AUTHORIZATION    -> appConfig.sub22BearerToken,
+            DATE             -> localDate,
             X_CORRELATION_ID -> randomUUID,
             X_FORWARDED_HOST -> "MDTP",
-            ACCEPT -> "application/json"
+            ACCEPT           -> "application/json"
           )
           .withBody[Sub22UpdateVerifiedEmailRequest](request)
           .execute[UpdateVerifiedEmailResponse]
-          .flatMap {
+          .flatMap { response =>
+            val isSuccessful = response.updateVerifiedEmailResponse.responseCommon.statusText.isEmpty
+            auditingService.auditSub22Request(request, attempts, isSuccessful)
 
-            response =>
-              val isSuccessful = response.updateVerifiedEmailResponse.responseCommon.statusText.isEmpty
-              auditingService.auditSub22Request(request, attempts, isSuccessful)
+            Future.successful(isSuccessful)
 
-              Future.successful(isSuccessful)
-
-          }.recover {
-            case _ =>
-              auditingService.auditSub22Request(request, attempts, successful = false)
-              false
+          }
+          .recover { case _ =>
+            auditingService.auditSub22Request(request, attempts, successful = false)
+            false
           }
 
       case None => logger.error("No eori available in undeliverable information"); Future.successful(false)

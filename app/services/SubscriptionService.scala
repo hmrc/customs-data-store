@@ -24,48 +24,36 @@ import scala.concurrent.{ExecutionContext, Future}
 import models.responses.{EmailUnverifiedResponse, EmailVerifiedResponse, SubscriptionResponse}
 
 @Singleton
-class SubscriptionService @Inject()(sub09Connector: Sub09Connector)(implicit ec: ExecutionContext) {
+class SubscriptionService @Inject() (sub09Connector: Sub09Connector)(implicit ec: ExecutionContext) {
 
-  def getVerifiedEmail(eori: EORI): Future[EmailVerifiedResponse] = {
+  def getVerifiedEmail(eori: EORI): Future[EmailVerifiedResponse] =
     for {
       optSubscription <- sub09Connector.retrieveSubscriptions(eori)
-    } yield {
-      optSubscription.fold(EmailVerifiedResponse(None)) {
-        subsRes =>
-          subsRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
-            case Some(ci) if ci.emailVerificationTimestamp.isDefined => EmailVerifiedResponse(ci.emailAddress)
-            case _ => EmailVerifiedResponse(None)
-          }
+    } yield optSubscription.fold(EmailVerifiedResponse(None)) { subsRes =>
+      subsRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
+        case Some(ci) if ci.emailVerificationTimestamp.isDefined => EmailVerifiedResponse(ci.emailAddress)
+        case _                                                   => EmailVerifiedResponse(None)
       }
     }
-  }
 
-  def getEmailAddress(eori: EORI): Future[EmailVerifiedResponse] = {
+  def getEmailAddress(eori: EORI): Future[EmailVerifiedResponse] =
     for {
       optSubscription <- sub09Connector.retrieveSubscriptions(eori)
-    } yield {
-      optSubscription.fold(EmailVerifiedResponse(None)) {
-        subsRes =>
-          subsRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
-            case Some(ci) if ci.emailAddress.isDefined => EmailVerifiedResponse(ci.emailAddress)
-            case _ => EmailVerifiedResponse(None)
-          }
+    } yield optSubscription.fold(EmailVerifiedResponse(None)) { subsRes =>
+      subsRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
+        case Some(ci) if ci.emailAddress.isDefined => EmailVerifiedResponse(ci.emailAddress)
+        case _                                     => EmailVerifiedResponse(None)
       }
     }
-  }
 
-  def getUnverifiedEmail(eori: EORI): Future[EmailUnverifiedResponse] = {
+  def getUnverifiedEmail(eori: EORI): Future[EmailUnverifiedResponse] =
     for {
       optSubscription <- sub09Connector.retrieveSubscriptions(eori)
-    } yield {
-      optSubscription.fold(EmailUnverifiedResponse(None)) {
-        subRes =>
-          subRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
-            case Some(ci) if ci.emailVerificationTimestamp.isEmpty => EmailUnverifiedResponse(ci.emailAddress)
-            case _ => EmailUnverifiedResponse(None)
-          }
+    } yield optSubscription.fold(EmailUnverifiedResponse(None)) { subRes =>
+      subRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
+        case Some(ci) if ci.emailVerificationTimestamp.isEmpty => EmailUnverifiedResponse(ci.emailAddress)
+        case _                                                 => EmailUnverifiedResponse(None)
       }
     }
-  }
 
 }

@@ -28,29 +28,32 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class XiEoriController @Inject() (xiEoriInformationRepository: XiEoriInformationRepository,
-                                  subscriptionInfoConnector: Sub09Connector,
-                                  cc: ControllerComponents)
-                                 (implicit executionContext: ExecutionContext) extends BackendController(cc) {
+class XiEoriController @Inject() (
+  xiEoriInformationRepository: XiEoriInformationRepository,
+  subscriptionInfoConnector: Sub09Connector,
+  cc: ControllerComponents
+)(implicit executionContext: ExecutionContext)
+    extends BackendController(cc) {
 
   def getXiEoriInformation(eori: String): Action[AnyContent] = Action.async {
     xiEoriInformationRepository.get(eori).flatMap {
       case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
-      case None => retrieveXiEoriInformation(eori).map {
-        case Some(xiEoriInformation) => Ok(Json.toJson(xiEoriInformation))
-        case None => xiEoriInformationRepository.set(
-          eori,
-          XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
-        )
-          NotFound
-      }
+      case None                    =>
+        retrieveXiEoriInformation(eori).map {
+          case Some(xiEoriInformation) => Ok(Json.toJson(xiEoriInformation))
+          case None                    =>
+            xiEoriInformationRepository.set(
+              eori,
+              XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
+            )
+            NotFound
+        }
     }
   }
 
-  private def retrieveXiEoriInformation(eori: String): Future[Option[XiEoriInformation]] = {
+  private def retrieveXiEoriInformation(eori: String): Future[Option[XiEoriInformation]] =
     (for {
       xiEoriInformation <- OptionT(subscriptionInfoConnector.getXiEoriInformation(eori))
-      _ <- OptionT.liftF(xiEoriInformationRepository.set(eori, xiEoriInformation))
+      _                 <- OptionT.liftF(xiEoriInformationRepository.set(eori, xiEoriInformation))
     } yield xiEoriInformation).value
-  }
 }

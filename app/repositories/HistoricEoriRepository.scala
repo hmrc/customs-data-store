@@ -34,29 +34,33 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DefaultHistoricEoriRepository @Inject()()(
+class DefaultHistoricEoriRepository @Inject() ()(
   mongoComponent: MongoComponent,
   config: Configuration
 )(implicit executionContext: ExecutionContext)
-  extends PlayMongoRepository[EoriHistory](
-    collectionName = "historic-eoris",
-    mongoComponent = mongoComponent,
-    domainFormat = EoriHistory.format,
-    indexes = Seq(
-      IndexModel(
-        ascending("lastUpdated"),
-        IndexOptions().name("historic-eoris-last-updated-index")
-          .expireAfter(config.get[Long]("mongodb.timeToLiveInSeconds"), TimeUnit.SECONDS)
-      ))
-  ) with HistoricEoriRepository {
+    extends PlayMongoRepository[EoriHistory](
+      collectionName = "historic-eoris",
+      mongoComponent = mongoComponent,
+      domainFormat = EoriHistory.format,
+      indexes = Seq(
+        IndexModel(
+          ascending("lastUpdated"),
+          IndexOptions()
+            .name("historic-eoris-last-updated-index")
+            .expireAfter(config.get[Long]("mongodb.timeToLiveInSeconds"), TimeUnit.SECONDS)
+        )
+      )
+    )
+    with HistoricEoriRepository {
 
   override def get(id: String): Future[Either[HistoricEoriRepositoryResult, Seq[EoriPeriod]]] =
     collection
       .find(equal("eoriHistory.eori", id))
-      .toFuture().map(_.headOption match {
-      case Some(value) => Right(value.eoriPeriods)
-      case None => Left(FailedToRetrieveHistoricEori)
-    })
+      .toFuture()
+      .map(_.headOption match {
+        case Some(value) => Right(value.eoriPeriods)
+        case None        => Left(FailedToRetrieveHistoricEori)
+      })
 
   override def set(eoriHistory: Seq[EoriPeriod]): Future[HistoricEoriRepositoryResult] = {
     val query = in("eoriHistory.eori", eoriHistory.map(_.eori): _*)
@@ -67,9 +71,14 @@ class DefaultHistoricEoriRepository @Inject()()(
     )
 
     collection
-      .updateMany(query, update, UpdateOptions()
-      .upsert(true))
-      .toFuture().map(v => if (v.wasAcknowledged()) HistoricEoriSuccessful else FailedToUpdateHistoricEori)
+      .updateMany(
+        query,
+        update,
+        UpdateOptions()
+          .upsert(true)
+      )
+      .toFuture()
+      .map(v => if (v.wasAcknowledged()) HistoricEoriSuccessful else FailedToUpdateHistoricEori)
   }
 }
 
@@ -81,13 +90,12 @@ trait HistoricEoriRepository {
 case class EoriHistory(eoriPeriods: Seq[EoriPeriod], lastUpdated: LocalDateTime)
 
 object EoriHistory {
-  implicit lazy val reads: Reads[EoriHistory] = {
+  implicit lazy val reads: Reads[EoriHistory] =
     (
       (__ \ "eoriHistory").read[Seq[EoriPeriod]] and
         (__ \ "lastUpdated").read(MongoJavatimeFormats.localDateTimeReads)
-      ) (EoriHistory.apply _)
-  }
-  implicit val format: Format[EoriHistory] = Format(reads, Json.writes[EoriHistory])
+    )(EoriHistory.apply _)
+  implicit val format: Format[EoriHistory]    = Format(reads, Json.writes[EoriHistory])
 }
 
 sealed trait HistoricEoriRepositoryResult

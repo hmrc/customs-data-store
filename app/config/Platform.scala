@@ -17,6 +17,6 @@
 package config
 
 object Platform {
-  val ENROLMENT_KEY = "HMRC-CUS-ORG"
+  val ENROLMENT_KEY        = "HMRC-CUS-ORG"
   val ENROLMENT_IDENTIFIER = "EORINumber"
 }

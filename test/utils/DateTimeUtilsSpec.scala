@@ -31,11 +31,11 @@ class DateTimeUtilsSpec extends SpecBase {
 
   "rfc1123DateTimeFormatter" should {
     "return date in RFC_1123 format" in {
-      val year = 2024
-      val month = 1
-      val dayOfMonth = 10
-      val hourOfTheDay = 8
-      val minutesOfTheHour = 10
+      val year               = 2024
+      val month              = 1
+      val dayOfMonth         = 10
+      val hourOfTheDay       = 8
+      val minutesOfTheHour   = 10
       val secondsOfTheMinute = 8
 
       val date = LocalDateTime.of(year, month, dayOfMonth, hourOfTheDay, minutesOfTheHour, secondsOfTheMinute)
@@ -49,11 +49,11 @@ class DateTimeUtilsSpec extends SpecBase {
   "dateTimeWritesIsoUtc" should {
     "return correct value" in {
 
-      val year = 2024
-      val month = 1
-      val dayOfMonth = 10
-      val hourOfTheDay = 8
-      val minutesOfTheHour = 10
+      val year               = 2024
+      val month              = 1
+      val dayOfMonth         = 10
+      val hourOfTheDay       = 8
+      val minutesOfTheHour   = 10
       val secondsOfTheMinute = 10
 
       val date = LocalDateTime.of(year, month, dayOfMonth, hourOfTheDay, minutesOfTheHour, secondsOfTheMinute)

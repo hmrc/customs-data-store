@@ -19,26 +19,28 @@ package models
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class UndeliverableInformationEvent(id: String,
-                                         event: String,
-                                         emailAddress: String,
-                                         detected: String,
-                                         code: Option[Int],
-                                         reason: Option[String],
-                                         enrolment: String,
-                                         source: Option[String]) {
+case class UndeliverableInformationEvent(
+  id: String,
+  event: String,
+  emailAddress: String,
+  detected: String,
+  code: Option[Int],
+  reason: Option[String],
+  enrolment: String,
+  source: Option[String]
+) {
 
-  private val auditCode: String = code.map(_.toString).getOrElse("-")
+  private val auditCode: String   = code.map(_.toString).getOrElse("-")
   private val auditReason: String = reason.getOrElse("-")
 
   def toAuditDetail: JsObject = Json.obj(
-    "id" -> id,
-    "event" -> event,
+    "id"           -> id,
+    "event"        -> event,
     "emailAddress" -> emailAddress,
-    "detected" -> detected,
-    "code" -> auditCode,
-    "reason" -> auditReason,
-    "enrolment" -> enrolment
+    "detected"     -> detected,
+    "code"         -> auditCode,
+    "reason"       -> auditReason,
+    "enrolment"    -> enrolment
   )
 }
 

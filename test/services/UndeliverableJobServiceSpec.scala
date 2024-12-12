@@ -147,7 +147,8 @@ class UndeliverableJobServiceSpec extends SpecBase {
         LocalDateTime.now(),
         invalidEoriUndeliverableInformationEvent,
         notifiedApi = false,
-        processed = false)
+        processed = false
+      )
 
     val undeliverableInformation: UndeliverableInformationMongo =
       UndeliverableInformationMongo(
@@ -157,18 +158,20 @@ class UndeliverableJobServiceSpec extends SpecBase {
         LocalDateTime.now(),
         undeliverableInformationEvent,
         notifiedApi = false,
-        processed = false)
+        processed = false
+      )
 
-    val notificationEmail: NotificationEmailMongo = NotificationEmailMongo(
-      "some@email.com", LocalDateTime.now(), None)
+    val notificationEmail: NotificationEmailMongo = NotificationEmailMongo("some@email.com", LocalDateTime.now(), None)
 
-    val mockSub22Connector: Sub22Connector = mock[Sub22Connector]
+    val mockSub22Connector: Sub22Connector   = mock[Sub22Connector]
     val mockEmailRepository: EmailRepository = mock[EmailRepository]
 
-    val app: Application = application.overrides(
-      inject.bind[Sub22Connector].toInstance(mockSub22Connector),
-      inject.bind[EmailRepository].toInstance(mockEmailRepository)
-    ).build()
+    val app: Application = application
+      .overrides(
+        inject.bind[Sub22Connector].toInstance(mockSub22Connector),
+        inject.bind[EmailRepository].toInstance(mockEmailRepository)
+      )
+      .build()
 
     val service: UndeliverableJobService = app.injector.instanceOf[UndeliverableJobService]
   }

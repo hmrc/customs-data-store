@@ -17,9 +17,9 @@
 package config
 
 object Headers {
-  val AUTHORIZATION = "Authorization"
-  val DATE = "Date"
+  val AUTHORIZATION    = "Authorization"
+  val DATE             = "Date"
   val X_CORRELATION_ID = "X-Correlation-ID"
   val X_FORWARDED_HOST = "X-Forwarded-Host"
-  val ACCEPT = "Accept"
+  val ACCEPT           = "Accept"
 }

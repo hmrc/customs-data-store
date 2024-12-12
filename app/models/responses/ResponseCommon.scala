@@ -18,8 +18,7 @@ package models.responses
 
 import play.api.libs.json.{Json, OFormat}
 
-case class ResponseCommon(status: String,
-                          processingDate: String)
+case class ResponseCommon(status: String, processingDate: String)
 
 object ResponseCommon {
   implicit val responseCommonFormat: OFormat[ResponseCommon] = Json.format[ResponseCommon]
