@@ -32,6 +32,10 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageFailOnMinimum := false,
     ScoverageKeys.coverageHighlighting := true,
 
+    scalafmtDetailedError := true,
+    scalafmtPrintDiff := true,
+    scalafmtFailOnErrors := true,
+
     scalacOptions := scalacOptions.value.diff(Seq("-Wunused:all")),
 
     Test / scalacOptions ++= Seq(
@@ -65,4 +69,4 @@ lazy val it = project
   .settings(itSettings())
   .settings(libraryDependencies ++= Seq("uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % Test))
 
-addCommandAlias("runAllChecks", ";clean;compile;coverage;test;it/test;scalastyle;Test/scalastyle;coverageReport")
+addCommandAlias("runAllChecks", ";clean;compile;coverage;test;scalafmtCheckAll;it/test;scalastyle;Test/scalastyle;coverageReport")
