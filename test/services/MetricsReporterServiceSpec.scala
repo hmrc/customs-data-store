@@ -110,12 +110,12 @@ class MetricsReporterServiceSpec extends SpecBase {
 
   trait Setup {
     val startTimestamp: OffsetDateTime = OffsetDateTime.parse("2018-11-09T17:15:30+01:00")
-    val endTimestamp: OffsetDateTime = OffsetDateTime.parse("2018-11-09T17:15:35+01:00")
-    val elapsedTimeInMillis = 5000L
+    val endTimestamp: OffsetDateTime   = OffsetDateTime.parse("2018-11-09T17:15:35+01:00")
+    val elapsedTimeInMillis            = 5000L
 
     val mockDateTimeService: DateTimeService = mock[DateTimeService]
-    val mockHistogram: Histogram = mock[Histogram]
-    val mockRegistry: MetricRegistry = mock[MetricRegistry]
+    val mockHistogram: Histogram             = mock[Histogram]
+    val mockRegistry: MetricRegistry         = mock[MetricRegistry]
 
     when(mockDateTimeService.getTimeStamp)
       .thenReturn(startTimestamp)

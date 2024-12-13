@@ -20,14 +20,16 @@ import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
 
-case class UndeliverableInformationMongo(subject: String,
-                                         eventId: String,
-                                         groupId: String,
-                                         timestamp: LocalDateTime,
-                                         event: UndeliverableInformationEvent,
-                                         notifiedApi: Boolean,
-                                         processed: Boolean,
-                                         attempts: Int = 0) {
+case class UndeliverableInformationMongo(
+  subject: String,
+  eventId: String,
+  groupId: String,
+  timestamp: LocalDateTime,
+  event: UndeliverableInformationEvent,
+  notifiedApi: Boolean,
+  processed: Boolean,
+  attempts: Int = 0
+) {
 
   def toUndeliverableInformation: UndeliverableInformation =
     UndeliverableInformation(subject, eventId, groupId, timestamp, event)

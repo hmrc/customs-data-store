@@ -26,18 +26,16 @@ import uk.gov.hmrc.http.HeaderCarrier
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class UndeliverableJobService @Inject()(sub22Connector: Sub22Connector,
-                                        emailRepository: EmailRepository)
-                                       (implicit executionContext: ExecutionContext) extends Logging {
-  def processJob(): Future[Seq[ProcessResult]] = {
-
+class UndeliverableJobService @Inject() (sub22Connector: Sub22Connector, emailRepository: EmailRepository)(implicit
+  executionContext: ExecutionContext
+) extends Logging {
+  def processJob(): Future[Seq[ProcessResult]] =
     emailRepository.nextJobs.flatMap { notificationEmails =>
-
       Future.sequence(notificationEmails.map { notificationEmailMongo =>
 
-        val notificationEmail = notificationEmailMongo.toNotificationEmail
+        val notificationEmail                                               = notificationEmailMongo.toNotificationEmail
         val maybeUndeliverableInformation: Option[UndeliverableInformation] = notificationEmail.undeliverable
-        val maybeEori: Option[String] = maybeUndeliverableInformation.flatMap(_.extractEori)
+        val maybeEori: Option[String]                                       = maybeUndeliverableInformation.flatMap(_.extractEori)
 
         (maybeUndeliverableInformation, maybeEori) match {
           case (Some(undeliverableInformation), Some(eori)) =>
@@ -49,23 +47,24 @@ class UndeliverableJobService @Inject()(sub22Connector: Sub22Connector,
               eori,
               notificationEmailMongo.undeliverable.map(_.attempts).getOrElse(firstAttempt)
             )
-          case _ => Future.successful(NoDataToProcess)
+          case _                                            => Future.successful(NoDataToProcess)
         }
       })
     }
-  }
 
-  private def updateSub22(undeliverableInformation: UndeliverableInformation,
-                          timestamp: LocalDateTime,
-                          eori: String,
-                          attempts: Int): Future[ProcessResult] = {
+  private def updateSub22(
+    undeliverableInformation: UndeliverableInformation,
+    timestamp: LocalDateTime,
+    eori: String,
+    attempts: Int
+  ): Future[ProcessResult] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     sub22Connector.updateUndeliverable(undeliverableInformation, timestamp, attempts).flatMap { updateSuccessful =>
       if (updateSuccessful) {
-        emailRepository.markAsSuccessful(eori).map { _ => ProcessSucceeded }
+        emailRepository.markAsSuccessful(eori).map(_ => ProcessSucceeded)
       } else {
-        emailRepository.resetProcessing(eori).map { _ => FailedToProcess }
+        emailRepository.resetProcessing(eori).map(_ => FailedToProcess)
       }
     }
   }

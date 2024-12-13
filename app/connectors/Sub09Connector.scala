@@ -19,32 +19,32 @@ package connectors
 import config.AppConfig
 import config.Headers.*
 import models.responses.{
-  MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse,
-  SubscriptionResponse
+  MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse, SubscriptionResponse
 }
 import models.{CompanyInformation, EORI, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
 import utils.Utils.{emptyString, randomUUID, uri}
 
 import java.time.LocalDateTime
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Random
 
-class Sub09Connector @Inject()(appConfig: AppConfig,
-                               httpClient: HttpClientV2,
-                               metricsReporter: MetricsReporterService)(implicit executionContext: ExecutionContext) {
+class Sub09Connector @Inject() (
+  appConfig: AppConfig,
+  httpClient: HttpClientV2,
+  metricsReporter: MetricsReporterService
+)(implicit executionContext: ExecutionContext) {
 
   val log: LoggerLike = Logger(this.getClass)
 
   private val metricsResourceName = "mdg.get.company-information"
-  private val defaultConsent = "0"
-  private val endPoint = appConfig.sub09GetSubscriptionsEndpoint
+  private val defaultConsent      = "0"
+  private val endPoint            = appConfig.sub09GetSubscriptionsEndpoint
 
   private def localDate: String = LocalDateTime.now().format(rfc1123DateTimeFormatter)
 
@@ -52,18 +52,20 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      httpClient.get(uri(eori, endPoint))
+      httpClient
+        .get(uri(eori, endPoint))
         .setHeader(
-          AUTHORIZATION -> appConfig.sub09BearerToken,
-          DATE -> localDate,
+          AUTHORIZATION    -> appConfig.sub09BearerToken,
+          DATE             -> localDate,
           X_CORRELATION_ID -> randomUUID,
           X_FORWARDED_HOST -> "MDTP",
-          ACCEPT -> "application/json")
+          ACCEPT           -> "application/json"
+        )
         .execute[MdgSub09Response]
         .flatMap {
 
-          case MdgSub09Response(Some(email), Some(timestamp)) => Future.successful(
-            Option(NotificationEmail(email, timestamp, None)))
+          case MdgSub09Response(Some(email), Some(timestamp)) =>
+            Future.successful(Option(NotificationEmail(email, timestamp, None)))
 
           case _ => Future.successful(None)
         }
@@ -74,23 +76,25 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      httpClient.get(uri(eori, endPoint))
+      httpClient
+        .get(uri(eori, endPoint))
         .setHeader(
-          AUTHORIZATION -> appConfig.sub09BearerToken,
-          DATE -> localDate,
+          AUTHORIZATION    -> appConfig.sub09BearerToken,
+          DATE             -> localDate,
           X_CORRELATION_ID -> randomUUID,
           X_FORWARDED_HOST -> "MDTP",
-          ACCEPT -> "application/json")
+          ACCEPT           -> "application/json"
+        )
         .execute[Option[MdgSub09CompanyInformationResponse]]
-        .flatMap {
-          response =>
-            Future.successful(
-              response.map(v => CompanyInformation(v.name, v.consent.getOrElse(defaultConsent), v.address))
-            )
-        }.recover {
-        case e => log.error(s"Failed to retrieve company information with error: $e")
+        .flatMap { response =>
+          Future.successful(
+            response.map(v => CompanyInformation(v.name, v.consent.getOrElse(defaultConsent), v.address))
+          )
+        }
+        .recover { case e =>
+          log.error(s"Failed to retrieve company information with error: $e")
           None
-      }
+        }
     }
   }
 
@@ -98,26 +102,31 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      httpClient.get(uri(eori, endPoint))
+      httpClient
+        .get(uri(eori, endPoint))
         .setHeader(
-          AUTHORIZATION -> appConfig.sub09BearerToken,
-          DATE -> localDate,
+          AUTHORIZATION    -> appConfig.sub09BearerToken,
+          DATE             -> localDate,
           X_CORRELATION_ID -> randomUUID,
           X_FORWARDED_HOST -> "MDTP",
-          ACCEPT -> "application/json")
+          ACCEPT           -> "application/json"
+        )
         .execute[Option[MdgSub09XiEoriInformationResponse]]
-        .flatMap {
-          response =>
-            Future.successful(
-              response.map(v => XiEoriInformation(
+        .flatMap { response =>
+          Future.successful(
+            response.map(v =>
+              XiEoriInformation(
                 v.xiEori,
                 v.consent.getOrElse(defaultConsent),
-                v.address.getOrElse(XiEoriAddressInformation(emptyString))))
+                v.address.getOrElse(XiEoriAddressInformation(emptyString))
+              )
             )
-        }.recover {
-        case e => log.error(s"Failed to retrieve xi eori information with error: $e")
+          )
+        }
+        .recover { case e =>
+          log.error(s"Failed to retrieve xi eori information with error: $e")
           None
-      }
+        }
     }
   }
 
@@ -125,21 +134,23 @@ class Sub09Connector @Inject()(appConfig: AppConfig,
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      httpClient.get(uri(eori.value, endPoint))
+      httpClient
+        .get(uri(eori.value, endPoint))
         .setHeader(
-          AUTHORIZATION -> appConfig.sub09BearerToken,
-          DATE -> localDate,
+          AUTHORIZATION    -> appConfig.sub09BearerToken,
+          DATE             -> localDate,
           X_CORRELATION_ID -> randomUUID,
           X_FORWARDED_HOST -> "MDTP",
-          ACCEPT -> "application/json")
+          ACCEPT           -> "application/json"
+        )
         .execute[SubscriptionResponse]
-        .flatMap {
-          response => Future.successful(Some(response))
-        }.recover {
-        case e =>
+        .flatMap { response =>
+          Future.successful(Some(response))
+        }
+        .recover { case e =>
           log.error(s"Failed to retrieve SubscriptionResponse with error: $e")
           None
-      }
+        }
     }
   }
 

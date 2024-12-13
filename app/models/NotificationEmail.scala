@@ -21,15 +21,12 @@ import utils.DateTimeUtils.appendDefaultSecondsInDateTime
 
 import java.time.LocalDateTime
 
-case class NotificationEmail(address: String,
-                             timestamp: LocalDateTime,
-                             undeliverable: Option[UndeliverableInformation])
+case class NotificationEmail(address: String, timestamp: LocalDateTime, undeliverable: Option[UndeliverableInformation])
 
 object NotificationEmail {
 
-  implicit val timestampWrites: Writes[LocalDateTime] = {
+  implicit val timestampWrites: Writes[LocalDateTime] =
     Writes[LocalDateTime](d => JsString(s"${appendDefaultSecondsInDateTime(d.toString)}Z"))
-  }
 
   implicit val emailFormat: OFormat[NotificationEmail] = Json.format[NotificationEmail]
 }

@@ -33,55 +33,66 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DefaultEmailRepository @Inject()(mongoComponent: MongoComponent,
-                                       appConfig: AppConfig
-                                      )(implicit executionContext: ExecutionContext)
-  extends PlayMongoRepository[NotificationEmailMongo](
-    collectionName = "email-verification",
-    mongoComponent = mongoComponent,
-    domainFormat = NotificationEmailMongo.emailFormat,
-    indexes = Seq(
-      IndexModel(
-        ascending("undeliverable.processed"),
-        IndexOptions().name("processed-index")
-          .sparse(true)
-      ))
-  ) with EmailRepository {
+class DefaultEmailRepository @Inject() (mongoComponent: MongoComponent, appConfig: AppConfig)(implicit
+  executionContext: ExecutionContext
+) extends PlayMongoRepository[NotificationEmailMongo](
+      collectionName = "email-verification",
+      mongoComponent = mongoComponent,
+      domainFormat = NotificationEmailMongo.emailFormat,
+      indexes = Seq(
+        IndexModel(
+          ascending("undeliverable.processed"),
+          IndexOptions()
+            .name("processed-index")
+            .sparse(true)
+        )
+      )
+    )
+    with EmailRepository {
 
   private lazy val logger = Logger(this.getClass)
 
   override def get(id: String): Future[Option[NotificationEmail]] =
     collection.find(equal("_id", id)).toSingle().toFutureOption().map(_.map(_.toNotificationEmail))
 
-  override def set(id: String, notificationEmail: NotificationEmail): Future[EmailRepositoryResult] = {
-    collection.replaceOne(
-      equal("_id", id),
-      NotificationEmailMongo.fromNotificationEmail(notificationEmail),
-      ReplaceOptions().upsert(true)
-    ).toFuture().map(v => if (v.wasAcknowledged()) SuccessfulEmail else FailedToRetrieveEmail)
-  }
+  override def set(id: String, notificationEmail: NotificationEmail): Future[EmailRepositoryResult] =
+    collection
+      .replaceOne(
+        equal("_id", id),
+        NotificationEmailMongo.fromNotificationEmail(notificationEmail),
+        ReplaceOptions().upsert(true)
+      )
+      .toFuture()
+      .map(v => if (v.wasAcknowledged()) SuccessfulEmail else FailedToRetrieveEmail)
 
-  override def findAndUpdate(id: String,
-                             undeliverableInformation: UndeliverableInformation): Future[Option[NotificationEmailMongo]] = {
-    val update = Updates.set("undeliverable",
+  override def findAndUpdate(
+    id: String,
+    undeliverableInformation: UndeliverableInformation
+  ): Future[Option[NotificationEmailMongo]] = {
+    val update = Updates.set(
+      "undeliverable",
       Codecs.toBson(UndeliverableInformationMongo.fromUndeliverableInformation(undeliverableInformation))
     )
 
-    collection.findOneAndUpdate(
-      equal("_id", id),
-      update
-    ).toFutureOption()
+    collection
+      .findOneAndUpdate(
+        equal("_id", id),
+        update
+      )
+      .toFutureOption()
   }
 
   def nextJobs: Future[Seq[NotificationEmailMongo]] = {
     val filter = Filters.and(
       equal("undeliverable.processed", false),
       equal("undeliverable.notifiedApi", false),
-      lte("undeliverable.attempts", appConfig.schedulerMaxAttempts))
+      lte("undeliverable.attempts", appConfig.schedulerMaxAttempts)
+    )
 
     for {
       notificationEmails <- collection.find(filter).toFuture()
-      _ <- collection.updateMany(filter, Updates.set("undeliverable.processed", true)).toFuture().map(_.wasAcknowledged())
+      _                  <-
+        collection.updateMany(filter, Updates.set("undeliverable.processed", true)).toFuture().map(_.wasAcknowledged())
     } yield {
       if (notificationEmails.isEmpty) {
         logger.info("undeliverable email queue is empty")
@@ -93,25 +104,28 @@ class DefaultEmailRepository @Inject()(mongoComponent: MongoComponent,
   }
 
   override def markAsSuccessful(id: String): Future[Boolean] =
-    collection.updateOne(equal("_id", id),
-      Updates.set("undeliverable.notifiedApi", true)
-    ).toFuture().map(_.wasAcknowledged())
+    collection
+      .updateOne(equal("_id", id), Updates.set("undeliverable.notifiedApi", true))
+      .toFuture()
+      .map(_.wasAcknowledged())
 
-  override def resetProcessing(id: String): Future[Boolean] = {
-    collection.updateOne(equal("_id", id),
-      Updates.combine(
-        Updates.inc("undeliverable.attempts", 1),
-        Updates.set("undeliverable.processed", false)
+  override def resetProcessing(id: String): Future[Boolean] =
+    collection
+      .updateOne(
+        equal("_id", id),
+        Updates.combine(
+          Updates.inc("undeliverable.attempts", 1),
+          Updates.set("undeliverable.processed", false)
+        )
       )
-    ).toFuture().map(_.wasAcknowledged())
-  }
+      .toFuture()
+      .map(_.wasAcknowledged())
 }
 
 trait EmailRepository {
   def get(id: String): Future[Option[NotificationEmail]]
 
-  def set(id: String,
-          notificationEmail: NotificationEmail): Future[EmailRepositoryResult]
+  def set(id: String, notificationEmail: NotificationEmail): Future[EmailRepositoryResult]
 
   def resetProcessing(id: String): Future[Boolean]
 
@@ -119,6 +133,8 @@ trait EmailRepository {
 
   def nextJobs: Future[Seq[NotificationEmailMongo]]
 
-  def findAndUpdate(id: String,
-                    undeliverableInformation: UndeliverableInformation): Future[Option[NotificationEmailMongo]]
+  def findAndUpdate(
+    id: String,
+    undeliverableInformation: UndeliverableInformation
+  ): Future[Option[NotificationEmailMongo]]
 }

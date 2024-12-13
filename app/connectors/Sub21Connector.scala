@@ -30,25 +30,30 @@ import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException, StringContextOps}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class Sub21Connector @Inject()(appConfig: AppConfig,
-                               http: HttpClientV2,
-                               metricsReporter: MetricsReporterService)(implicit ec: ExecutionContext) {
+class Sub21Connector @Inject() (appConfig: AppConfig, http: HttpClientV2, metricsReporter: MetricsReporterService)(
+  implicit ec: ExecutionContext
+) {
 
   def getEoriHistory(eori: String): Future[Seq[EoriPeriod]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging("mdg.get.eori-history") {
-      val url = url"${appConfig.sub21EORIHistoryEndpoint}$eori"
+      val url     = url"${appConfig.sub21EORIHistoryEndpoint}$eori"
       val headers = AUTHORIZATION -> appConfig.sub21BearerToken
 
-      http.get(url).setHeader(headers)
-        .execute[HistoricEoriResponse].flatMap {
-          response =>
-            Future.successful(response.getEORIHistoryResponse.responseDetail.EORIHistory
-              .map(history => EoriPeriod(history.EORI, history.validFrom, history.validTo)))
-        }.recoverWith {
-          case e@WithStatusCode(NOT_FOUND) if e.message.contains(NOT_FOUND.toString) => Future.failed(
-            new NotFoundException(notFoundMessage("GET", url.toString, e.message)))
+      http
+        .get(url)
+        .setHeader(headers)
+        .execute[HistoricEoriResponse]
+        .flatMap { response =>
+          Future.successful(
+            response.getEORIHistoryResponse.responseDetail.EORIHistory
+              .map(history => EoriPeriod(history.EORI, history.validFrom, history.validTo))
+          )
+        }
+        .recoverWith {
+          case e @ WithStatusCode(NOT_FOUND) if e.message.contains(NOT_FOUND.toString) =>
+            Future.failed(new NotFoundException(notFoundMessage("GET", url.toString, e.message)))
         }
     }
   }

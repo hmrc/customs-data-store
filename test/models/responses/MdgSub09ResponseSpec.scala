@@ -56,24 +56,26 @@ class MdgSub09ResponseSpec extends SpecBase {
 
 object Sub09Response {
 
-  private val timeStampKey = "--THE-TIMESTAMP--"
-  private val emailKey = "--THE-EMAIL--"
-  private val eoriKey = "--THE-EORI-HERE--"
+  private val timeStampKey                         = "--THE-TIMESTAMP--"
+  private val emailKey                             = "--THE-EMAIL--"
+  private val eoriKey                              = "--THE-EORI-HERE--"
   private val consentToDisclosureOfPersonalDataKEY = "--THE-CONSENT--"
-  private val xiEoriAddressKey = "--XI-EORI-ADDRESS--"
+  private val xiEoriAddressKey                     = "--XI-EORI-ADDRESS--"
 
   def withEmailAndTimestamp(eori: String): JsValue = {
     val response = sub09Response(eori)
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
-      .replace(xiEoriAddressKey,
+      .replace(
+        xiEoriAddressKey,
         """"PBEAddress": {
           |          "pbeAddressLine1": "Example Rd",
           |          "pbeAddressLine2": "Example",
           |          "pbeAddressLine3": "GB",
           |          "pbePostCode": "AA00 0AA"
-          |        },""".stripMargin)
+          |        },""".stripMargin
+      )
     Json.parse(response)
   }
 
@@ -82,13 +84,15 @@ object Sub09Response {
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey, emptyString)
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
-      .replace(xiEoriAddressKey,
+      .replace(
+        xiEoriAddressKey,
         """"PBEAddress": {
           |          "pbeAddressLine1": "Example Rd",
           |          "pbeAddressLine2": "Example",
           |          "pbeAddressLine3": "GB",
           |          "pbePostCode": "AA00 0AA"
-          |        },""".stripMargin)
+          |        },""".stripMargin
+      )
     Json.parse(response)
   }
 
@@ -97,13 +101,15 @@ object Sub09Response {
       .replace(emailKey, emptyString)
       .replace(timeStampKey, emptyString)
       .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
-      .replace(xiEoriAddressKey,
+      .replace(
+        xiEoriAddressKey,
         """"PBEAddress": {
           |          "pbeAddressLine1": "Example Rd",
           |          "pbeAddressLine2": "Example",
           |          "pbeAddressLine3": "GB",
           |          "pbePostCode": "AA00 0AA"
-          |        },""".stripMargin)
+          |        },""".stripMargin
+      )
     Json.parse(response)
   }
 
@@ -112,13 +118,15 @@ object Sub09Response {
       .replace(emailKey, """ "emailAddress": "email@email.com", """)
       .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
       .replace(consentToDisclosureOfPersonalDataKEY, emptyString)
-      .replace(xiEoriAddressKey,
+      .replace(
+        xiEoriAddressKey,
         """"PBEAddress": {
           |          "pbeAddressLine1": "Example Rd",
           |          "pbeAddressLine2": "Example",
           |          "pbeAddressLine3": "GB",
           |          "pbePostCode": "AA00 0AA"
-          |        },""".stripMargin)
+          |        },""".stripMargin
+      )
     Json.parse(response)
   }
 
@@ -131,8 +139,8 @@ object Sub09Response {
     Json.parse(response)
   }
 
-  //scalastyle:off
-  protected def sub09Response(eori: String): String = {
+  // scalastyle:off
+  protected def sub09Response(eori: String): String =
     s"""
        |{
        |  "subscriptionDisplayResponse": {
@@ -202,7 +210,6 @@ object Sub09Response {
        |  }
        |}
     """.stripMargin.replace(eoriKey, eori)
-    //scalastyle:on
-  }
+  // scalastyle:on
 
 }

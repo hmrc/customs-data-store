@@ -25,7 +25,9 @@ import play.api.test.Helpers._
 import connectors.Sub21Connector
 import models.EoriPeriod
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson}
-import repositories.{FailedToRetrieveHistoricEori, FailedToUpdateHistoricEori, HistoricEoriRepository, HistoricEoriSuccessful}
+import repositories.{
+  FailedToRetrieveHistoricEori, FailedToUpdateHistoricEori, HistoricEoriRepository, HistoricEoriSuccessful
+}
 import utils.SpecBase
 
 import java.time.LocalDate
@@ -47,9 +49,11 @@ class EoriHistoryControllerSpec extends SpecBase {
 
         status(result) mustBe OK
 
-        contentAsJson(result) mustBe Json.obj("eoriHistory" -> Json.arr(
-          Json.obj("eori" -> "testEori", "validFrom" -> date, "validUntil" -> date)
-        ))
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr(
+            Json.obj("eori" -> "testEori", "validFrom" -> date, "validUntil" -> date)
+          )
+        )
       }
     }
 
@@ -65,9 +69,11 @@ class EoriHistoryControllerSpec extends SpecBase {
 
         status(result) mustBe OK
 
-        contentAsJson(result) mustBe Json.obj("eoriHistory" -> Json.arr(
-          Json.obj("eori" -> "testEori", "validUntil" -> date)
-        ))
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr(
+            Json.obj("eori" -> "testEori", "validUntil" -> date)
+          )
+        )
       }
     }
 
@@ -88,9 +94,11 @@ class EoriHistoryControllerSpec extends SpecBase {
 
         status(result) mustBe OK
 
-        contentAsJson(result) mustBe Json.obj("eoriHistory" -> Json.arr(
-          Json.obj("eori" -> "testEori", "validUntil" -> date)
-        ))
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr(
+            Json.obj("eori" -> "testEori", "validUntil" -> date)
+          )
+        )
       }
     }
 
@@ -116,7 +124,8 @@ class EoriHistoryControllerSpec extends SpecBase {
     "return internal server error if the trader cannot be found after updating the historic eori's" in new Setup {
       when(mockHistoricEoriRepository.get(any()))
         .thenReturn(
-          Future.successful(Left(FailedToRetrieveHistoricEori)), Future.successful(Left(FailedToRetrieveHistoricEori))
+          Future.successful(Left(FailedToRetrieveHistoricEori)),
+          Future.successful(Left(FailedToRetrieveHistoricEori))
         )
 
       when(mockHistoricEoriRepository.set(any()))
@@ -145,7 +154,7 @@ class EoriHistoryControllerSpec extends SpecBase {
       when(mockHistoricEoriRepository.get(any()))
         .thenReturn(Future.successful(Right(Seq(EoriPeriod("someEori", None, None)))))
 
-      val body: JsObject = Json.obj("eori" -> "someEori")
+      val body: JsObject                         = Json.obj("eori" -> "someEori")
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(body)
 
       running(app) {
@@ -165,7 +174,7 @@ class EoriHistoryControllerSpec extends SpecBase {
       when(mockHistoricEoriRepository.get(any()))
         .thenReturn(Future.successful(Right(Seq(EoriPeriod("someEori", None, None)))))
 
-      val body: JsObject = Json.obj("eori" -> "someEori")
+      val body: JsObject                         = Json.obj("eori" -> "someEori")
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(body)
 
       running(app) {
@@ -184,7 +193,7 @@ class EoriHistoryControllerSpec extends SpecBase {
       when(mockHistoricEoriRepository.get(any()))
         .thenReturn(Future.successful(Right(Seq(EoriPeriod("someEori", None, None)))))
 
-      val body: JsObject = Json.obj("eori" -> "someEori")
+      val body: JsObject                         = Json.obj("eori" -> "someEori")
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(body)
 
       running(app) {
@@ -202,7 +211,7 @@ class EoriHistoryControllerSpec extends SpecBase {
       when(mockHistoricEoriRepository.get(any()))
         .thenReturn(Future.successful(Right(Seq(EoriPeriod("someEori", None, None)))))
 
-      val body: JsObject = Json.obj("eori" -> "someEori")
+      val body: JsObject                         = Json.obj("eori" -> "someEori")
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(body)
 
       running(app) {
@@ -216,7 +225,7 @@ class EoriHistoryControllerSpec extends SpecBase {
       when(mockHistoryService.getEoriHistory(any()))
         .thenReturn(Future.failed(new RuntimeException("Error Occurred")))
 
-      val body: JsObject = Json.obj("eori" -> eori)
+      val body: JsObject                         = Json.obj("eori" -> eori)
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(body)
 
       running(app) {
@@ -228,19 +237,21 @@ class EoriHistoryControllerSpec extends SpecBase {
   }
 
   trait Setup {
-    val testEori = "testEori"
+    val testEori     = "testEori"
     val date: String = LocalDate.now().toString
-    val eori = "test_eori"
+    val eori         = "test_eori"
 
-    val getRoute: String = routes.EoriHistoryController.getEoriHistory(testEori).url
+    val getRoute: String  = routes.EoriHistoryController.getEoriHistory(testEori).url
     val postRoute: String = routes.EoriHistoryController.updateEoriHistory().url
 
     val mockHistoricEoriRepository: HistoricEoriRepository = mock[HistoricEoriRepository]
-    val mockHistoryService: Sub21Connector = mock[Sub21Connector]
+    val mockHistoryService: Sub21Connector                 = mock[Sub21Connector]
 
-    val app: Application = application.overrides(
-      inject.bind[HistoricEoriRepository].toInstance(mockHistoricEoriRepository),
-      inject.bind[Sub21Connector].toInstance(mockHistoryService)
-    ).build()
+    val app: Application = application
+      .overrides(
+        inject.bind[HistoricEoriRepository].toInstance(mockHistoricEoriRepository),
+        inject.bind[Sub21Connector].toInstance(mockHistoryService)
+      )
+      .build()
   }
 }

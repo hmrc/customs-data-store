@@ -30,12 +30,10 @@ class CompanyInformationRepositorySpec extends SpecBase {
   "retrieve the company information from the database if present" in new Setup {
     running(app) {
       await(for {
-        _ <- repository.set("testEori", companyInformation)
+        _      <- repository.set("testEori", companyInformation)
         result <- repository.get("testEori")
-        _ <- dropData()
-      } yield {
-        result mustBe Some(companyInformation)
-      })
+        _      <- dropData()
+      } yield result mustBe Some(companyInformation))
     }
   }
 
@@ -43,10 +41,8 @@ class CompanyInformationRepositorySpec extends SpecBase {
     running(app) {
       await(for {
         result <- repository.get("testEori")
-        _ <- dropData()
-      } yield {
-        result mustBe None
-      })
+        _      <- dropData()
+      } yield result mustBe None)
     }
   }
 
@@ -60,8 +56,7 @@ class CompanyInformationRepositorySpec extends SpecBase {
 
     val repository: DefaultCompanyInformationRepository = app.injector.instanceOf[DefaultCompanyInformationRepository]
 
-    def dropData(): Future[Unit] = {
+    def dropData(): Future[Unit] =
       repository.collection.drop().toFuture().map(_ => ())
-    }
   }
 }

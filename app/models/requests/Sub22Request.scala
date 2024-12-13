@@ -18,8 +18,7 @@ package models.requests
 
 import play.api.libs.json.{Json, Writes}
 
-case class Sub22Request(requestCommon: RequestCommon,
-                        requestDetail: RequestDetail)
+case class Sub22Request(requestCommon: RequestCommon, requestDetail: RequestDetail)
 
 object Sub22Request {
   implicit val writes: Writes[Sub22Request] = Json.writes[Sub22Request]

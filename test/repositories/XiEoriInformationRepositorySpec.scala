@@ -30,12 +30,10 @@ class XiEoriInformationRepositorySpec extends SpecBase {
   "retrieve the xi eori information from the database if present" in new Setup {
     running(app) {
       await(for {
-        _ <- repository.set(eori, xiEoriInformation)
+        _      <- repository.set(eori, xiEoriInformation)
         result <- repository.get(eori)
-        _ <- dropData()
-      } yield {
-        result mustBe Some(xiEoriInformation)
-      })
+        _      <- dropData()
+      } yield result mustBe Some(xiEoriInformation))
     }
   }
 
@@ -43,10 +41,8 @@ class XiEoriInformationRepositorySpec extends SpecBase {
     running(app) {
       await(for {
         result <- repository.get(eori)
-        _ <- dropData()
-      } yield {
-        result mustBe None
-      })
+        _      <- dropData()
+      } yield result mustBe None)
     }
   }
 
@@ -58,11 +54,10 @@ class XiEoriInformationRepositorySpec extends SpecBase {
 
     val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", xiEoriAddressInformation)
 
-    val app: Application = application.build()
+    val app: Application                               = application.build()
     val repository: DefaultXiEoriInformationRepository = app.injector.instanceOf[DefaultXiEoriInformationRepository]
 
-    def dropData(): Future[Unit] = {
+    def dropData(): Future[Unit] =
       repository.collection.drop().toFuture().map(_ => ())
-    }
   }
 }

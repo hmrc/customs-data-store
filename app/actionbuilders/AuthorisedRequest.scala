@@ -28,12 +28,11 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.Inject
-import scala.concurrent.Future.successful
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthorisedRequest @Inject()(override val authConnector: CustomAuthConnector,
-                                  cc: ControllerComponents)(implicit val executionContext: ExecutionContext)
-  extends ActionBuilder[RequestWithEori, AnyContent]
+class AuthorisedRequest @Inject() (override val authConnector: CustomAuthConnector, cc: ControllerComponents)(implicit
+  val executionContext: ExecutionContext
+) extends ActionBuilder[RequestWithEori, AnyContent]
     with ActionRefiner[Request, RequestWithEori]
     with AuthorisedFunctions
     with Results {
@@ -44,11 +43,12 @@ class AuthorisedRequest @Inject()(override val authConnector: CustomAuthConnecto
     val predicates = EmptyPredicate
     val retrievals = Retrievals.allEnrolments
 
-    authConnector.authorise(predicates, retrievals)
+    authConnector
+      .authorise(predicates, retrievals)
       .map(_.getEnrolment(ENROLMENT_KEY).flatMap(_.getIdentifier(ENROLMENT_IDENTIFIER)))
       .map {
         case Some(eori) => Right(new RequestWithEori(EORI(eori.value), request))
-        case None => Left(Forbidden("Enrolment Identifier EORINumber not found"))
+        case None       => Left(Forbidden("Enrolment Identifier EORINumber not found"))
       }
   }
 
@@ -57,8 +57,7 @@ class AuthorisedRequest @Inject()(override val authConnector: CustomAuthConnecto
 
 class RequestWithEori[+A](val eori: EORI, request: Request[A]) extends WrappedRequest[A](request)
 
-class CustomAuthConnector @Inject()(appConfig: AppConfig,
-                                    httpClient: HttpClientV2) extends PlayAuthConnector {
+class CustomAuthConnector @Inject() (appConfig: AppConfig, httpClient: HttpClientV2) extends PlayAuthConnector {
   val serviceUrl: String = appConfig.authUrl
 
   def httpClientV2: HttpClientV2 = httpClient

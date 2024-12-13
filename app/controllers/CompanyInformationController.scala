@@ -27,25 +27,27 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CompanyInformationController @Inject()(companyInformationRepository: CompanyInformationRepository,
-                                             subscriptionInfoConnector: Sub09Connector,
-                                             cc: ControllerComponents)
-                                             (implicit executionContext: ExecutionContext) extends BackendController(cc) {
+class CompanyInformationController @Inject() (
+  companyInformationRepository: CompanyInformationRepository,
+  subscriptionInfoConnector: Sub09Connector,
+  cc: ControllerComponents
+)(implicit executionContext: ExecutionContext)
+    extends BackendController(cc) {
 
   def getCompanyInformation(eori: String): Action[AnyContent] = Action.async {
     companyInformationRepository.get(eori).flatMap {
       case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
-      case None => retrieveCompanyInformation(eori).map {
-        case Some(companyInformation) => Ok(Json.toJson(companyInformation))
-        case None => NotFound
-      }
+      case None                     =>
+        retrieveCompanyInformation(eori).map {
+          case Some(companyInformation) => Ok(Json.toJson(companyInformation))
+          case None                     => NotFound
+        }
     }
   }
 
-  private def retrieveCompanyInformation(eori: String): Future[Option[CompanyInformation]] = {
+  private def retrieveCompanyInformation(eori: String): Future[Option[CompanyInformation]] =
     (for {
       companyInformation <- OptionT(subscriptionInfoConnector.getCompanyInformation(eori))
-      _ <- OptionT.liftF(companyInformationRepository.set(eori, companyInformation))
+      _                  <- OptionT.liftF(companyInformationRepository.set(eori, companyInformation))
     } yield companyInformation).value
-  }
 }

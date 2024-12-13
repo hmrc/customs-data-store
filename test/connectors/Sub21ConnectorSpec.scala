@@ -110,13 +110,10 @@ class Sub21ConnectorSpec extends SpecBase {
 
     "recoverWith Not Found" in new Setup {
 
-      val compare: Future[Nothing] = Future.failed(
-        UpstreamErrorResponse(
-          notFoundMessage("GET", actualURL.toString, "error1"),
-          NOT_FOUND))
+      val compare: Future[Nothing] =
+        Future.failed(UpstreamErrorResponse(notFoundMessage("GET", actualURL.toString, "error1"), NOT_FOUND))
 
-      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]],
-        any[ExecutionContext])).thenReturn(compare)
+      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext])).thenReturn(compare)
 
       when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
@@ -139,25 +136,25 @@ class Sub21ConnectorSpec extends SpecBase {
 
     val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
 
-    val someEori = "testEori"
-    val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
+    val someEori                       = "testEori"
+    val mockHttpClient: HttpClientV2   = mock[HttpClientV2]
     val requestBuilder: RequestBuilder = mock[RequestBuilder]
 
-    val app: Application = application.overrides(
-      api.inject.bind[HttpClientV2].toInstance(mockHttpClient),
-      api.inject.bind[RequestBuilder].toInstance(requestBuilder)
-    ).build()
+    val app: Application = application
+      .overrides(
+        api.inject.bind[HttpClientV2].toInstance(mockHttpClient),
+        api.inject.bind[RequestBuilder].toInstance(requestBuilder)
+      )
+      .build()
 
     val connector: Sub21Connector = app.injector.instanceOf[Sub21Connector]
-    val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
+    val appConfig: AppConfig      = app.injector.instanceOf[AppConfig]
   }
 
-  protected def generateResponse(eoris: Seq[String]): HistoricEoriResponse = {
+  protected def generateResponse(eoris: Seq[String]): HistoricEoriResponse =
     HistoricEoriResponse(
-      GetEORIHistoryResponse(
-        ResponseCommon("OK", LocalDate.now().toString),
-        ResponseDetail(generateEoriHistory(eoris))))
-  }
+      GetEORIHistoryResponse(ResponseCommon("OK", LocalDate.now().toString), ResponseDetail(generateEoriHistory(eoris)))
+    )
 
   def generateEoriHistory(allEoris: Seq[String]): Seq[EORIHistory] = {
     val dateCalculator =

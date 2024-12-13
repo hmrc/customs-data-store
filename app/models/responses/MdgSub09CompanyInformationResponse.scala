@@ -20,15 +20,15 @@ import models.AddressInformation
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsPath, Reads}
 
-case class MdgSub09CompanyInformationResponse(name: String,
-                                              consent: Option[String],
-                                              address: AddressInformation)
+case class MdgSub09CompanyInformationResponse(name: String, consent: Option[String], address: AddressInformation)
 
 object MdgSub09CompanyInformationResponse {
   implicit val sub09CompanyInformation: Reads[MdgSub09CompanyInformationResponse] =
     ((JsPath \\ "CDSFullName").read[String] and
       (JsPath \\ "consentToDisclosureOfPersonalData").readNullable[String] and
-      (JsPath \\ "contactInformation").read[AddressInformation].orElse(
-        (JsPath \\ "CDSEstablishmentAddress").read[AddressInformation])
-      )(MdgSub09CompanyInformationResponse.apply _)
+      (JsPath \\ "contactInformation")
+        .read[AddressInformation]
+        .orElse((JsPath \\ "CDSEstablishmentAddress").read[AddressInformation]))(
+      MdgSub09CompanyInformationResponse.apply _
+    )
 }

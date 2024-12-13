@@ -20,13 +20,13 @@ import models.NotificationEmail
 import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
 
-case class NotificationEmailMongo(address: String,
-                                  timestamp: LocalDateTime,
-                                  undeliverable: Option[UndeliverableInformationMongo]) {
-  def toNotificationEmail: NotificationEmail = NotificationEmail(
-    address,
-    timestamp,
-    undeliverable.map(_.toUndeliverableInformation))
+case class NotificationEmailMongo(
+  address: String,
+  timestamp: LocalDateTime,
+  undeliverable: Option[UndeliverableInformationMongo]
+) {
+  def toNotificationEmail: NotificationEmail =
+    NotificationEmail(address, timestamp, undeliverable.map(_.toUndeliverableInformation))
 }
 
 object NotificationEmailMongo {

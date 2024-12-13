@@ -31,33 +31,36 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AuditingService @Inject()(auditConnector: AuditConnector)(implicit executionContext: ExecutionContext) {
+class AuditingService @Inject() (auditConnector: AuditConnector)(implicit executionContext: ExecutionContext) {
 
   val log: LoggerLike = Logger(this.getClass)
 
-  private val AUDIT_SOURCE = "customs-data-store"
-  private val BOUNCED_EMAIL_TYPE = "BouncedEmail"
+  private val AUDIT_SOURCE                   = "customs-data-store"
+  private val BOUNCED_EMAIL_TYPE             = "BouncedEmail"
   private val BOUNCED_EMAIL_TRANSACTION_NAME = "Bounced Email"
-  private val SUB22_TYPE = "UpdateVerificationTimestamp"
-  private val SUB22_NAME = "Update Verification Timestamp"
+  private val SUB22_TYPE                     = "UpdateVerificationTimestamp"
+  private val SUB22_NAME                     = "Update Verification Timestamp"
 
   val referrer: HeaderCarrier => String = _.headers(Seq(HeaderNames.REFERER)).headOption.fold("-")(_._2)
 
-  def auditBouncedEmail(undeliverableInformation: UndeliverableInformation)(implicit hc: HeaderCarrier): Future[AuditResult] = {
+  def auditBouncedEmail(undeliverableInformation: UndeliverableInformation)(implicit
+    hc: HeaderCarrier
+  ): Future[AuditResult] =
     audit(AuditModel(BOUNCED_EMAIL_TRANSACTION_NAME, undeliverableInformation.toAuditDetail, BOUNCED_EMAIL_TYPE))
-  }
 
-  def auditSub22Request(request: Sub22UpdateVerifiedEmailRequest,
-                        attempts: Int, successful: Boolean)(implicit hc: HeaderCarrier): Future[AuditResult] = {
-    val detail = Json.obj("updateVerifiedEmailRequest" -> Json.obj(
-      "attempts" -> attempts,
-      "successful" -> successful,
-      "requestCommon" -> Json.toJson(request.updateVerifiedEmailRequest.requestCommon),
-      "requestDetail" -> Json.toJson(request.updateVerifiedEmailRequest.requestDetail)
-    ))
+  def auditSub22Request(request: Sub22UpdateVerifiedEmailRequest, attempts: Int, successful: Boolean)(implicit
+    hc: HeaderCarrier
+  ): Future[AuditResult] = {
+    val detail = Json.obj(
+      "updateVerifiedEmailRequest" -> Json.obj(
+        "attempts"      -> attempts,
+        "successful"    -> successful,
+        "requestCommon" -> Json.toJson(request.updateVerifiedEmailRequest.requestCommon),
+        "requestDetail" -> Json.toJson(request.updateVerifiedEmailRequest.requestDetail)
+      )
+    )
     audit(AuditModel(SUB22_NAME, detail, SUB22_TYPE))
   }
-
 
   private def audit(auditModel: AuditModel)(implicit hc: HeaderCarrier): Future[AuditResult] = {
     val dataEvent = ExtendedDataEvent(
@@ -69,20 +72,20 @@ class AuditingService @Inject()(auditConnector: AuditConnector)(implicit executi
 
     log.debug(s"Splunk Audit Event:\n$dataEvent\n")
 
-    auditConnector.sendExtendedEvent(dataEvent)
-      .map {
-        auditResult =>
-          logAuditResult(auditResult)
-          auditResult
+    auditConnector
+      .sendExtendedEvent(dataEvent)
+      .map { auditResult =>
+        logAuditResult(auditResult)
+        auditResult
       }
   }
 
   private def logAuditResult(auditResult: AuditResult): Unit = auditResult match {
-    case Success =>
+    case Success         =>
       log.debug("Splunk Audit Successful")
     case Failure(err, _) =>
       log.error(s"Splunk Audit Error, message: $err")
-    case Disabled =>
+    case Disabled        =>
       log.debug(s"Auditing Disabled")
   }
 }

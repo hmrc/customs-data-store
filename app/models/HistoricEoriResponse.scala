@@ -22,6 +22,6 @@ import play.api.libs.json.{Json, OFormat, Reads}
 case class HistoricEoriResponse(getEORIHistoryResponse: GetEORIHistoryResponse)
 
 object HistoricEoriResponse {
-  implicit val reads: Reads[HistoricEoriResponse] = Json.reads[HistoricEoriResponse]
+  implicit val reads: Reads[HistoricEoriResponse]                        = Json.reads[HistoricEoriResponse]
   implicit val historicEoriResponseFormat: OFormat[HistoricEoriResponse] = Json.format[HistoricEoriResponse]
 }

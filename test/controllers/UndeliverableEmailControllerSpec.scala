@@ -43,20 +43,18 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
         Json.obj(
-          "subject" -> "some subject",
-          "eventId" -> "some id",
-          "groupId" -> "someGroupId",
+          "subject"   -> "some subject",
+          "eventId"   -> "some id",
+          "groupId"   -> "someGroupId",
           "timestamp" -> currentDateTimeString,
-          "event" -> Json.obj(
-            "id" -> "some-id",
+          "event"     -> Json.obj(
+            "id"           -> "some-id",
             "emailAddress" -> "some@email.com",
-            "event" -> "some event",
-            "detected" -> currentDateTimeString,
-            "code" -> 12,
-            "reason" -> "unknown reason",
-            "tags" -> Json.obj("enrolment" -> s"HMRC-CUS-ORG~EORINumber~$testEori",
-              "source" -> "sdds"
-            )
+            "event"        -> "some event",
+            "detected"     -> currentDateTimeString,
+            "code"         -> 12,
+            "reason"       -> "unknown reason",
+            "tags"         -> Json.obj("enrolment" -> s"HMRC-CUS-ORG~EORINumber~$testEori", "source" -> "sdds")
           )
         )
       )
@@ -71,18 +69,18 @@ class UndeliverableEmailControllerSpec extends SpecBase {
     "return 400 if the enrolment does not contain 'EORINumber'" in new Setup {
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
         Json.obj(
-          "subject" -> "some subject",
-          "eventId" -> "some id",
-          "groupId" -> "someGroupId",
+          "subject"   -> "some subject",
+          "eventId"   -> "some id",
+          "groupId"   -> "someGroupId",
           "timestamp" -> currentDateTimeString,
-          "event" -> Json.obj(
-            "id" -> "some-id",
-            "enrolment" -> s"HMRC-CUS-ORG~INVALID~$testEori",
+          "event"     -> Json.obj(
+            "id"           -> "some-id",
+            "enrolment"    -> s"HMRC-CUS-ORG~INVALID~$testEori",
             "emailAddress" -> "some@email.com",
-            "event" -> "some event",
-            "detected" -> currentDateTimeString,
-            "code" -> 12,
-            "reason" -> "unknown reason"
+            "event"        -> "some event",
+            "detected"     -> currentDateTimeString,
+            "code"         -> 12,
+            "reason"       -> "unknown reason"
           )
         )
       )
@@ -97,12 +95,12 @@ class UndeliverableEmailControllerSpec extends SpecBase {
     "return 400 if the enrolment does not contain 'HMRC-CUS-ORG'" in new Setup {
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
         Json.obj(
-          "enrolment" -> s"INVALID~EORINumber~$testEori",
+          "enrolment"    -> s"INVALID~EORINumber~$testEori",
           "emailAddress" -> "some@email.com",
-          "event" -> "some event",
-          "detected" -> currentDateTimeString,
-          "code" -> 12,
-          "reason" -> "unknown reason"
+          "event"        -> "some event",
+          "detected"     -> currentDateTimeString,
+          "code"         -> 12,
+          "reason"       -> "unknown reason"
         )
       )
 
@@ -116,17 +114,17 @@ class UndeliverableEmailControllerSpec extends SpecBase {
     "return 400 if the data provided to the endpoint is invalid" in new Setup {
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
         Json.obj(
-          "subject" -> "some subject",
-          "eventId" -> "some id",
-          "groupId" -> "someGroupId",
+          "subject"   -> "some subject",
+          "eventId"   -> "some id",
+          "groupId"   -> "someGroupId",
           "timestamp" -> currentDateTimeString,
-          "event" -> Json.obj(
-            "id" -> "some-id",
+          "event"     -> Json.obj(
+            "id"           -> "some-id",
             "emailAddress" -> "some@email.com",
-            "event" -> "some event",
-            "detected" -> currentDateTimeString,
-            "code" -> 12,
-            "reason" -> "unknown reason"
+            "event"        -> "some event",
+            "detected"     -> currentDateTimeString,
+            "code"         -> 12,
+            "reason"       -> "unknown reason"
           )
         )
       )
@@ -145,20 +143,20 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
         Json.obj(
-          "subject" -> "some subject",
-          "eventId" -> "some id",
-          "groupId" -> "someGroupId",
+          "subject"   -> "some subject",
+          "eventId"   -> "some id",
+          "groupId"   -> "someGroupId",
           "timestamp" -> currentDateTimeString,
-          "event" -> Json.obj(
-            "id" -> "some-id",
+          "event"     -> Json.obj(
+            "id"           -> "some-id",
             "emailAddress" -> "some@email.com",
-            "event" -> "some event",
-            "detected" -> currentDateTimeString,
-            "code" -> 12,
-            "reason" -> "unknown reason",
-            "tags" -> Json.obj(
+            "event"        -> "some event",
+            "detected"     -> currentDateTimeString,
+            "code"         -> 12,
+            "reason"       -> "unknown reason",
+            "tags"         -> Json.obj(
               "enrolment" -> s"HMRC-CUS-ORG~EORINumber~$testEori",
-              "source" -> "sdds"
+              "source"    -> "sdds"
             )
           )
         )
@@ -221,20 +219,20 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
         Json.obj(
-          "subject" -> "some subject",
-          "eventId" -> "some event",
-          "groupId" -> "someGroupId",
+          "subject"   -> "some subject",
+          "eventId"   -> "some event",
+          "groupId"   -> "someGroupId",
           "timestamp" -> detectedDate.toString(),
-          "event" -> Json.obj(
-            "id" -> "some-id",
+          "event"     -> Json.obj(
+            "id"           -> "some-id",
             "emailAddress" -> "some@email.com",
-            "event" -> "some event",
-            "detected" -> detectedDate.toString(),
-            "code" -> 12,
-            "reason" -> "unknown reason",
-            "tags" -> Json.obj(
+            "event"        -> "some event",
+            "detected"     -> detectedDate.toString(),
+            "code"         -> 12,
+            "reason"       -> "unknown reason",
+            "tags"         -> Json.obj(
               "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~$testEori",
-              "source" -> "sdds"
+              "source"    -> "sdds"
             )
           )
         )
@@ -298,20 +296,20 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
         Json.obj(
-          "subject" -> "some subject",
-          "eventId" -> "some event",
-          "groupId" -> "someGroupId",
+          "subject"   -> "some subject",
+          "eventId"   -> "some event",
+          "groupId"   -> "someGroupId",
           "timestamp" -> detectedDate.toString(),
-          "event" -> Json.obj(
-            "id" -> "some-id",
+          "event"     -> Json.obj(
+            "id"           -> "some-id",
             "emailAddress" -> "some@email.com",
-            "event" -> "some event",
-            "detected" -> detectedDate.toString(),
-            "code" -> 12,
-            "reason" -> "unknown reason",
-            "tags" -> Json.obj(
+            "event"        -> "some event",
+            "detected"     -> detectedDate.toString(),
+            "code"         -> 12,
+            "reason"       -> "unknown reason",
+            "tags"         -> Json.obj(
               "enrolment" -> s"HMRC-cus-ORG~EORINUMBER~$testEori",
-              "source" -> "sdds"
+              "source"    -> "sdds"
             )
           )
         )
@@ -328,21 +326,24 @@ class UndeliverableEmailControllerSpec extends SpecBase {
   }
 
   trait Setup {
-    val notificationEmailMongo: NotificationEmailMongo = NotificationEmailMongo("someAddress", LocalDateTime.now(), None)
-    val testEori = "EoriNumber"
-    val currentDateTimeString: String = LocalDateTime.now().toString()
-    val code = 12
+    val notificationEmailMongo: NotificationEmailMongo =
+      NotificationEmailMongo("someAddress", LocalDateTime.now(), None)
+    val testEori                                       = "EoriNumber"
+    val currentDateTimeString: String                  = LocalDateTime.now().toString()
+    val code                                           = 12
 
     val postRoute: String = routes.UndeliverableEmailController.makeUndeliverable().url
 
-    val mockEmailRepository: EmailRepository = mock[EmailRepository]
-    val mockSub22Connector: Sub22Connector = mock[Sub22Connector]
+    val mockEmailRepository: EmailRepository                 = mock[EmailRepository]
+    val mockSub22Connector: Sub22Connector                   = mock[Sub22Connector]
     val mockUndeliverableJobService: UndeliverableJobService = mock[UndeliverableJobService]
 
-    val app: Application = application.overrides(
-      inject.bind[EmailRepository].toInstance(mockEmailRepository),
-      inject.bind[Sub22Connector].toInstance(mockSub22Connector),
-      inject.bind[UndeliverableJobService].toInstance(mockUndeliverableJobService)
-    ).build()
+    val app: Application = application
+      .overrides(
+        inject.bind[EmailRepository].toInstance(mockEmailRepository),
+        inject.bind[Sub22Connector].toInstance(mockSub22Connector),
+        inject.bind[UndeliverableJobService].toInstance(mockUndeliverableJobService)
+      )
+      .build()
   }
 }

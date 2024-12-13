@@ -18,9 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat, OWrites}
 
-case class EoriPeriod(eori: String,
-                      validFrom: Option[String],
-                      validUntil: Option[String]) {
+case class EoriPeriod(eori: String, validFrom: Option[String], validUntil: Option[String]) {
   def definedDates: Boolean = validFrom.isDefined || validUntil.isDefined
 }
 

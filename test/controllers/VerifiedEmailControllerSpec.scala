@@ -66,9 +66,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
         status(result) mustBe OK
 
-        contentAsJson(result) mustBe Json.obj(
-          "address" -> testAddress,
-          "timestamp" -> s"${testTime.toString}Z")
+        contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> s"${testTime.toString}Z")
 
         verifyNoInteractions(mockSubscriptionInfoService)
       }
@@ -76,40 +74,41 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
     "return the email and call SUB09 if the data is not stored in the cache and " +
       "also store the response into the cache" in new Setup {
-      when(mockEmailRepository.get(any()))
-        .thenReturn(Future.successful(None))
-        .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
+        when(mockEmailRepository.get(any()))
+          .thenReturn(Future.successful(None))
+          .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
-      when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(
-        Some(NotificationEmail(testAddress, testTime, None))
-      ))
+        when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
+          Future.successful(
+            Some(NotificationEmail(testAddress, testTime, None))
+          )
+        )
 
-      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
+        when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
 
-      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRoute)
+        val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRoute)
 
-      running(app) {
-        val result = route(app, request).value
+        running(app) {
+          val result = route(app, request).value
 
-        status(result) mustBe OK
+          status(result) mustBe OK
 
-        contentAsJson(result) mustBe Json.obj(
-          "address" -> testAddress,
-          "timestamp" -> s"${testTime.toString}Z")
+          contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> s"${testTime.toString}Z")
+        }
       }
-    }
 
     "return InternalServerError if the write did not succeed when retrieving email from SUB09" in new Setup {
       when(mockEmailRepository.get(any()))
         .thenReturn(Future.successful(None))
         .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
-      when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(
-        Some(NotificationEmail(testAddress, testTime, None))
-      ))
+      when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
+        Future.successful(
+          Some(NotificationEmail(testAddress, testTime, None))
+        )
+      )
 
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
-
 
       val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRoute)
 
@@ -165,23 +164,25 @@ class VerifiedEmailControllerSpec extends SpecBase {
   }
 
   trait Setup {
-    val testEori = "testEori"
-    val testTime1: LocalDate = LocalDate.now()
+    val testEori                = "testEori"
+    val testTime1: LocalDate    = LocalDate.now()
     val testTime: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-    val testAddress = "test@email.com"
+    val testAddress             = "test@email.com"
 
-    val getRoute: String = routes.VerifiedEmailController.getVerifiedEmail(testEori).url
+    val getRoute: String  = routes.VerifiedEmailController.getVerifiedEmail(testEori).url
     val postRoute: String = routes.VerifiedEmailController.updateVerifiedEmail().url
 
     val testNotificationEmail: NotificationEmail = NotificationEmail(testAddress, testTime, None)
-    val testTraderData: TraderData = TraderData(Seq.empty, Some(testNotificationEmail))
+    val testTraderData: TraderData               = TraderData(Seq.empty, Some(testNotificationEmail))
 
-    val mockEmailRepository: EmailRepository = mock[EmailRepository]
+    val mockEmailRepository: EmailRepository        = mock[EmailRepository]
     val mockSubscriptionInfoService: Sub09Connector = mock[Sub09Connector]
 
-    def app: Application = application.overrides(
-      inject.bind[EmailRepository].toInstance(mockEmailRepository),
-      inject.bind[Sub09Connector].toInstance(mockSubscriptionInfoService)
-    ).build()
+    def app: Application = application
+      .overrides(
+        inject.bind[EmailRepository].toInstance(mockEmailRepository),
+        inject.bind[Sub09Connector].toInstance(mockSubscriptionInfoService)
+      )
+      .build()
   }
 }

@@ -34,8 +34,8 @@ class JsonFormatUtilsSpec extends SpecBase {
 
   trait Setup {
     implicit val format: Format[TestClass] = JsonFormatUtils.stringFormat[TestClass](TestClass.apply)(_.value)
-    val testValue = "test"
-    val testOb: TestClass = TestClass(testValue)
+    val testValue                          = "test"
+    val testOb: TestClass                  = TestClass(testValue)
   }
 }
 

@@ -111,13 +111,13 @@ class AppConfigSpec extends SpecBase {
   }
 
   trait Setup {
-    val urlStringWithoutSlashes = "abcd"
-    val urlStringWithLeadingSlash = "/abcd"
-    val sampleUrl = "http://localhost"
-    val urlWithTrailingSlash = "http://localhost/"
+    val urlStringWithoutSlashes         = "abcd"
+    val urlStringWithLeadingSlash       = "/abcd"
+    val sampleUrl                       = "http://localhost"
+    val urlWithTrailingSlash            = "http://localhost/"
     val urlAfterApplyingStringWithSlash = "http://localhost/abcd"
 
-    val app: Application = application.build()
+    val app: Application     = application.build()
     val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
   }
 }

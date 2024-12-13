@@ -42,27 +42,29 @@ class MdgSub09CompanyInformationResponseSpec extends SpecBase {
   }
 
   trait Setup {
-    val name = "Tony Stark"
-    val consent = "1"
-    val streetNo1 = "2nd floor, Alexander House"
-    val streetNo2 = "86 Mysore Road"
-    val city1 = "Southend-on-sea"
-    val city2 = "London"
-    val postCode1 = "SS99 1AA"
-    val postCode2 = "SW11 5RZ"
+    val name        = "Tony Stark"
+    val consent     = "1"
+    val streetNo1   = "2nd floor, Alexander House"
+    val streetNo2   = "86 Mysore Road"
+    val city1       = "Southend-on-sea"
+    val city2       = "London"
+    val postCode1   = "SS99 1AA"
+    val postCode2   = "SW11 5RZ"
     val countryCode = "GB"
 
     val addressInfoForContactInfo: AddressInformation = AddressInformation(
       streetAndNumber = streetNo1,
       city = city1,
       postalCode = Some(postCode1),
-      countryCode = countryCode)
+      countryCode = countryCode
+    )
 
     val addressInfoForEstablishmentAddress: AddressInformation = AddressInformation(
       streetAndNumber = streetNo2,
       city = city2,
       postalCode = Some(postCode2),
-      countryCode = countryCode)
+      countryCode = countryCode
+    )
 
     val msgSub09ResponseObWithContactInfo: MdgSub09CompanyInformationResponse = MdgSub09CompanyInformationResponse(
       name = name,

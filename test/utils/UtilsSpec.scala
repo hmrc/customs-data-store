@@ -67,9 +67,9 @@ class UtilsSpec extends SpecBase {
 
   "uri" should {
     "return correct URL" in {
-      val eori = "test_eori"
-      val endPoint = "http://localhost:9893/test"
-      val actualURL = uri(eori, endPoint)
+      val eori             = "test_eori"
+      val endPoint         = "http://localhost:9893/test"
+      val actualURL        = uri(eori, endPoint)
       val expectedURLPart1 = s"$endPoint?regime=CDS&acknowledgementReference="
       val expectedURLPart2 = s"&EORI=$eori"
 

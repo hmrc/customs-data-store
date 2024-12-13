@@ -26,10 +26,8 @@ object EORI {
   implicit val format: Format[EORI] = JsonFormatUtils.stringFormat(EORI.apply)(_.value)
 
   implicit def pathBinder(implicit stringBinder: PathBindable[String]): PathBindable[EORI] = new PathBindable[EORI] {
-    override def bind(key: String,
-                      value: String): Either[String, EORI] = {
+    override def bind(key: String, value: String): Either[String, EORI] =
       stringBinder.bind(key, value).map(EORI(_))
-    }
 
     override def unbind(key: String, eori: EORI): String = eori.value
   }

@@ -46,35 +46,41 @@ class NotificationEmailSpec extends SpecBase {
   }
 
   trait Setup {
-    val year = 2024
-    val month = 5
+    val year          = 2024
+    val month         = 5
     val dayOfTheMonth = 17
-    val hourOfTheDay = 12
-    val minutes = 55
-    val seconds = 44
+    val hourOfTheDay  = 12
+    val minutes       = 55
+    val seconds       = 44
 
-    val timeStamp: LocalDateTime = LocalDateTime.of(year, month, dayOfTheMonth, hourOfTheDay, minutes, seconds)
+    val timeStamp: LocalDateTime              = LocalDateTime.of(year, month, dayOfTheMonth, hourOfTheDay, minutes, seconds)
     val timeStampWith00Seconds: LocalDateTime = LocalDateTime.of(year, month, dayOfTheMonth, hourOfTheDay, minutes)
 
     val undeliverableEvent: UndeliverableInformationEvent =
-      UndeliverableInformationEvent(id = "test_id",
+      UndeliverableInformationEvent(
+        id = "test_id",
         event = "circuit_breaker",
         emailAddress = "test@abc.com",
         detected = "test",
         code = None,
         reason = None,
         enrolment = "test_enrol",
-        source = None)
+        source = None
+      )
 
-    val notifMailOb: NotificationEmail = NotificationEmail(address = "test_address",
+    val notifMailOb: NotificationEmail = NotificationEmail(
+      address = "test_address",
       timeStamp,
       undeliverable =
-        Some(UndeliverableInformation("test_sub", "test_event_id", "test_group_id", timeStamp, undeliverableEvent)))
+        Some(UndeliverableInformation("test_sub", "test_event_id", "test_group_id", timeStamp, undeliverableEvent))
+    )
 
-    val notifMailObWithNoSeconds: NotificationEmail = NotificationEmail(address = "test_address",
+    val notifMailObWithNoSeconds: NotificationEmail = NotificationEmail(
+      address = "test_address",
       timeStampWith00Seconds,
       undeliverable =
-        Some(UndeliverableInformation("test_sub", "test_event_id", "test_group_id", timeStamp, undeliverableEvent)))
+        Some(UndeliverableInformation("test_sub", "test_event_id", "test_group_id", timeStamp, undeliverableEvent))
+    )
 
     val notificationEmailJsString: String =
       """

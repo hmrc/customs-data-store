@@ -20,16 +20,16 @@ import java.time.LocalDateTime
 import play.api.libs.json.{Json, Writes}
 import utils.DateTimeUtils.dateTimeWritesIsoUtc
 
-case class RequestDetail(IDType: String,
-                         IDNumber: String,
-                         emailAddress: String,
-                         emailVerificationTimestamp: LocalDateTime,
-                         emailVerified: Boolean)
+case class RequestDetail(
+  IDType: String,
+  IDNumber: String,
+  emailAddress: String,
+  emailVerificationTimestamp: LocalDateTime,
+  emailVerified: Boolean
+)
 
 object RequestDetail {
-  def fromEmailAndEori(email: String,
-                       eori: String,
-                       timestamp: LocalDateTime): RequestDetail =
+  def fromEmailAndEori(email: String, eori: String, timestamp: LocalDateTime): RequestDetail =
     RequestDetail(
       IDType = "EORI",
       IDNumber = eori,
@@ -39,5 +39,5 @@ object RequestDetail {
     )
 
   implicit val dateTimeWrites: Writes[LocalDateTime] = dateTimeWritesIsoUtc
-  implicit val writes: Writes[RequestDetail] = Json.writes[RequestDetail]
+  implicit val writes: Writes[RequestDetail]         = Json.writes[RequestDetail]
 }

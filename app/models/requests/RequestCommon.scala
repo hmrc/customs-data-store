@@ -24,9 +24,7 @@ import java.time.Clock
 import java.util.UUID
 import java.time.LocalDateTime
 
-case class RequestCommon(regime: String,
-                         receiptDate: LocalDateTime,
-                         acknowledgementReference: String)
+case class RequestCommon(regime: String, receiptDate: LocalDateTime, acknowledgementReference: String)
 
 object RequestCommon {
   private val cl = Clock.systemUTC
@@ -38,5 +36,5 @@ object RequestCommon {
   )
 
   implicit val dateTimeWrites: Writes[LocalDateTime] = dateTimeWritesIsoUtc
-  implicit val writes: Writes[RequestCommon] = Json.writes[RequestCommon]
+  implicit val writes: Writes[RequestCommon]         = Json.writes[RequestCommon]
 }

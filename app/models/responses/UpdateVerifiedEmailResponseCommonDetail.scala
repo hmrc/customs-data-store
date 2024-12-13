@@ -18,8 +18,7 @@ package models.responses
 
 import play.api.libs.json.{Json, OFormat}
 
-case class UpdateVerifiedEmailResponseCommonDetail(status: String,
-                                                   statusText: Option[String])
+case class UpdateVerifiedEmailResponseCommonDetail(status: String, statusText: Option[String])
 
 object UpdateVerifiedEmailResponseCommonDetail {
   implicit val format: OFormat[UpdateVerifiedEmailResponseCommonDetail] =

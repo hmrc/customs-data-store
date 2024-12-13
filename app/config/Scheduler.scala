@@ -24,15 +24,15 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-
 @Singleton
-class Scheduler @Inject()(actorSystem: ActorSystem,
-                          undeliverableJobService: UndeliverableJobService,
-                          appConfig: AppConfig
-                         )(implicit executionContext: ExecutionContext) {
-    val job: Runnable = () => undeliverableJobService.processJob().map(_ => ())
-    actorSystem.scheduler.scheduleAtFixedRate(
-      initialDelay = appConfig.schedulerDelay seconds,
-      interval = appConfig.schedulerDelay seconds
-    )(job)
+class Scheduler @Inject() (
+  actorSystem: ActorSystem,
+  undeliverableJobService: UndeliverableJobService,
+  appConfig: AppConfig
+)(implicit executionContext: ExecutionContext) {
+  val job: Runnable = () => undeliverableJobService.processJob().map(_ => ())
+  actorSystem.scheduler.scheduleAtFixedRate(
+    initialDelay = appConfig.schedulerDelay seconds,
+    interval = appConfig.schedulerDelay seconds
+  )(job)
 }

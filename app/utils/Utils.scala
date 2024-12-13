@@ -23,10 +23,10 @@ import scala.util.Random
 
 object Utils {
 
-  val hyphen = "-"
+  val hyphen      = "-"
   val emptyString = ""
   val singleSpace = " "
-  val colon = ":"
+  val colon       = ":"
 
   def randomUUID: String = java.util.UUID.randomUUID().toString
 

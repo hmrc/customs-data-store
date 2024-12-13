@@ -94,8 +94,9 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
       when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
-        .thenReturn(Future.successful(
-          Option(mdgCompanyInformationResponse(Sub09Response.withEmailNoTimestamp(testEori)))))
+        .thenReturn(
+          Future.successful(Option(mdgCompanyInformationResponse(Sub09Response.withEmailNoTimestamp(testEori))))
+        )
 
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
@@ -108,8 +109,11 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
       when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
-        .thenReturn(Future.successful(
-          Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori)))))
+        .thenReturn(
+          Future.successful(
+            Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori)))
+          )
+        )
 
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
@@ -137,14 +141,15 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
       when(requestBuilder.execute(any[HttpReads[MdgSub09XiEoriInformationResponse]], any[ExecutionContext]))
-        .thenReturn(Future.successful(
-          Option(mdgXiEoriInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))))
+        .thenReturn(
+          Future.successful(Option(mdgXiEoriInformationResponse(Sub09Response.withEmailAndTimestamp(testEori))))
+        )
 
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        connector.getXiEoriInformation(testEori).map {
-          xiInfo => xiInfo mustBe Option(xiEoriInformation)
+        connector.getXiEoriInformation(testEori).map { xiInfo =>
+          xiInfo mustBe Option(xiEoriInformation)
         }
       }
     }
@@ -153,14 +158,15 @@ class Sub09ConnectorSpec extends SpecBase {
       when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
       when(requestBuilder.execute(any[HttpReads[MdgSub09XiEoriInformationResponse]], any[ExecutionContext]))
-        .thenReturn(Future.successful(
-          Option(mdgXiEoriInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))))
+        .thenReturn(
+          Future.successful(Option(mdgXiEoriInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori))))
+        )
 
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        connector.getXiEoriInformation(testEori).map {
-          xiInfo => xiInfo mustBe Option(xiEoriInformationWithNoAddress)
+        connector.getXiEoriInformation(testEori).map { xiInfo =>
+          xiInfo mustBe Option(xiEoriInformationWithNoAddress)
         }
       }
     }
@@ -174,8 +180,8 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        connector.getXiEoriInformation(testEori).map {
-          xiInfo => xiInfo mustBe None
+        connector.getXiEoriInformation(testEori).map { xiInfo =>
+          xiInfo mustBe None
         }
       }
     }
@@ -192,8 +198,8 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        connector.retrieveSubscriptions(TEST_EORI).map {
-          res => res mustBe Option(subsResponseOb)
+        connector.retrieveSubscriptions(TEST_EORI).map { res =>
+          res mustBe Option(subsResponseOb)
         }
       }
     }
@@ -207,52 +213,57 @@ class Sub09ConnectorSpec extends SpecBase {
       when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
 
       running(app) {
-        connector.retrieveSubscriptions(TEST_EORI).map {
-          res => res mustBe empty
+        connector.retrieveSubscriptions(TEST_EORI).map { res =>
+          res mustBe empty
         }
       }
     }
   }
 
   trait Setup {
-    val testEori = "someEori"
-    val xiEori = "XI123456789000"
+    val testEori    = "someEori"
+    val xiEori      = "XI123456789000"
     val companyName = "Example Ltd"
-    val consent = "1"
+    val consent     = "1"
 
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-    val address: AddressInformation = AddressInformation("Address Line 1", "City", Some("postCode"), "GB")
-    val companyInformation: CompanyInformation = CompanyInformation(companyName, consent, address)
+    val address: AddressInformation                          = AddressInformation("Address Line 1", "City", Some("postCode"), "GB")
+    val companyInformation: CompanyInformation               = CompanyInformation(companyName, consent, address)
     val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation(companyName, "0", address)
 
     val xiEoriInformation: XiEoriInformation =
-      XiEoriInformation(xiEori, consent,
-        XiEoriAddressInformation("Example Rd", Some("Example"), Some("GB"), None, Some("AA00 0AA")))
+      XiEoriInformation(
+        xiEori,
+        consent,
+        XiEoriAddressInformation("Example Rd", Some("Example"), Some("GB"), None, Some("AA00 0AA"))
+      )
 
     val xiEoriInformationWithNoAddress: XiEoriInformation =
       XiEoriInformation(xiEori, consent, XiEoriAddressInformation(emptyString))
 
-    val status = "test_status"
-    val statusText = "test_status_text"
-    val endDate = "2024-10-22"
-    val paramName = "POSITION"
-    val paramValue = "LINK"
+    val status                                    = "test_status"
+    val statusText                                = "test_status_text"
+    val endDate                                   = "2024-10-22"
+    val paramName                                 = "POSITION"
+    val paramValue                                = "LINK"
     val returnParameters: Array[ReturnParameters] = Seq(ReturnParameters(paramName, paramValue)).toArray
-    val vatIds: Array[VatId] = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID))).toArray
+    val vatIds: Array[VatId]                      = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID))).toArray
 
     val cdsEstablishmentAddress: CdsEstablishmentAddress = CdsEstablishmentAddress(
       streetAndNumber = "86 Mysore Road",
       city = CITY,
       postalCode = Some("SW11 5RZ"),
-      countryCode = "GB")
+      countryCode = "GB"
+    )
 
     val pbeAddress: PbeAddress = PbeAddress(
       pbeAddressLine1 = "address line 1",
       pbeAddressLine2 = Some("address line 2"),
       pbeAddressLine3 = Some("city 1"),
       pbeAddressLine4 = None,
-      pbePostCode = Some(POST_CODE))
+      pbePostCode = Some(POST_CODE)
+    )
 
     val xiSubscription: XiSubscription = XiSubscription(
       XI_EORINo = TEST_XI_EORI_VALUE,
@@ -261,7 +272,8 @@ class Sub09ConnectorSpec extends SpecBase {
       XI_VATNumber = Some("GB123456789"),
       EU_VATNumber = None,
       XI_ConsentToDisclose = "S",
-      XI_SICCode = Some("7600"))
+      XI_SICCode = Some("7600")
+    )
 
     val contactInformation: ContactInformation = ContactInformation(
       personOfContact = Some("Pepper_Pott"),
@@ -273,12 +285,15 @@ class Sub09ConnectorSpec extends SpecBase {
       telephoneNumber = Some("01702215001"),
       faxNumber = Some("01702215002"),
       emailAddress = Some(EMAIL_ADDRESS),
-      emailVerificationTimestamp = Some(TIMESTAMP_STRING))
+      emailVerificationTimestamp = Some(TIMESTAMP_STRING)
+    )
 
-    val responseCommon: SubResponseCommon = SubResponseCommon(status = status,
+    val responseCommon: SubResponseCommon = SubResponseCommon(
+      status = status,
       statusText = Some(statusText),
       processingDate = DATE_STRING,
-      returnParameters = Some(returnParameters))
+      returnParameters = Some(returnParameters)
+    )
 
     val responseDetail: SubResponseDetail = SubResponseDetail(
       EORINo = Some(TEST_EORI),
@@ -297,19 +312,22 @@ class Sub09ConnectorSpec extends SpecBase {
       typeOfPerson = Some("1"),
       principalEconomicActivity = Some("2000"),
       ETMP_Master_Indicator = true,
-      XI_Subscription = Some(xiSubscription))
+      XI_Subscription = Some(xiSubscription)
+    )
 
     val subsDisplayResOb: SubscriptionDisplayResponse = SubscriptionDisplayResponse(responseCommon, responseDetail)
-    val subsResponseOb: SubscriptionResponse = SubscriptionResponse(subsDisplayResOb)
+    val subsResponseOb: SubscriptionResponse          = SubscriptionResponse(subsDisplayResOb)
 
-    val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
+    val mockHttpClient: HttpClientV2   = mock[HttpClientV2]
     val requestBuilder: RequestBuilder = mock[RequestBuilder]
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val hc: HeaderCarrier     = HeaderCarrier()
 
-    val app: Application = application.overrides(
-      inject.bind[HttpClientV2].toInstance(mockHttpClient),
-      inject.bind[RequestBuilder].toInstance(requestBuilder)
-    ).build()
+    val app: Application = application
+      .overrides(
+        inject.bind[HttpClientV2].toInstance(mockHttpClient),
+        inject.bind[RequestBuilder].toInstance(requestBuilder)
+      )
+      .build()
 
     val connector: Sub09Connector = app.injector.instanceOf[Sub09Connector]
 

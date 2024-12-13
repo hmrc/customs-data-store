@@ -33,20 +33,22 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DefaultXiEoriInformationRepository @Inject()(config: Configuration,
-                                                   mongoComponent: MongoComponent
-                                                  )(implicit executionContext: ExecutionContext)
-  extends PlayMongoRepository[XiEoriInformationMongo](
-    collectionName = "xieori-information",
-    mongoComponent = mongoComponent,
-    domainFormat = XiEoriInformationMongo.format,
-    indexes = Seq(
-      IndexModel(
-        ascending("lastUpdated"),
-        IndexOptions().name("xieori-information-last-updated-index")
-          .expireAfter(config.get[Long]("mongodb.timeToLiveInHoursXieoriInformation"), TimeUnit.HOURS)
-      ))
-  ) with XiEoriInformationRepository {
+class DefaultXiEoriInformationRepository @Inject() (config: Configuration, mongoComponent: MongoComponent)(implicit
+  executionContext: ExecutionContext
+) extends PlayMongoRepository[XiEoriInformationMongo](
+      collectionName = "xieori-information",
+      mongoComponent = mongoComponent,
+      domainFormat = XiEoriInformationMongo.format,
+      indexes = Seq(
+        IndexModel(
+          ascending("lastUpdated"),
+          IndexOptions()
+            .name("xieori-information-last-updated-index")
+            .expireAfter(config.get[Long]("mongodb.timeToLiveInHoursXieoriInformation"), TimeUnit.HOURS)
+        )
+      )
+    )
+    with XiEoriInformationRepository {
 
   override def get(id: String): Future[Option[XiEoriInformation]] =
     collection
@@ -55,18 +57,20 @@ class DefaultXiEoriInformationRepository @Inject()(config: Configuration,
       .toFutureOption()
       .map(_.map(_.toXiEoriInformation))
 
-  override def set(id: String,
-                   xiEoriInformation: XiEoriInformation): Future[Unit] =
-    collection.replaceOne(
-      equal("_id", id),
-      XiEoriInformationMongo(
-        xiEoriInformation.xiEori,
-        xiEoriInformation.consent,
-        xiEoriInformation.address,
-        LocalDateTime.now()
-      ),
-      ReplaceOptions().upsert(true)
-    ).toFuture().map(_ => ())
+  override def set(id: String, xiEoriInformation: XiEoriInformation): Future[Unit] =
+    collection
+      .replaceOne(
+        equal("_id", id),
+        XiEoriInformationMongo(
+          xiEoriInformation.xiEori,
+          xiEoriInformation.consent,
+          xiEoriInformation.address,
+          LocalDateTime.now()
+        ),
+        ReplaceOptions().upsert(true)
+      )
+      .toFuture()
+      .map(_ => ())
 }
 
 trait XiEoriInformationRepository {
@@ -75,14 +79,16 @@ trait XiEoriInformationRepository {
   def set(id: String, xieoriInformation: XiEoriInformation): Future[Unit]
 }
 
-case class XiEoriInformationMongo(xiEori: String,
-                                  consent: String,
-                                  address: XiEoriAddressInformation,
-                                  lastUpdated: LocalDateTime) {
+case class XiEoriInformationMongo(
+  xiEori: String,
+  consent: String,
+  address: XiEoriAddressInformation,
+  lastUpdated: LocalDateTime
+) {
   def toXiEoriInformation: XiEoriInformation = XiEoriInformation(xiEori, consent, address)
 }
 
 object XiEoriInformationMongo {
-  implicit val mongoFormat: Format[LocalDateTime] = MongoJavatimeFormats.localDateTimeFormat
+  implicit val mongoFormat: Format[LocalDateTime]      = MongoJavatimeFormats.localDateTimeFormat
   implicit val format: OFormat[XiEoriInformationMongo] = Json.format[XiEoriInformationMongo]
 }

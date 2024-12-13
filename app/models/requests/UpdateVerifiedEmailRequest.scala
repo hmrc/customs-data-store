@@ -19,9 +19,7 @@ package models.requests
 import java.time.LocalDateTime
 import play.api.libs.json.{Json, OFormat}
 
-case class UpdateVerifiedEmailRequest(eori: String,
-                                      address: String,
-                                      timestamp: LocalDateTime)
+case class UpdateVerifiedEmailRequest(eori: String, address: String, timestamp: LocalDateTime)
 
 object UpdateVerifiedEmailRequest {
   implicit val format: OFormat[UpdateVerifiedEmailRequest] = Json.format[UpdateVerifiedEmailRequest]

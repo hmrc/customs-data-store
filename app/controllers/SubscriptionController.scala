@@ -30,11 +30,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import repositories.EmailRepository
 
-class SubscriptionController @Inject()(service: SubscriptionService,
-                                       authorisedRequest: AuthorisedRequest,
-                                       emailRepository: EmailRepository,
-                                       cc: ControllerComponents)
-                                      (implicit ec: ExecutionContext) extends BackendController(cc) {
+class SubscriptionController @Inject() (
+  service: SubscriptionService,
+  authorisedRequest: AuthorisedRequest,
+  emailRepository: EmailRepository,
+  cc: ControllerComponents
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) {
 
   val log: Logger = Logger(this.getClass)
 
@@ -45,11 +47,13 @@ class SubscriptionController @Inject()(service: SubscriptionService,
         val verifiedEmail: EmailVerifiedResponse = EmailVerifiedResponse(Some(EmailAddress(value.address)))
         Future.successful(Ok(Json.toJson(verifiedEmail)))
 
-      case None => service.getVerifiedEmail(request.eori)
-        .map(response => Ok(Json.toJson(response)))
-        .recover {
-          case NonFatal(error) => logErrorAndReturnServiceUnavailable(error)
-        }
+      case None =>
+        service
+          .getVerifiedEmail(request.eori)
+          .map(response => Ok(Json.toJson(response)))
+          .recover { case NonFatal(error) =>
+            logErrorAndReturnServiceUnavailable(error)
+          }
     }
   }
 
@@ -60,20 +64,24 @@ class SubscriptionController @Inject()(service: SubscriptionService,
         val verifiedEmail: EmailVerifiedResponse = EmailVerifiedResponse(Some(EmailAddress(value.address)))
         Future.successful(Ok(Json.toJson(verifiedEmail)))
 
-      case None => service.getEmailAddress(request.eori)
-        .map(response => Ok(Json.toJson(response)))
-        .recover {
-          case NonFatal(error) => logErrorAndReturnServiceUnavailable(error)
-        }
+      case None =>
+        service
+          .getEmailAddress(request.eori)
+          .map(response => Ok(Json.toJson(response)))
+          .recover { case NonFatal(error) =>
+            logErrorAndReturnServiceUnavailable(error)
+          }
     }
   }
 
-  def getUnverifiedEmail: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
-    service.getUnverifiedEmail(request.eori)
-      .map(response => Ok(Json.toJson(response)))
-      .recover {
-        case NonFatal(error) => logErrorAndReturnServiceUnavailable(error)
-      }
+  def getUnverifiedEmail: Action[AnyContent] = authorisedRequest async {
+    implicit request: RequestWithEori[AnyContent] =>
+      service
+        .getUnverifiedEmail(request.eori)
+        .map(response => Ok(Json.toJson(response)))
+        .recover { case NonFatal(error) =>
+          logErrorAndReturnServiceUnavailable(error)
+        }
   }
 
   private def logErrorAndReturnServiceUnavailable(error: Throwable) = {

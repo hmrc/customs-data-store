@@ -27,10 +27,12 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriRepository,
-                                      eoriHistoryConnector: Sub21Connector,
-                                      cc: ControllerComponents)
-                                     (implicit executionContext: ExecutionContext) extends BackendController(cc) {
+class EoriHistoryController @Inject() (
+  historicEoriRepository: HistoricEoriRepository,
+  eoriHistoryConnector: Sub21Connector,
+  cc: ControllerComponents
+)(implicit executionContext: ExecutionContext)
+    extends BackendController(cc) {
 
   val log: LoggerLike = Logger(this.getClass)
 
@@ -38,42 +40,40 @@ class EoriHistoryController @Inject()(historicEoriRepository: HistoricEoriReposi
     historicEoriRepository.get(eori).flatMap {
       case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
         Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
-      case _ => retrieveAndStoreHistoricEoris(eori)
+      case _                                                                   => retrieveAndStoreHistoricEoris(eori)
     }
   }
 
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
     (for {
-      eoriHistory <- eoriHistoryConnector.getEoriHistory(request.body.eori)
-      updateEoriSucceeded <- historicEoriRepository.set(Seq(request.body))
+      eoriHistory                <- eoriHistoryConnector.getEoriHistory(request.body.eori)
+      updateEoriSucceeded        <- historicEoriRepository.set(Seq(request.body))
       updateEoriHistorySucceeded <- updateEoriSucceeded match {
-        case HistoricEoriSuccessful => historicEoriRepository.set(eoriHistory)
-        case _ => Future.successful(FailedToUpdateHistoricEori)
-      }
-    } yield {
-      updateEoriHistorySucceeded match {
-        case HistoricEoriSuccessful => NoContent
-        case _ => InternalServerError
-      }
-    }).recover {
-      case err => log.info(s"Failed to find EoriHistory: ${err.getMessage}")
-        if (err.getMessage.contains("Not found")) NotFound else InternalServerError
+                                      case HistoricEoriSuccessful => historicEoriRepository.set(eoriHistory)
+                                      case _                      => Future.successful(FailedToUpdateHistoricEori)
+                                    }
+    } yield updateEoriHistorySucceeded match {
+      case HistoricEoriSuccessful => NoContent
+      case _                      => InternalServerError
+    }).recover { case err =>
+      log.info(s"Failed to find EoriHistory: ${err.getMessage}")
+      if (err.getMessage.contains("Not found")) NotFound else InternalServerError
     }
   }
 
-  private def retrieveAndStoreHistoricEoris(eori: String): Future[Result] = {
+  private def retrieveAndStoreHistoricEoris(eori: String): Future[Result] =
     for {
-      eoriHistory <- eoriHistoryConnector.getEoriHistory(eori)
+      eoriHistory  <- eoriHistoryConnector.getEoriHistory(eori)
       updateResult <- historicEoriRepository.set(eoriHistory)
-      result <- updateResult match {
-        case HistoricEoriSuccessful => historicEoriRepository.get(eori).map {
-          case Left(_) => InternalServerError
-          case Right(value) => Ok(Json.toJson(EoriHistoryResponse(value)))
-        }
-        case _ => Future.successful(InternalServerError)
-      }
+      result       <- updateResult match {
+                        case HistoricEoriSuccessful =>
+                          historicEoriRepository.get(eori).map {
+                            case Left(_)      => InternalServerError
+                            case Right(value) => Ok(Json.toJson(EoriHistoryResponse(value)))
+                          }
+                        case _                      => Future.successful(InternalServerError)
+                      }
     } yield result
-  }
 
   case class EoriHistoryResponse(eoriHistory: Seq[EoriPeriod])
 
