@@ -1,5 +1,5 @@
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.{itSettings, targetJvm}
+import uk.gov.hmrc.DefaultBuildSettings.itSettings
 
 val appName = "customs-data-store"
 
