@@ -50,7 +50,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-
         status(result) mustBe NOT_FOUND
       }
     }
@@ -66,11 +65,8 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-
         status(result) mustBe OK
-
         contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> s"${testTime.toString}Z")
-
         verifyNoInteractions(mockSubscriptionInfoService)
       }
     }
@@ -93,9 +89,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
         running(app) {
           val result = route(app, request).value
-
           status(result) mustBe OK
-
           contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> s"${testTime.toString}Z")
         }
       }
@@ -117,7 +111,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
     }
@@ -126,7 +119,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
   "getVerifiedEmailV2" should {
 
     "return Not Found if no data is found in the cache and SUB09 returns no email" in new Setup {
-
       when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(None))
 
@@ -134,13 +126,11 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-
         status(result) mustBe NOT_FOUND
       }
     }
 
     "return the email and not call SUB09 if the data is stored in the cache" in new Setup {
-
       when(mockEmailRepository.get(any()))
         .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
@@ -151,11 +141,8 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-
         status(result) mustBe OK
-
         contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> s"${testTime.toString}Z")
-
         verifyNoInteractions(mockSubscriptionInfoService)
       }
     }
@@ -178,9 +165,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
         running(app) {
           val result = route(app, request).value
-
           status(result) mustBe OK
-
           contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> s"${testTime.toString}Z")
         }
       }
@@ -202,7 +187,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
     }
@@ -219,7 +203,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
     }
@@ -231,7 +214,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-
         status(result) mustBe BAD_REQUEST
       }
     }
@@ -245,7 +227,6 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       running(app) {
         val result = route(app, request).value
-
         status(result) mustBe NO_CONTENT
       }
     }

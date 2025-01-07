@@ -43,10 +43,7 @@ class VerifiedEmailController @Inject() (
     def retrieveAndStoreEmail: Future[Result] =
       (for {
         notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
-        result            <- OptionT.liftF(emailRepo.set(eori, notificationEmail).map {
-                               case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
-                               case _               => InternalServerError
-                             })
+        result            <- OptionT.liftF(storeEmail(eori, notificationEmail))
       } yield result).getOrElse(NotFound)
 
     emailRepo.get(eori).flatMap {
@@ -55,22 +52,13 @@ class VerifiedEmailController @Inject() (
     }
   }
 
-  def getVerifiedEmailV2(): Action[AnyContent] = authorisedRequest async {
+  def getVerifiedEmailV2: Action[AnyContent] = authorisedRequest async {
     implicit request: RequestWithEori[AnyContent] =>
       emailRepo.get(request.eori.value).flatMap {
         case Some(value) => Future.successful(Ok(Json.toJson(value)))
         case None        => retrieveAndStoreEmail(request.eori.value)
       }
   }
-
-  private def retrieveAndStoreEmail(eori: String): Future[Result] =
-    (for {
-      notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
-      result            <- OptionT.liftF(emailRepo.set(eori, notificationEmail).map {
-                             case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
-                             case _               => InternalServerError
-                           })
-    } yield result).getOrElse(NotFound)
 
   def updateVerifiedEmail(): Action[UpdateVerifiedEmailRequest] =
     Action.async(parse.json[UpdateVerifiedEmailRequest]) { implicit request =>
@@ -83,5 +71,17 @@ class VerifiedEmailController @Inject() (
           case SuccessfulEmail => NoContent
           case _               => InternalServerError
         }
+    }
+
+  private def retrieveAndStoreEmail(eori: String): Future[Result] =
+    (for {
+      notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
+      result            <- OptionT.liftF(storeEmail(eori, notificationEmail))
+    } yield result).getOrElse(NotFound)
+
+  private def storeEmail(eori: String, notificationEmail: NotificationEmail): Future[Result] =
+    emailRepo.set(eori, notificationEmail).map {
+      case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
+      case _               => InternalServerError
     }
 }
