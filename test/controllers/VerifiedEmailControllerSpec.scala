@@ -16,6 +16,8 @@
 
 package controllers
 
+import actionbuilders.CustomAuthConnector
+import config.Platform.{ENROLMENT_IDENTIFIER, ENROLMENT_KEY}
 import connectors.Sub09Connector
 import models.repositories.{FailedToRetrieveEmail, SuccessfulEmail}
 import models.{NotificationEmail, TraderData}
@@ -27,8 +29,9 @@ import play.api.{Application, inject}
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import repositories.EmailRepository
+import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
 import utils.SpecBase
 
 import java.time.LocalDate
@@ -43,7 +46,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
       when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(None))
 
-      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRoute)
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailRoute)
 
       running(app) {
         val result = route(app, request).value
@@ -59,7 +62,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(None))
 
-      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRoute)
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailRoute)
 
       running(app) {
         val result = route(app, request).value
@@ -86,7 +89,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
         when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
 
-        val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRoute)
+        val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailRoute)
 
         running(app) {
           val result = route(app, request).value
@@ -110,7 +113,92 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
 
-      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRoute)
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailRoute)
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe INTERNAL_SERVER_ERROR
+      }
+    }
+  }
+
+  "getVerifiedEmailV2" should {
+
+    "return Not Found if no data is found in the cache and SUB09 returns no email" in new Setup {
+
+      when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
+      when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(None))
+
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailV2Route)
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe NOT_FOUND
+      }
+    }
+
+    "return the email and not call SUB09 if the data is stored in the cache" in new Setup {
+
+      when(mockEmailRepository.get(any()))
+        .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
+
+      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
+      when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(None))
+
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailV2Route)
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe OK
+
+        contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> s"${testTime.toString}Z")
+
+        verifyNoInteractions(mockSubscriptionInfoService)
+      }
+    }
+
+    "return the email and call SUB09 if the data is not stored in the cache and " +
+      "also store the response into the cache" in new Setup {
+        when(mockEmailRepository.get(any()))
+          .thenReturn(Future.successful(None))
+          .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
+
+        when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
+          Future.successful(
+            Some(NotificationEmail(testAddress, testTime, None))
+          )
+        )
+
+        when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
+
+        val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailV2Route)
+
+        running(app) {
+          val result = route(app, request).value
+
+          status(result) mustBe OK
+
+          contentAsJson(result) mustBe Json.obj("address" -> testAddress, "timestamp" -> s"${testTime.toString}Z")
+        }
+      }
+
+    "return InternalServerError if the write did not succeed when retrieving email from SUB09" in new Setup {
+      when(mockEmailRepository.get(any()))
+        .thenReturn(Future.successful(None))
+        .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
+
+      when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
+        Future.successful(
+          Some(NotificationEmail(testAddress, testTime, None))
+        )
+      )
+
+      when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
+
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailV2Route)
 
       running(app) {
         val result = route(app, request).value
@@ -164,22 +252,31 @@ class VerifiedEmailControllerSpec extends SpecBase {
   }
 
   trait Setup {
-    val testEori                = "testEori"
+    val testEori: String        = "testEori"
     val testTime1: LocalDate    = LocalDate.now()
     val testTime: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-    val testAddress             = "test@email.com"
+    val testAddress: String     = "test@email.com"
 
-    val getRoute: String  = routes.VerifiedEmailController.getVerifiedEmail(testEori).url
-    val postRoute: String = routes.VerifiedEmailController.updateVerifiedEmail().url
+    val enrolments: Enrolments = Enrolments(
+      Set(Enrolment(ENROLMENT_KEY, Seq(EnrolmentIdentifier(ENROLMENT_IDENTIFIER, testEori)), "activated"))
+    )
+
+    val getVerifiedEmailRoute: String   = routes.VerifiedEmailController.getVerifiedEmail(testEori).url
+    val getVerifiedEmailV2Route: String = routes.VerifiedEmailController.getVerifiedEmailV2().url
+    val postRoute: String               = routes.VerifiedEmailController.updateVerifiedEmail().url
 
     val testNotificationEmail: NotificationEmail = NotificationEmail(testAddress, testTime, None)
     val testTraderData: TraderData               = TraderData(Seq.empty, Some(testNotificationEmail))
 
+    val mockAuthConnector: CustomAuthConnector      = mock[CustomAuthConnector]
     val mockEmailRepository: EmailRepository        = mock[EmailRepository]
     val mockSubscriptionInfoService: Sub09Connector = mock[Sub09Connector]
 
+    when(mockAuthConnector.authorise[Enrolments](any, any)(any, any)).thenReturn(Future.successful(enrolments))
+
     def app: Application = application
       .overrides(
+        inject.bind[CustomAuthConnector].toInstance(mockAuthConnector),
         inject.bind[EmailRepository].toInstance(mockEmailRepository),
         inject.bind[Sub09Connector].toInstance(mockSubscriptionInfoService)
       )

@@ -16,6 +16,7 @@
 
 package controllers
 
+import actionbuilders.{AuthorisedRequest, RequestWithEori}
 import cats.data.OptionT
 import cats.implicits._
 import connectors.Sub09Connector
@@ -33,6 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class VerifiedEmailController @Inject() (
   emailRepo: EmailRepository,
   subscriptionInfoConnector: Sub09Connector,
+  authorisedRequest: AuthorisedRequest,
   cc: ControllerComponents
 )(implicit executionContext: ExecutionContext)
     extends BackendController(cc) {
@@ -52,6 +54,23 @@ class VerifiedEmailController @Inject() (
       case None        => retrieveAndStoreEmail
     }
   }
+
+  def getVerifiedEmailV2(): Action[AnyContent] = authorisedRequest async {
+    implicit request: RequestWithEori[AnyContent] =>
+      emailRepo.get(request.eori.value).flatMap {
+        case Some(value) => Future.successful(Ok(Json.toJson(value)))
+        case None        => retrieveAndStoreEmail(request.eori.value)
+      }
+  }
+
+  private def retrieveAndStoreEmail(eori: String): Future[Result] =
+    (for {
+      notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
+      result            <- OptionT.liftF(emailRepo.set(eori, notificationEmail).map {
+                             case SuccessfulEmail => Ok(Json.toJson(notificationEmail))
+                             case _               => InternalServerError
+                           })
+    } yield result).getOrElse(NotFound)
 
   def updateVerifiedEmail(): Action[UpdateVerifiedEmailRequest] =
     Action.async(parse.json[UpdateVerifiedEmailRequest]) { implicit request =>
