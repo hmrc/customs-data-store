@@ -16,6 +16,7 @@
 
 package controllers
 
+import actionbuilders.{AuthorisedRequest, RequestWithEori}
 import cats.data.OptionT
 import connectors.Sub09Connector
 import models.CompanyInformation
@@ -30,7 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class CompanyInformationController @Inject() (
   companyInformationRepository: CompanyInformationRepository,
   subscriptionInfoConnector: Sub09Connector,
-  cc: ControllerComponents
+  cc: ControllerComponents,
+  authorisedRequest: AuthorisedRequest
 )(implicit executionContext: ExecutionContext)
     extends BackendController(cc) {
 
@@ -43,6 +45,20 @@ class CompanyInformationController @Inject() (
           case None                     => NotFound
         }
     }
+  }
+
+  def getCompanyInformationV2: Action[AnyContent] = authorisedRequest async {
+    implicit request: RequestWithEori[AnyContent] =>
+      val eori = request.eori.value
+
+      companyInformationRepository.get(eori).flatMap {
+        case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
+        case None                     =>
+          retrieveCompanyInformation(eori).map {
+            case Some(companyInformation) => Ok(Json.toJson(companyInformation))
+            case None                     => NotFound
+          }
+      }
   }
 
   private def retrieveCompanyInformation(eori: String): Future[Option[CompanyInformation]] =
