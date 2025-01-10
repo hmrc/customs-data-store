@@ -21,7 +21,7 @@ import cats.data.OptionT
 import connectors.Sub09Connector
 import models.CompanyInformation
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.CompanyInformationRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -37,13 +37,9 @@ class CompanyInformationController @Inject() (
     extends BackendController(cc) {
 
   def getCompanyInformation(eori: String): Action[AnyContent] = Action.async {
-    companyInformationRepository.get(eori).flatMap {
+    retrieveCompanyInformationAndStore(eori).flatMap {
       case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
-      case None                     =>
-        retrieveCompanyInformation(eori).map {
-          case Some(companyInformation) => Ok(Json.toJson(companyInformation))
-          case None                     => NotFound
-        }
+      case None                     => Future.successful(NotFound)
     }
   }
 
@@ -51,19 +47,19 @@ class CompanyInformationController @Inject() (
     implicit request: RequestWithEori[AnyContent] =>
       val eori = request.eori.value
 
-      companyInformationRepository.get(eori).flatMap {
+      retrieveCompanyInformationAndStore(eori).flatMap {
         case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
-        case None                     =>
-          retrieveCompanyInformation(eori).map {
-            case Some(companyInformation) => Ok(Json.toJson(companyInformation))
-            case None                     => NotFound
-          }
+        case None                     => Future.successful(NotFound)
       }
   }
 
-  private def retrieveCompanyInformation(eori: String): Future[Option[CompanyInformation]] =
-    (for {
-      companyInformation <- OptionT(subscriptionInfoConnector.getCompanyInformation(eori))
-      _                  <- OptionT.liftF(companyInformationRepository.set(eori, companyInformation))
-    } yield companyInformation).value
+  private def retrieveCompanyInformationAndStore(eori: String): Future[Option[CompanyInformation]] =
+    OptionT(companyInformationRepository.get(eori))
+      .orElse(
+        for {
+          companyInformation <- OptionT(subscriptionInfoConnector.getCompanyInformation(eori))
+          _                  <- OptionT.liftF(companyInformationRepository.set(eori, companyInformation))
+        } yield companyInformation
+      )
+      .value
 }

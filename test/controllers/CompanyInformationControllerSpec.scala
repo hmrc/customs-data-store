@@ -82,7 +82,7 @@ class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
     }
   }
 
-  "getCompanyInformationv2" should {
+  "getCompanyInformationV2" should {
 
     "return company information if stored in the database" in new Setup {
       when(mockCompanyInformationRepository.get(any()))
