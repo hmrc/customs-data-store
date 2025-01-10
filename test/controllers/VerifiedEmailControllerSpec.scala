@@ -17,28 +17,25 @@
 package controllers
 
 import actionbuilders.CustomAuthConnector
-import config.Platform.{ENROLMENT_IDENTIFIER, ENROLMENT_KEY}
 import connectors.Sub09Connector
 import models.repositories.{FailedToRetrieveEmail, SuccessfulEmail}
 import models.{NotificationEmail, TraderData}
-
-import java.time.LocalDateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verifyNoInteractions, when}
-import play.api.{Application, inject}
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import play.api.{Application, inject}
 import repositories.EmailRepository
-import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
-import utils.SpecBase
+import utils.TestData.TEST_EORI_VALUE
+import utils.{MockAuthConnector, SpecBase}
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 import java.time.temporal.ChronoUnit
 import scala.concurrent.Future
 
-class VerifiedEmailControllerSpec extends SpecBase {
+class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
 
   "getVerifiedEmail" should {
 
@@ -198,7 +195,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
 
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
-        Json.obj("eori" -> testEori, "address" -> testAddress, "timestamp" -> testTime.toString)
+        Json.obj("eori" -> TEST_EORI_VALUE, "address" -> testAddress, "timestamp" -> testTime.toString)
       )
 
       running(app) {
@@ -209,7 +206,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
 
     "return 400 with malformed request" in new Setup {
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
-        Json.obj("invalidKey" -> testEori, "address" -> testAddress)
+        Json.obj("invalidKey" -> TEST_EORI_VALUE, "address" -> testAddress)
       )
 
       running(app) {
@@ -222,7 +219,7 @@ class VerifiedEmailControllerSpec extends SpecBase {
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
 
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
-        Json.obj("eori" -> testEori, "address" -> testAddress, "timestamp" -> testTime.toString)
+        Json.obj("eori" -> TEST_EORI_VALUE, "address" -> testAddress, "timestamp" -> testTime.toString)
       )
 
       running(app) {
@@ -233,27 +230,19 @@ class VerifiedEmailControllerSpec extends SpecBase {
   }
 
   trait Setup {
-    val testEori: String        = "testEori"
     val testTime1: LocalDate    = LocalDate.now()
     val testTime: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
     val testAddress: String     = "test@email.com"
 
-    val enrolments: Enrolments = Enrolments(
-      Set(Enrolment(ENROLMENT_KEY, Seq(EnrolmentIdentifier(ENROLMENT_IDENTIFIER, testEori)), "activated"))
-    )
-
-    val getVerifiedEmailRoute: String   = routes.VerifiedEmailController.getVerifiedEmail(testEori).url
+    val getVerifiedEmailRoute: String   = routes.VerifiedEmailController.getVerifiedEmail(TEST_EORI_VALUE).url
     val getVerifiedEmailV2Route: String = routes.VerifiedEmailController.getVerifiedEmailV2().url
     val postRoute: String               = routes.VerifiedEmailController.updateVerifiedEmail().url
 
     val testNotificationEmail: NotificationEmail = NotificationEmail(testAddress, testTime, None)
     val testTraderData: TraderData               = TraderData(Seq.empty, Some(testNotificationEmail))
 
-    val mockAuthConnector: CustomAuthConnector      = mock[CustomAuthConnector]
     val mockEmailRepository: EmailRepository        = mock[EmailRepository]
     val mockSubscriptionInfoService: Sub09Connector = mock[Sub09Connector]
-
-    when(mockAuthConnector.authorise[Enrolments](any, any)(any, any)).thenReturn(Future.successful(enrolments))
 
     def app: Application = application
       .overrides(
