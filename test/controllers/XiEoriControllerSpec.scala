@@ -26,6 +26,7 @@ import play.api.test.Helpers.*
 import play.api.{Application, inject}
 import repositories.XiEoriInformationRepository
 import utils.TestData.TEST_EORI_VALUE
+import utils.Utils.emptyString
 import utils.{MockAuthConnector, SpecBase}
 
 import scala.concurrent.Future
@@ -99,10 +100,13 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
 
     "return xi eori information for the eori, if info is not found in the database but retrieved from Sub09" in new Setup {
       when(mockXiEoriInformationRepository.get(eqTo(TEST_EORI_VALUE)))
-        .thenReturn(Future.successful(Some(xiEoriInformation)))
+        .thenReturn(Future.successful(None))
 
       when(mockSubscriptionInfoConnector.getXiEoriInformation(eqTo(TEST_EORI_VALUE)))
         .thenReturn(Future.successful(Some(xiEoriInformation)))
+
+      when(mockXiEoriInformationRepository.set(eqTo(TEST_EORI_VALUE), eqTo(xiEoriInformation)))
+        .thenReturn(Future.unit)
 
       running(app) {
         val request = FakeRequest(GET, getXiEoriInformationV2Route)
@@ -120,7 +124,7 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
       when(mockSubscriptionInfoConnector.getXiEoriInformation(eqTo(TEST_EORI_VALUE)))
         .thenReturn(Future.successful(None))
 
-      when(mockXiEoriInformationRepository.set(eqTo(TEST_EORI_VALUE), eqTo(xiEoriInformation)))
+      when(mockXiEoriInformationRepository.set(eqTo(TEST_EORI_VALUE), eqTo(emptyXiInformation)))
         .thenReturn(Future.unit)
 
       running(app) {
@@ -138,8 +142,11 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
     val xiEoriAddressInformation: XiEoriAddressInformation =
       XiEoriAddressInformation("12 Example Street", Some("Example"), Some("GB"), None, Some("AA00 0AA"))
 
-    val xiEoriInformation: XiEoriInformation = XiEoriInformation("XI123456789000", "1", xiEoriAddressInformation)
-    val eori: String                         = "testEori"
+    val xiEoriInformation: XiEoriInformation  = XiEoriInformation("XI123456789000", "1", xiEoriAddressInformation)
+    val emptyXiInformation: XiEoriInformation =
+      XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
+
+    val eori: String = "testEori"
 
     val getXiEoriInformationRoute: String   = routes.XiEoriController.getXiEoriInformation(eori).url
     val getXiEoriInformationV2Route: String = routes.XiEoriController.getXiEoriInformationV2().url
