@@ -38,18 +38,9 @@ class XiEoriController @Inject() (
     extends BackendController(cc) {
 
   def getXiEoriInformation(eori: String): Action[AnyContent] = Action.async {
-    xiEoriInformationRepository.get(eori).flatMap {
+    retrieveXiEoriInfoAndStore(eori).flatMap {
       case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
-      case None                    =>
-        retrieveXiEoriInformation(eori).map {
-          case Some(xiEoriInformation) => Ok(Json.toJson(xiEoriInformation))
-          case None                    =>
-            xiEoriInformationRepository.set(
-              eori,
-              XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
-            )
-            NotFound
-        }
+      case None                    => storeDefaultXiInfoInDBAndReturn404(eori)
     }
   }
 
@@ -57,24 +48,26 @@ class XiEoriController @Inject() (
     implicit request: RequestWithEori[AnyContent] =>
       val eori = request.eori.value
 
-      xiEoriInformationRepository.get(eori).flatMap {
+      retrieveXiEoriInfoAndStore(eori).flatMap {
         case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
-        case None                    =>
-          retrieveXiEoriInformation(eori).map {
-            case Some(xiEoriInformation) => Ok(Json.toJson(xiEoriInformation))
-            case None                    =>
-              xiEoriInformationRepository.set(
-                eori,
-                XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
-              )
-              NotFound
-          }
+        case None                    => storeDefaultXiInfoInDBAndReturn404(eori)
       }
   }
 
-  private def retrieveXiEoriInformation(eori: String): Future[Option[XiEoriInformation]] =
-    (for {
-      xiEoriInformation <- OptionT(subscriptionInfoConnector.getXiEoriInformation(eori))
-      _                 <- OptionT.liftF(xiEoriInformationRepository.set(eori, xiEoriInformation))
-    } yield xiEoriInformation).value
+  private def retrieveXiEoriInfoAndStore(eori: String): Future[Option[XiEoriInformation]] =
+    OptionT(xiEoriInformationRepository.get(eori)).orElse {
+      for {
+        xiEoriInformation <- OptionT(subscriptionInfoConnector.getXiEoriInformation(eori))
+        _                 <- OptionT.liftF(xiEoriInformationRepository.set(eori, xiEoriInformation))
+      } yield xiEoriInformation
+    }.value
+
+  private def storeDefaultXiInfoInDBAndReturn404(eori: String) = {
+    xiEoriInformationRepository.set(
+      eori,
+      XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
+    )
+
+    Future.successful(NotFound)
+  }
 }
