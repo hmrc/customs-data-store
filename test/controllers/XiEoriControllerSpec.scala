@@ -19,7 +19,7 @@ package controllers
 import actionbuilders.CustomAuthConnector
 import connectors.Sub09Connector
 import models.{XiEoriAddressInformation, XiEoriInformation}
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
