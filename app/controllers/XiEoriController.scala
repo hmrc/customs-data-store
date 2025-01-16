@@ -16,6 +16,7 @@
 
 package controllers
 
+import actionbuilders.{AuthorisedRequest, RequestWithEori}
 import cats.data.OptionT
 import connectors.Sub09Connector
 import models.{XiEoriAddressInformation, XiEoriInformation}
@@ -31,7 +32,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class XiEoriController @Inject() (
   xiEoriInformationRepository: XiEoriInformationRepository,
   subscriptionInfoConnector: Sub09Connector,
-  cc: ControllerComponents
+  cc: ControllerComponents,
+  authorisedRequest: AuthorisedRequest
 )(implicit executionContext: ExecutionContext)
     extends BackendController(cc) {
 
@@ -49,6 +51,25 @@ class XiEoriController @Inject() (
             NotFound
         }
     }
+  }
+
+  def getXiEoriInformationV2: Action[AnyContent] = authorisedRequest async {
+    implicit request: RequestWithEori[AnyContent] =>
+      val eori = request.eori.value
+
+      xiEoriInformationRepository.get(eori).flatMap {
+        case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
+        case None                    =>
+          retrieveXiEoriInformation(eori).map {
+            case Some(xiEoriInformation) => Ok(Json.toJson(xiEoriInformation))
+            case None                    =>
+              xiEoriInformationRepository.set(
+                eori,
+                XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
+              )
+              NotFound
+          }
+      }
   }
 
   private def retrieveXiEoriInformation(eori: String): Future[Option[XiEoriInformation]] =
