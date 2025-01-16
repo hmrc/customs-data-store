@@ -114,7 +114,7 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
-    "return NotFound if xi eori information is not retrieved neither from the database nor from Sub09" in new Setup {
+    "return NotFound if xi eori information is retrieved neither from the database nor from Sub09" in new Setup {
       when(mockXiEoriInformationRepository.get(eqTo(TEST_EORI_VALUE)))
         .thenReturn(Future.successful(None))
 
