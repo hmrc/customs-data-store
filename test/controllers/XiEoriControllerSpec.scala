@@ -84,7 +84,7 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
 
   "getXiEoriInformationV2" should {
 
-    "return xi eori information for the eori if available in the database" in new Setup {
+    "return xi eori information for the eori, if available in the database" in new Setup {
       when(mockXiEoriInformationRepository.get(eqTo(TEST_EORI_VALUE)))
         .thenReturn(Future.successful(Some(xiEoriInformation)))
 
@@ -98,7 +98,7 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
-    "return xi eori information for the eori if info is not found in the database but retrieved from Sub09" in new Setup {
+    "return xi eori information for the eori, if info is not found in the database but retrieved from Sub09" in new Setup {
       when(mockXiEoriInformationRepository.get(eqTo(TEST_EORI_VALUE)))
         .thenReturn(Future.successful(Some(xiEoriInformation)))
 
