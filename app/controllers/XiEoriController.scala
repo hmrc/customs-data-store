@@ -40,7 +40,7 @@ class XiEoriController @Inject() (
   def getXiEoriInformation(eori: String): Action[AnyContent] = Action.async {
     retrieveXiEoriInfoAndStore(eori).flatMap {
       case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
-      case None                    => storeDefaultXiInfoInDBAndReturn404(eori)
+      case None                    => storeEmptyXiInfoInDBAndReturn404(eori)
     }
   }
 
@@ -50,7 +50,7 @@ class XiEoriController @Inject() (
 
       retrieveXiEoriInfoAndStore(eori).flatMap {
         case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
-        case None                    => storeDefaultXiInfoInDBAndReturn404(eori)
+        case None                    => storeEmptyXiInfoInDBAndReturn404(eori)
       }
   }
 
@@ -62,7 +62,7 @@ class XiEoriController @Inject() (
       } yield xiEoriInformation
     }.value
 
-  private def storeDefaultXiInfoInDBAndReturn404(eori: String) = {
+  private def storeEmptyXiInfoInDBAndReturn404(eori: String) = {
     xiEoriInformationRepository.set(
       eori,
       XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(pbeAddressLine1 = emptyString))
