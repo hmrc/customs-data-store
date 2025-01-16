@@ -34,7 +34,7 @@ An endpoint to retrieve a verified email address for a given EORI
 | 404 | No verified email has been found for the specified eori        |
 | 500 | An unexpected failure happened in the service |
 
-##GET /eori/:eori/company-information
+## GET /eori/:eori/company-information
 
 An endpoint to retrieve the business full name and address for a given EORI
 
