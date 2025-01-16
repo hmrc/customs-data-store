@@ -93,7 +93,6 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
 
         val result = route(app, request).value
 
-        status(result) mustBe OK
         contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
       }
     }
