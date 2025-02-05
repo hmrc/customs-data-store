@@ -3,15 +3,17 @@
 
 This repository contains the code for a persistent cache holding customs related data.
 
-| Path                               | Description                                                                               |
-| ---------------------------------  |-------------------------------------------------------------------------------------------|
-| GET /customs-data-store/eori/:eori/verified-email | Retrieve the verified email address for a given EORI either from the cache or SUB09       |
-| GET /customs-data-store/eori/:eori/company-information | Retrieves the business full name and address for the given EORI                           |
-| GET /customs-data-store/eori/:eori/eori-history | Retrieves the historic eori's for a given EORI either from the cache or SUB21             |
-| GET /customs-data-store/eori/xieori-information | Retrieves the XI EORI information for the requested EORI either from the cache or SUB09   |
-| POST /customs-data-store/update-email | Populates a new verified email address in the cache and removes undeliverable information | 
-| POST /customs-data-store/update-eori-history | Updates the eori history for a given EORI in the cache                                    |
-| POST /update-undeliverable-email | Updates undeliverable information for a given enrolmentValue                              |
+| Path                                                         | Description                                                                                           |
+|--------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| GET /customs-data-store/eori/:eori/verified-email            | Retrieve the verified email address for a given EORI either from the cache or SUB09                   |
+| GET /customs-data-store/eori/:eori/company-information       | Retrieves the business full name and address for the given EORI                                       |
+| GET /customs-data-store/eori/:eori/eori-history              | Retrieves the historic eori's for a given EORI either from the cache or SUB21                         |
+| GET /customs-data-store/eori/xieori-information              | Retrieves the XI EORI information for the requested EORI either from the cache or SUB09               |
+| GET /customs-data-store/eori/verified-email-third-party      | Retrives the verified email address for the EORI specified in request body either from cache or SUB09 |
+| GET /customs-data-store/eori/company-information-third-party | Retrieves the business full name for the EORI specified in request body                               | 
+| POST /customs-data-store/update-email                        | Populates a new verified email address in the cache and removes undeliverable information             | 
+| POST /customs-data-store/update-eori-history                 | Updates the eori history for a given EORI in the cache                                                |
+| POST /update-undeliverable-email                             | Updates undeliverable information for a given enrolmentValue                                          |
 
 ## GET /eori/:eori/verified-email
 
@@ -148,6 +150,95 @@ An endpoint that provides XI EORI information for the requested EORI
 | 200    | XI EORI information is returned                               |
 | 404    | XI EORI information is retrieved neither from cache nor SUB09 |
 
+## GET /eori/verified-email-third-party
+
+An endpoint to retrieve a verified email address for EORI specified in request body
+
+### Example request
+
+```json
+{
+  "eori" : "testEori"
+}
+```
+
+### Fields
+
+| Field                               | Required                                          | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
+| eori | Mandatory        | The eori used to provide a verified email address to        |
+
+### Response body
+
+```json
+{
+  "address" : "test@email.com",
+  "timestamp" : "2020-03-20T01:02:03Z"
+}
+```
+
+### Response codes
+
+| Status                               | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- |
+| 200 | A verified email has been found for the specified eori        |
+| 400 | Malformed request |
+| 404 | No verified email has been found for the specified eori        |
+| 500 | An unexpected failure happened in the service |
+
+## GET /eori/company-information-third-party
+
+An endpoint to retrieve the business full name and address for EORI specified in request body
+
+### Example request
+
+```json
+{
+  "eori" : "testEori"
+}
+```
+### Fields
+
+| Field                               | Required                                          | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
+| eori | Mandatory        | The eori used to provide a verified email address to        |
+
+### Response body
+
+```json
+{
+  "name": "ABC ltd",
+  "consent": "1",
+  "address" : {
+    "streetAndNumber": "12 Example Street",
+    "city": "Example",
+    "postalCode": "AA00 0AA",
+    "countryCode": "GB"
+  }
+}
+```
+
+### Fields
+
+| Field                               | Required                                          | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
+| name | Mandatory        | Company name        |
+| consent | Optional        | consentToDisclosureOfPersonalData        |
+| address | Mandatory        | The address Information for the company        |
+| address.streetAndNumber | Mandatory | The street and number where the company resides |
+| address.city | Mandatory | The city where the company resides |
+| address.postalCode | Optional | Mandatory for the country code "GB" |
+| address.countryCode | Mandatory | The country code where the company resides |
+
+### Response codes
+
+| Status                               | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- |
+| 200 | A verified email has been found for the specified eori        |
+| 400 | Malformed request |
+| 404 | No verified email has been found for the specified eori        |
+| 500 | An unexpected failure happened in the service |
+
 ## POST /update-eori-history
 
 An endpoint to populate the historic EORI's for a given EORI
@@ -166,7 +257,6 @@ An endpoint to populate the historic EORI's for a given EORI
 | ---------------------------------  | ---------------------------------------------------- |
 | 204 | Successfully updated the historic EORI's in the cache       |
 | 500 | An unexpected failure happened in the service |
-
 
 ## POST /update-undeliverable-email
 
