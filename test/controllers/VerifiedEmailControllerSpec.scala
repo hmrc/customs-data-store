@@ -329,7 +329,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
       val request: FakeRequest[AnyContentAsJson] = FakeRequest(GET, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
         Json.obj("invalidkey" -> TEST_EORI_VALUE)
       )
-      
+
       running(app) {
         val result = route(app, request).value
         status(result) mustBe BAD_REQUEST
