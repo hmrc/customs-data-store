@@ -19,9 +19,10 @@ package controllers
 import actionbuilders.{AuthorisedRequest, RequestWithEori}
 import cats.data.OptionT
 import connectors.Sub09Connector
-import models.CompanyInformation
+import models.requests.EoriRequest
+import models.{CompanyInformation, EORI}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import repositories.CompanyInformationRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -46,6 +47,16 @@ class CompanyInformationController @Inject() (
   def getCompanyInformationV2: Action[AnyContent] = authorisedRequest async {
     implicit request: RequestWithEori[AnyContent] =>
       val eori = request.eori.value
+
+      retrieveCompanyInformationAndStore(eori).flatMap {
+        case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
+        case None                     => Future.successful(NotFound)
+      }
+  }
+
+  def retrieveCompanyInformationThirdParty(): Action[EoriRequest] = authorisedRequest.async(parse.json[EoriRequest]) {
+    implicit request: Request[EoriRequest] =>
+      val eori = request.body.eori
 
       retrieveCompanyInformationAndStore(eori).flatMap {
         case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))

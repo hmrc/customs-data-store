@@ -21,6 +21,7 @@ import connectors.Sub09Connector
 import models.{AddressInformation, CompanyInformation}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import play.api.{Application, inject}
@@ -128,6 +129,86 @@ class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
         val result = route(app, request).value
 
         contentAsJson(result).as[CompanyInformation] mustBe companyInformation
+      }
+    }
+  }
+
+  "retrieveCompanyInformationThirdParty" should {
+
+    "return company information if stored in the database" in new Setup {
+      when(mockCompanyInformationRepository.get(any()))
+        .thenReturn(Future.successful(Some(companyInformation)))
+
+      running(app) {
+        val request =
+          FakeRequest(GET, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url).withJsonBody(
+            Json.obj("eori" -> TEST_EORI_VALUE)
+          )
+
+        val result = route(app, request).value
+
+        contentAsJson(result).as[CompanyInformation] mustBe companyInformation
+      }
+    }
+
+    "return not found if no information found for user" in new Setup {
+      when(mockCompanyInformationRepository.get(any()))
+        .thenReturn(Future.successful(None))
+
+      when(mockSubscriptionInfoConnector.getCompanyInformation(any()))
+        .thenReturn(Future.successful(None))
+
+      running(app) {
+        val request =
+          FakeRequest(GET, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url).withJsonBody(
+            Json.obj("eori" -> TEST_EORI_VALUE)
+          )
+
+        val result = route(app, request).value
+
+        status(result) mustBe NOT_FOUND
+      }
+    }
+
+    "return company information and store in the database when no existing data in the database" in new Setup {
+      when(mockCompanyInformationRepository.get(any()))
+        .thenReturn(Future.successful(None))
+
+      when(mockSubscriptionInfoConnector.getCompanyInformation(any()))
+        .thenReturn(Future.successful(Some(companyInformation)))
+
+      when(mockCompanyInformationRepository.set(TEST_EORI_VALUE, companyInformation)).thenReturn(Future.unit)
+
+      running(app) {
+        val request =
+          FakeRequest(GET, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url).withJsonBody(
+            Json.obj("eori" -> TEST_EORI_VALUE)
+          )
+
+        val result = route(app, request).value
+
+        contentAsJson(result).as[CompanyInformation] mustBe companyInformation
+      }
+    }
+
+    "return 400 with malformed request" in new Setup {
+      when(mockCompanyInformationRepository.get(any()))
+        .thenReturn(Future.successful(None))
+
+      when(mockSubscriptionInfoConnector.getCompanyInformation(any()))
+        .thenReturn(Future.successful(Some(companyInformation)))
+
+      when(mockCompanyInformationRepository.set(TEST_EORI_VALUE, companyInformation)).thenReturn(Future.unit)
+
+      running(app) {
+        val request =
+          FakeRequest(GET, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url).withJsonBody(
+            Json.obj("invalidkey" -> TEST_EORI_VALUE)
+          )
+
+        val result = route(app, request).value
+
+        status(result) mustBe BAD_REQUEST
       }
     }
   }
