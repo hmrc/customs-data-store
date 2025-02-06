@@ -235,7 +235,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
       when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(None))
 
-      val request: FakeRequest[AnyContentAsJson] = FakeRequest(GET, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
+      val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
         Json.obj("eori" -> TEST_EORI_VALUE)
       )
 
@@ -252,7 +252,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(None))
 
-      val request: FakeRequest[AnyContentAsJson] = FakeRequest(GET, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
+      val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
         Json.obj("eori" -> TEST_EORI_VALUE)
       )
 
@@ -279,7 +279,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
         when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
 
         val request: FakeRequest[AnyContentAsJson] =
-          FakeRequest(GET, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
+          FakeRequest(POST, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
             Json.obj("eori" -> TEST_EORI_VALUE)
           )
 
@@ -303,7 +303,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
 
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
 
-      val request: FakeRequest[AnyContentAsJson] = FakeRequest(GET, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
+      val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
         Json.obj("eori" -> TEST_EORI_VALUE)
       )
 
@@ -326,7 +326,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
 
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
 
-      val request: FakeRequest[AnyContentAsJson] = FakeRequest(GET, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
+      val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, retrieveVerifiedEmailThirdPartyRoute).withJsonBody(
         Json.obj("invalidkey" -> TEST_EORI_VALUE)
       )
 

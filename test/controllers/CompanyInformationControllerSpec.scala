@@ -140,8 +140,8 @@ class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
         .thenReturn(Future.successful(Some(companyInformation)))
 
       running(app) {
-        val request =
-          FakeRequest(GET, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url).withJsonBody(
+        val request = FakeRequest(POST, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url)
+          .withJsonBody(
             Json.obj("eori" -> TEST_EORI_VALUE)
           )
 
@@ -159,8 +159,8 @@ class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
         .thenReturn(Future.successful(None))
 
       running(app) {
-        val request =
-          FakeRequest(GET, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url).withJsonBody(
+        val request = FakeRequest(POST, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url)
+          .withJsonBody(
             Json.obj("eori" -> TEST_EORI_VALUE)
           )
 
@@ -180,8 +180,8 @@ class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
       when(mockCompanyInformationRepository.set(TEST_EORI_VALUE, companyInformation)).thenReturn(Future.unit)
 
       running(app) {
-        val request =
-          FakeRequest(GET, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url).withJsonBody(
+        val request = FakeRequest(POST, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url)
+          .withJsonBody(
             Json.obj("eori" -> TEST_EORI_VALUE)
           )
 
@@ -201,8 +201,8 @@ class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
       when(mockCompanyInformationRepository.set(TEST_EORI_VALUE, companyInformation)).thenReturn(Future.unit)
 
       running(app) {
-        val request =
-          FakeRequest(GET, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url).withJsonBody(
+        val request = FakeRequest(POST, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url)
+          .withJsonBody(
             Json.obj("invalidkey" -> TEST_EORI_VALUE)
           )
 
