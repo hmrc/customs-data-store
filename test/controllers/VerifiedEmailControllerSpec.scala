@@ -71,7 +71,6 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
     "return the email and call SUB09 if the data is not stored in the cache and " +
       "also store the response into the cache" in new Setup {
         when(mockEmailRepository.get(any()))
-          .thenReturn(Future.successful(None))
           .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
         when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
@@ -94,7 +93,6 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
     "return InternalServerError if the write did not succeed when retrieving email from SUB09" in new Setup {
       when(mockEmailRepository.get(any()))
         .thenReturn(Future.successful(None))
-        .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
         Future.successful(
@@ -148,7 +146,6 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
       "also store the response into the cache" in new Setup {
         when(mockEmailRepository.get(any()))
           .thenReturn(Future.successful(None))
-          .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
         when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
           Future.successful(
@@ -170,7 +167,6 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
     "return InternalServerError if the write did not succeed when retrieving email from SUB09" in new Setup {
       when(mockEmailRepository.get(any()))
         .thenReturn(Future.successful(None))
-        .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
         Future.successful(
@@ -267,7 +263,6 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
     "return the email and call SUB09 if the data is not stored in the cache and " +
       "also store the response into the cache" in new Setup {
         when(mockEmailRepository.get(any()))
-          .thenReturn(Future.successful(None))
           .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
         when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
@@ -293,7 +288,6 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
     "return InternalServerError if the write did not succeed when retrieving email from SUB09" in new Setup {
       when(mockEmailRepository.get(any()))
         .thenReturn(Future.successful(None))
-        .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
         Future.successful(
@@ -316,7 +310,6 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
     "return 400 with malformed request" in new Setup {
       when(mockEmailRepository.get(any()))
         .thenReturn(Future.successful(None))
-        .thenReturn(Future.successful(Some(NotificationEmail(testAddress, testTime, None))))
 
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(
         Future.successful(
