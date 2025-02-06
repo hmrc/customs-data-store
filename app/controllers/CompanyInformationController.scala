@@ -54,8 +54,8 @@ class CompanyInformationController @Inject() (
       }
   }
 
-  def retrieveCompanyInformationThirdParty(): Action[EoriRequest] = authorisedRequest.async(parse.json[EoriRequest]) {
-    implicit request: Request[EoriRequest] =>
+  def retrieveCompanyInformationThirdParty(): Action[EoriRequest] = Action.async(parse.json[EoriRequest]) {
+    implicit request =>
       val eori = request.body.eori
 
       retrieveCompanyInformationAndStore(eori).flatMap {

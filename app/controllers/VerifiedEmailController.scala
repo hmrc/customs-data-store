@@ -74,8 +74,8 @@ class VerifiedEmailController @Inject() (
 
     }
 
-  def retrieveVerifiedEmailThirdParty(): Action[EoriRequest] = authorisedRequest.async(parse.json[EoriRequest]) {
-    implicit request: Request[EoriRequest] =>
+  def retrieveVerifiedEmailThirdParty(): Action[EoriRequest] = Action.async(parse.json[EoriRequest]) {
+    implicit request =>
       val eori = request.body.eori
       emailRepo.get(eori).flatMap {
         case Some(value) => Future.successful(Ok(Json.toJson(value)))
