@@ -18,13 +18,13 @@ package controllers
 
 import actionbuilders.{AuthorisedRequest, RequestWithEori}
 import cats.data.OptionT
-import cats.implicits._
+import cats.implicits.*
 import connectors.Sub09Connector
 import models.NotificationEmail
 import models.repositories.SuccessfulEmail
-import models.requests.UpdateVerifiedEmailRequest
+import models.requests.{EoriRequest, UpdateVerifiedEmailRequest}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import repositories.EmailRepository
 
@@ -71,7 +71,18 @@ class VerifiedEmailController @Inject() (
           case SuccessfulEmail => NoContent
           case _               => InternalServerError
         }
+
     }
+
+  def retrieveVerifiedEmailThirdParty(): Action[EoriRequest] = Action.async(parse.json[EoriRequest]) {
+    implicit request =>
+      val eori = request.body.eori
+
+      emailRepo.get(eori).flatMap {
+        case Some(value) => Future.successful(Ok(Json.toJson(value)))
+        case None        => retrieveAndStoreEmail(eori)
+      }
+  }
 
   private def retrieveAndStoreEmail(eori: String): Future[Result] =
     (for {
