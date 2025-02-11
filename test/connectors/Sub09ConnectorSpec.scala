@@ -25,18 +25,21 @@ import play.api.test.Helpers.running
 import play.api.{Application, inject}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, ServiceUnavailableException}
-import utils.SpecBase
+import utils.{SpecBase, WireMockSupportProvider}
 import utils.Utils.emptyString
 import utils.TestData.*
+import com.typesafe.config.ConfigFactory
+import play.api.{Application, Configuration}
+import com.github.tomakehurst.wiremock.client.WireMock.{get, ok, urlPathMatching}
 
 import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
 
-class Sub09ConnectorSpec extends SpecBase {
+class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "getSubscriberInformation" should {
     "return None when the timestamp is not available" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    /*  when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
       when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
         .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))))
@@ -45,7 +48,19 @@ class Sub09ConnectorSpec extends SpecBase {
 
       running(app) {
         await(connector.getSubscriberInformation(testEori)) mustBe None
-      }
+      }*/
+
+    val sub09Url: String = "customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
+    val timeStampNotAvaResJson: MdgSub09Response = mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))
+
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .willReturn(ok(timeStampNotAvaResJson.toString))
+      )
+
+      val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
+      result.get mustBe None
+      verifyEndPointUrlHit(sub09Url)
     }
 
     "return Some, when the timestamp is available" in new Setup {
@@ -220,6 +235,22 @@ class Sub09ConnectorSpec extends SpecBase {
     }
   }
 
+  override def config: Configuration = Configuration(
+    ConfigFactory.parseString(
+      s"""
+         |microservice {
+         |  services {
+         |      secure-messaging-frontend {
+         |      protocol = http
+         |      host     = $wireMockHost
+         |      port     = $wireMockPort
+         |    }
+         |  }
+         |}
+         |""".stripMargin
+    )
+  )
+
   trait Setup {
     val testEori    = "someEori"
     val xiEori      = "XI123456789000"
@@ -323,10 +354,7 @@ class Sub09ConnectorSpec extends SpecBase {
     implicit val hc: HeaderCarrier     = HeaderCarrier()
 
     val app: Application = application
-      .overrides(
-        inject.bind[HttpClientV2].toInstance(mockHttpClient),
-        inject.bind[RequestBuilder].toInstance(requestBuilder)
-      )
+      .configure(config)
       .build()
 
     val connector: Sub09Connector = app.injector.instanceOf[Sub09Connector]
