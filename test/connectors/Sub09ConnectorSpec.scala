@@ -17,12 +17,12 @@
 package connectors
 
 import models.responses.*
+import models.responses.MdgSub09Response._
 import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers.running
-import play.api.{Application, inject}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, ServiceUnavailableException}
 import utils.{SpecBase, WireMockSupportProvider}
@@ -31,6 +31,7 @@ import utils.TestData.*
 import com.typesafe.config.ConfigFactory
 import play.api.{Application, Configuration}
 import com.github.tomakehurst.wiremock.client.WireMock.{get, ok, urlPathMatching}
+import org.scalatest.concurrent.ScalaFutures._
 
 import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,23 +40,14 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "getSubscriberInformation" should {
     "return None when the timestamp is not available" in new Setup {
-    /*  when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
-        .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))))
-
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
-
-      running(app) {
-        await(connector.getSubscriberInformation(testEori)) mustBe None
-      }*/
-
-    val sub09Url: String = "customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
-    val timeStampNotAvaResJson: MdgSub09Response = mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))
+      val sub09Url: String = "/customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
+      val timeStampNotAvaResJson: String =
+        Json.toJson(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
-          .willReturn(ok(timeStampNotAvaResJson.toString))
+          .willReturn(ok(timeStampNotAvaResJson))
       )
 
       val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
@@ -244,6 +236,12 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
          |      protocol = http
          |      host     = $wireMockHost
          |      port     = $wireMockPort
+         |    }
+         |    sub09 {
+         |      host = $wireMockHost
+         |      port = $wireMockPort
+         |      bearer-token = "secret-token"
+         |      companyInformationEndpoint = "customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
          |    }
          |  }
          |}
