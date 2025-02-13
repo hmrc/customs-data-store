@@ -99,7 +99,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
               .withBody("""{"error": "Service Unavailable"}""")
           )
       )
-      
+
       assertThrows[ServiceUnavailableException] {
         await(connector.getSubscriberInformation(testEori))
       }
