@@ -17,7 +17,7 @@
 package utils
 
 import uk.gov.hmrc.http.test.WireMockSupport
-import com.github.tomakehurst.wiremock.client.WireMock.{getRequestedFor, urlPathMatching}
+import com.github.tomakehurst.wiremock.client.WireMock.{getRequestedFor, putRequestedFor, urlPathMatching}
 import play.api.Configuration
 import org.scalatest.Suite
 
@@ -29,6 +29,12 @@ trait WireMockSupportProvider extends WireMockSupport {
 
   protected def verifyEndPointUrlHit(urlToVerify: String): Unit = wireMockServer.verify(
     getRequestedFor(
+      urlPathMatching(urlToVerify)
+    )
+  )
+
+  protected def verifyEndPointUrlHitWithPut(urlToVerify: String): Unit = wireMockServer.verify(
+    putRequestedFor(
       urlPathMatching(urlToVerify)
     )
   )

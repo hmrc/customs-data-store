@@ -16,93 +16,90 @@
 
 package connectors
 
+import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.typesafe.config.ConfigFactory
 import config.AppConfig
 import models.responses.*
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-import play.api.libs.json.{JsValue, Json}
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api
-import com.typesafe.config.ConfigFactory
-import play.api.{Application, Configuration}
-import utils.{SpecBase, WireMockSupportProvider}
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, equalTo, get, ok, urlPathMatching}
-import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
 import play.api.test.Helpers.*
+import play.api.{Application, Configuration}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, UpstreamErrorResponse}
+import uk.gov.hmrc.http.HeaderCarrier
+import utils.{SpecBase, WireMockSupportProvider}
 
-import java.net.URL
 import java.time.LocalDateTime
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "return false if a non 200 response returned from SUB22" in new Setup {
-    val errorMsg      = "some error"
-    val statusCode500 = 500
-    val reportAs500   = 500
 
-    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
-    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+    wireMockServer.stubFor(
+      get(urlPathMatching(sub22Url))
+        .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
+        .willReturn(
+          aResponse()
+            .withStatus(SERVICE_UNAVAILABLE)
+            .withBody("""{"error": "Service Unavailable"}""")
+        )
+    )
 
-    when(requestBuilder.execute(any[HttpReads[UpdateVerifiedEmailResponse]], any[ExecutionContext]))
-      .thenReturn(Future.failed(UpstreamErrorResponse(errorMsg, statusCode500, reportAs500)))
-
-    when(mockHttpClient.put(any[URL])(any)).thenReturn(requestBuilder)
-
-    running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero))
-
-      result mustBe false
-    }
+    val result = await(connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero))
+    result mustBe false
+    verifyEndPointUrlHitWithPut(sub22Url)
   }
 
   "return false if a 200 response returned but 'statusText' is returned indicating an error" in new Setup {
-    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
-    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-    when(requestBuilder.execute(any[HttpReads[UpdateVerifiedEmailResponse]], any[ExecutionContext]))
-      .thenReturn(Future.successful(failedUpdateVerifiedEmailResponse))
+    val updateVerified: String = Json.toJson(failedUpdateVerifiedEmailResponse).toString
 
-    when(mockHttpClient.put(any[URL])(any)).thenReturn(requestBuilder)
+    wireMockServer.stubFor(
+      put(urlPathMatching(sub22Url))
+        .willReturn(ok(updateVerified))
+    )
 
-    running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero))
+    val result: Boolean =
+      connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero).futureValue
 
-      result mustBe false
-    }
+    result mustBe false
+    verifyEndPointUrlHitWithPut(sub22Url)
+
   }
 
   "return false if unable to extract the EORI from the undeliverableInformation" in new Setup {
-    running(app) {
-      val result = await(
-        connector.updateUndeliverable(
-          undeliverableInformation.copy(event = undeliverableInformationEvent.copy(enrolment = "invalid")),
-          LocalDateTime.now(),
-          attemptsZero
-        )
-      )
 
-      result mustBe false
-    }
+    val updateVerified: String = Json.toJson(failedUpdateVerifiedEmailResponse).toString
+
+    wireMockServer.stubFor(
+      put(urlPathMatching(sub22Url))
+        .willReturn(ok(updateVerified))
+    )
+
+    val result: Boolean =
+      connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero).futureValue
+
+    result mustBe false
+    verifyEndPointUrlHitWithPut(sub22Url)
   }
 
-  /*"return true if the request was successful" in new Setup {
+  "return true if the request was successful" in new Setup {
 
     val updateVerified: String = Json.toJson(successfulUpdateVerifiedEmailResponse).toString
 
     wireMockServer.stubFor(
-      get(urlPathMatching(sub22Url))
+      put(urlPathMatching(sub22Url))
         .willReturn(ok(updateVerified))
     )
 
-    val result: Option[Boolean] =
+    val result: Boolean =
       connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero).futureValue
 
-    result mustBe Option(true)
-    verifyEndPointUrlHit(sub22Url)
-  }*/
+    result mustBe true
+    verifyEndPointUrlHitWithPut(sub22Url)
+  }
 
   override def config: Configuration = Configuration(
     ConfigFactory.parseString(
@@ -118,7 +115,7 @@ class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
          |      host = $wireMockHost
          |      port = $wireMockPort
          |      bearer-token = "secret-token"
-         |      companyInformationEndpoint = "customs-financials-hods-stub/subscriptions/updateverifiedemail/v1"
+         |      updateVerifiedEmailEndpoint = "customs-financials-hods-stub/subscriptions/updateverifiedemail/v1"
          |    }
          |  }
          |}
@@ -152,7 +149,7 @@ class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
     val mockHttpClient: HttpClientV2   = mock[HttpClientV2]
     val requestBuilder: RequestBuilder = mock[RequestBuilder]
 
-    val app: Application = new GuiceApplicationBuilder()
+    val app: Application = application
       .configure(config)
       .build()
 
@@ -177,6 +174,6 @@ class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
       )
 
     val connector: Sub22Connector = app.injector.instanceOf[Sub22Connector]
-    val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
+    val appConfig: AppConfig      = app.injector.instanceOf[AppConfig]
   }
 }

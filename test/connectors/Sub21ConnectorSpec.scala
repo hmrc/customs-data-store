@@ -138,7 +138,7 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider  {
          |      host = $wireMockHost
          |      port = $wireMockPort
          |      bearer-token = "secret-token"
-         |      companyInformationEndpoint = "customs-financials-hods-stub/eorihistory"
+         |      historicEoriEndpoint = "customs-financials-hods-stub/eorihistory/"
          |    }
          |  }
          |}
