@@ -37,7 +37,7 @@ import java.time.LocalDate
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 
-class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider  {
+class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "EoriHistoryConnector" should {
     "hit the expected URL" in new Setup {
@@ -173,7 +173,7 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider  {
 
   trait Setup {
     implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val hc: HeaderCarrier    = HeaderCarrier()
 
     val url: String      = "/customs-financials-hods-stub/eorihistory/testEori"
     val someEori: String = "testEori"

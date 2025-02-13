@@ -54,11 +54,11 @@ class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "return false if a 200 response returned but 'statusText' is returned indicating an error" in new Setup {
 
-    val updateVerified: String = Json.toJson(failedUpdateVerifiedEmailResponse).toString
+    val failedUpdate: String = Json.toJson(failedUpdateVerifiedEmailResponse).toString
 
     wireMockServer.stubFor(
       put(urlPathMatching(sub22Url))
-        .willReturn(ok(updateVerified))
+        .willReturn(ok(failedUpdate))
     )
 
     val result: Boolean =
@@ -71,11 +71,11 @@ class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "return false if unable to extract the EORI from the undeliverableInformation" in new Setup {
 
-    val updateVerified: String = Json.toJson(failedUpdateVerifiedEmailResponse).toString
+    val failedUpdate: String = Json.toJson(failedUpdateVerifiedEmailResponse).toString
 
     wireMockServer.stubFor(
       put(urlPathMatching(sub22Url))
-        .willReturn(ok(updateVerified))
+        .willReturn(ok(failedUpdate))
     )
 
     val result: Boolean =

@@ -57,12 +57,12 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
     "return Some, when the timestamp is available" in new Setup {
 
-      val timeStampResJson: String =
+      val withEmailAndTimestampRes: String =
         Json.toJson(mdgResponse(Sub09Response.withEmailAndTimestamp(testEori))).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
-          .willReturn(ok(timeStampResJson))
+          .willReturn(ok(withEmailAndTimestampRes))
       )
 
       val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
@@ -72,12 +72,12 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
     "return None when the email is not available" in new Setup {
 
-      val notAvaResJson: String =
+      val noEmailNoTimestampJson: String =
         Json.toJson(mdgResponse(Sub09Response.noEmailNoTimestamp(testEori))).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
-          .willReturn(ok(notAvaResJson))
+          .willReturn(ok(noEmailNoTimestampJson))
       )
 
       val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
@@ -122,8 +122,9 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     "return company information noConsent '0' when the field is not present" in new Setup {
 
       val noConsentToDisclose: String =
-        Json.toJson(
-          Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori)))).toString
+        Json
+          .toJson(Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori))))
+          .toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -157,8 +158,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     "return xi eori information from the api" in new Setup {
 
       val withEmailAndTimestamp: String =
-        Json.toJson(
-          Option(mdgCompanyInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))).toString
+        Json.toJson(Option(mdgCompanyInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -166,15 +166,14 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       )
 
       val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
-      result.map { xiInfo => xiInfo mustBe Option(xiEoriInformation) }
+      result.map(xiInfo => xiInfo mustBe Option(xiEoriInformation))
       verifyEndPointUrlHit(sub09Url)
     }
 
     "return xi eori information from the api when pbeaddress is empty" in new Setup {
 
       val noXiEoriAddress: String =
-        Json.toJson(
-          Option(mdgCompanyInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))).toString
+        Json.toJson(Option(mdgCompanyInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -182,7 +181,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       )
 
       val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
-      result.map { xiInfo => xiInfo mustBe Option(xiEoriInformationWithNoAddress) }
+      result.map(xiInfo => xiInfo mustBe Option(xiEoriInformationWithNoAddress))
       verifyEndPointUrlHit(sub09Url)
     }
 
@@ -215,7 +214,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       )
 
       val result: Option[models.responses.SubscriptionResponse] = connector.retrieveSubscriptions(TEST_EORI).futureValue
-      result.map { res => res.toString mustBe subsResponseOb.toString }
+      result.map(res => res.toString mustBe subsResponseOb.toString)
       verifyEndPointUrlHit(sub09Url)
     }
 
@@ -283,11 +282,11 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     val xiEoriInformationWithNoAddress: XiEoriInformation =
       XiEoriInformation(xiEori, consent, XiEoriAddressInformation(emptyString))
 
-    val status                                    = "test_status"
-    val statusText                                = "test_status_text"
-    val endDate                                   = "2024-10-22"
-    val paramName                                 = "POSITION"
-    val paramValue                                = "LINK"
+    val status                                  = "test_status"
+    val statusText                              = "test_status_text"
+    val endDate                                 = "2024-10-22"
+    val paramName                               = "POSITION"
+    val paramValue                              = "LINK"
     val returnParameters: Seq[ReturnParameters] = Seq(ReturnParameters(paramName, paramValue))
     val vatIds: Seq[VatId]                      = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID)))
 
@@ -359,7 +358,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     val subsDisplayResOb: SubscriptionDisplayResponse = SubscriptionDisplayResponse(responseCommon, responseDetail)
     val subsResponseOb: SubscriptionResponse          = SubscriptionResponse(subsDisplayResOb)
 
-    implicit val hc: HeaderCarrier     = HeaderCarrier()
+    implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val app: Application = application
       .configure(config)
