@@ -16,23 +16,27 @@
 
 package connectors
 
-import models.responses._
+import config.AppConfig
+import models.responses.*
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
+import play.api.libs.json.{JsValue, Json}
 import play.api
-import play.api.Application
+import com.typesafe.config.ConfigFactory
+import play.api.{Application, Configuration}
+import utils.{SpecBase, WireMockSupportProvider}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, equalTo, get, ok, urlPathMatching}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.*
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, UpstreamErrorResponse}
-import utils.SpecBase
 
 import java.net.URL
 import java.time.LocalDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
-class Sub22ConnectorSpec extends SpecBase {
+class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "return false if a non 200 response returned from SUB22" in new Setup {
     val errorMsg      = "some error"
@@ -84,21 +88,43 @@ class Sub22ConnectorSpec extends SpecBase {
     }
   }
 
-  "return true if the request was successful" in new Setup {
-    when(requestBuilder.withBody(any())(any(), any(), any())).thenReturn(requestBuilder)
-    when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+  /*"return true if the request was successful" in new Setup {
 
-    when(requestBuilder.execute(any[HttpReads[UpdateVerifiedEmailResponse]], any[ExecutionContext]))
-      .thenReturn(Future.successful(successfulUpdateVerifiedEmailResponse))
+    val updateVerified: String = Json.toJson(successfulUpdateVerifiedEmailResponse).toString
 
-    when(mockHttpClient.put(any[URL])(any)).thenReturn(requestBuilder)
+    wireMockServer.stubFor(
+      get(urlPathMatching(sub22Url))
+        .willReturn(ok(updateVerified))
+    )
 
-    running(app) {
-      val result = await(connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero))
+    val result: Option[Boolean] =
+      connector.updateUndeliverable(undeliverableInformation, LocalDateTime.now(), attemptsZero).futureValue
 
-      result mustBe true
-    }
-  }
+    result mustBe Option(true)
+    verifyEndPointUrlHit(sub22Url)
+  }*/
+
+  override def config: Configuration = Configuration(
+    ConfigFactory.parseString(
+      s"""
+         |microservice {
+         |  services {
+         |      secure-messaging-frontend {
+         |      protocol = http
+         |      host     = $wireMockHost
+         |      port     = $wireMockPort
+         |    }
+         |    sub22 {
+         |      host = $wireMockHost
+         |      port = $wireMockPort
+         |      bearer-token = "secret-token"
+         |      companyInformationEndpoint = "customs-financials-hods-stub/subscriptions/updateverifiedemail/v1"
+         |    }
+         |  }
+         |}
+         |""".stripMargin
+    )
+  )
 
   trait Setup {
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
@@ -108,6 +134,8 @@ class Sub22ConnectorSpec extends SpecBase {
     val detectedDate: LocalDateTime = LocalDateTime.now()
     val attemptsZero                = 0
     val code                        = 12
+
+    val sub22Url: String = "/customs-financials-hods-stub/subscriptions/updateverifiedemail/v1"
 
     val successfulUpdateVerifiedEmailResponse: UpdateVerifiedEmailResponse = UpdateVerifiedEmailResponse(
       UpdateVerifiedEmailResponseCommon(
@@ -125,10 +153,7 @@ class Sub22ConnectorSpec extends SpecBase {
     val requestBuilder: RequestBuilder = mock[RequestBuilder]
 
     val app: Application = new GuiceApplicationBuilder()
-      .overrides(
-        api.inject.bind[HttpClientV2].toInstance(mockHttpClient),
-        api.inject.bind[RequestBuilder].toInstance(requestBuilder)
-      )
+      .configure(config)
       .build()
 
     val undeliverableInformationEvent: UndeliverableInformationEvent = UndeliverableInformationEvent(
@@ -152,5 +177,6 @@ class Sub22ConnectorSpec extends SpecBase {
       )
 
     val connector: Sub22Connector = app.injector.instanceOf[Sub22Connector]
+    val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
   }
 }

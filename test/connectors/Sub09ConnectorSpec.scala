@@ -35,8 +35,7 @@ import config.AppConfig
 import org.mockito.ArgumentCaptor
 import org.scalatest.concurrent.ScalaFutures.*
 import play.api.http.HeaderNames.AUTHORIZATION
-import play.api.http.Status.NOT_FOUND
-import uk.gov.hmrc.http.HttpErrorFunctions.upstreamResponseMessage
+import play.api.test.Helpers.*
 
 import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
@@ -89,44 +88,15 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       verifyEndPointUrlHit(sub09Url)
     }
 
-    /*
-    "recoverWith Not Found" in new Setup {
-
-      val url01 = url"${appConfig.sub21EORIHistoryEndpoint}$someEori".toString
-
-      wireMockServer.stubFor(
-        get(urlPathMatching(url01))
-          .withHeader(AUTHORIZATION, equalTo(appConfig.sub21BearerToken))
-          .willReturn(
-            aResponse()
-              .withStatus(NOT_FOUND)
-              .withBody(notFoundMessage("GET", actualURL.toString, "error1"))
-          )
-      )
-
-val compare: Future[Nothing] =
-      Future.failed(UpstreamErrorResponse(notFoundMessage("GET", actualURL.toString, "error1"), NOT_FOUND))
-
-
-      assertThrows[NotFoundException] {
-        await(connector.getEoriHistory(someEori))
-      }
-    }
-     */
-
     "propagate ServiceUnavailableException" in new Setup {
-
-      //when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
-        //.thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
-          .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
+          .withHeader(AUTHORIZATION, equalTo(appConfig.sub21BearerToken))
           .willReturn(
             aResponse()
-              .withStatus(NOT_FOUND)
-              .withBody(upstreamResponseMessage(
-                "GET", actualURL.toString, 503 ,"Boom"))
+              .withStatus(SERVICE_UNAVAILABLE)
+              .withBody("""{"error": "Service Unavailable"}""")
           )
       )
       
