@@ -26,7 +26,6 @@ import play.api
 import play.api.libs.json.Json
 import play.api.test.Helpers.*
 import play.api.{Application, Configuration}
-import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.{SpecBase, WireMockSupportProvider}
 
@@ -145,9 +144,6 @@ class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
         UpdateVerifiedEmailResponseCommonDetail("OK", Some("failure"))
       )
     )
-
-    val mockHttpClient: HttpClientV2   = mock[HttpClientV2]
-    val requestBuilder: RequestBuilder = mock[RequestBuilder]
 
     val app: Application = application
       .configure(config)

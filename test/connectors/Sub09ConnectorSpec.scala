@@ -26,13 +26,13 @@ import utils.Utils.emptyString
 import utils.TestData.*
 import com.typesafe.config.ConfigFactory
 import play.api.{Application, Configuration}
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, equalTo, get, ok, urlPathMatching}
 import config.AppConfig
 import org.mockito.ArgumentCaptor
 import org.scalatest.concurrent.ScalaFutures.*
 import play.api.http.HeaderNames.AUTHORIZATION
 import play.api.test.Helpers.*
 import org.scalatest.matchers.should.Matchers.*
+import com.github.tomakehurst.wiremock.client.WireMock.*
 
 import java.net.URL
 import scala.concurrent.ExecutionContext
@@ -85,7 +85,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       verifyEndPointUrlHit(sub09Url)
     }
 
-    /*"propagate ServiceUnavailableException" in new Setup {
+    "propagate ServiceUnavailableException" in new Setup {
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -100,7 +100,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       assertThrows[ServiceUnavailableException] {
         await(connector.getSubscriberInformation(testEori))
       }
-    }*/
+    }
   }
 
   "getCompanyInformation" should {
