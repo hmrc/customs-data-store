@@ -17,214 +17,254 @@
 package connectors
 
 import models.responses.*
+import models.responses.MdgSub09Response.*
 import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-import play.api.libs.json.JsValue
-import play.api.test.Helpers.running
-import play.api.{Application, inject}
-import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, ServiceUnavailableException}
-import utils.SpecBase
+import play.api.libs.json.{JsValue, Json}
+import uk.gov.hmrc.http.{HeaderCarrier, ServiceUnavailableException}
+import utils.{SpecBase, WireMockSupportProvider}
 import utils.Utils.emptyString
 import utils.TestData.*
+import com.typesafe.config.ConfigFactory
+import play.api.{Application, Configuration}
+import config.AppConfig
+import org.mockito.ArgumentCaptor
+import org.scalatest.concurrent.ScalaFutures.*
+import play.api.http.HeaderNames.AUTHORIZATION
+import play.api.test.Helpers.*
+import org.scalatest.matchers.should.Matchers.*
+import com.github.tomakehurst.wiremock.client.WireMock.*
 
 import java.net.URL
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class Sub09ConnectorSpec extends SpecBase {
+class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "getSubscriberInformation" should {
     "return None when the timestamp is not available" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
-        .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))))
+      val withEmailNoTimeStamp: String =
+        Json.toJson(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))).toString
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .willReturn(ok(withEmailNoTimeStamp))
+      )
 
-      running(app) {
-        await(connector.getSubscriberInformation(testEori)) mustBe None
-      }
+      val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
+      result mustBe None
+      verifyEndPointUrlHit(sub09Url)
     }
 
     "return Some, when the timestamp is available" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
-        .thenReturn(Future.successful(mdgResponse(Sub09Response.withEmailAndTimestamp(testEori))))
+      val withEmailAndTimestampRes: String =
+        Json.toJson(mdgResponse(Sub09Response.withEmailAndTimestamp(testEori))).toString
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .willReturn(ok(withEmailAndTimestampRes))
+      )
 
-      running(app) {
-        val result = await(connector.getSubscriberInformation(testEori)).value
-        result.address mustBe "email@email.com"
-      }
+      val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
+      result.value.address mustBe "email@email.com"
+      verifyEndPointUrlHit(sub09Url)
     }
 
     "return None when the email is not available" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
-        .thenReturn(Future.successful(mdgResponse(Sub09Response.noEmailNoTimestamp(testEori))))
+      val noEmailNoTimestampJson: String =
+        Json.toJson(mdgResponse(Sub09Response.noEmailNoTimestamp(testEori))).toString
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .willReturn(ok(noEmailNoTimestampJson))
+      )
 
-      running(app) {
-        await(connector.getSubscriberInformation(testEori)) mustBe None
-      }
+      val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
+      result mustBe None
+      verifyEndPointUrlHit(sub09Url)
     }
 
     "propagate ServiceUnavailableException" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09Response]], any[ExecutionContext]))
-        .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
+          .willReturn(
+            aResponse()
+              .withStatus(SERVICE_UNAVAILABLE)
+              .withBody("""{"error": "Service Unavailable"}""")
+          )
+      )
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
-
-      running(app) {
-        assertThrows[ServiceUnavailableException](await(connector.getSubscriberInformation(testEori)))
+      assertThrows[ServiceUnavailableException] {
+        await(connector.getSubscriberInformation(testEori))
       }
     }
   }
 
   "getCompanyInformation" should {
     "return company information from the api" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
-        .thenReturn(
-          Future.successful(Option(mdgCompanyInformationResponse(Sub09Response.withEmailNoTimestamp(testEori))))
-        )
+      val withEmailNoTimeStamp: String =
+        Json.toJson(Option(mdgCompanyInformationResponse(Sub09Response.withEmailNoTimestamp(testEori)))).toString
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .willReturn(ok(withEmailNoTimeStamp))
+      )
 
-      running(app) {
-        await(connector.getCompanyInformation(testEori)) mustBe Option(companyInformation)
-      }
+      val result: Option[models.CompanyInformation] = connector.getCompanyInformation(testEori).futureValue
+      result.get mustBe companyInformation
+      verifyEndPointUrlHit(sub09Url)
     }
 
     "return company information noConsent '0' when the field is not present" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
-        .thenReturn(
-          Future.successful(
-            Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori)))
-          )
-        )
+      val noConsentToDisclose: String =
+        Json
+          .toJson(Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori))))
+          .toString
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .willReturn(ok(noConsentToDisclose))
+      )
 
-      running(app) {
-        await(connector.getCompanyInformation(testEori)) mustBe Option(companyInformationNoConsentFalse)
-      }
+      val result: Option[models.CompanyInformation] = connector.getCompanyInformation(testEori).futureValue
+      result.get mustBe companyInformationNoConsentFalse
+      verifyEndPointUrlHit(sub09Url)
     }
 
     "return None on failure" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09CompanyInformationResponse]], any[ExecutionContext]))
-        .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
+          .willReturn(
+            aResponse()
+              .withStatus(SERVICE_UNAVAILABLE)
+              .withBody("""{"error": "Service Unavailable"}""")
+          )
+      )
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
-
-      running(app) {
-        await(connector.getCompanyInformation(testEori)) mustBe None
-      }
+      val result: Option[models.CompanyInformation] = connector.getCompanyInformation(testEori).futureValue
+      result mustBe None
+      verifyEndPointUrlHit(sub09Url)
     }
   }
 
   "getXiEoriInformation" should {
     "return xi eori information from the api" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09XiEoriInformationResponse]], any[ExecutionContext]))
-        .thenReturn(
-          Future.successful(Option(mdgXiEoriInformationResponse(Sub09Response.withEmailAndTimestamp(testEori))))
-        )
+      val withEmailAndTimestamp: String =
+        Json.toJson(Option(mdgCompanyInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))).toString
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .willReturn(ok(withEmailAndTimestamp))
+      )
 
-      running(app) {
-        connector.getXiEoriInformation(testEori).map { xiInfo =>
-          xiInfo mustBe Option(xiEoriInformation)
-        }
-      }
+      val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
+      result.map(xiInfo => xiInfo mustBe Option(xiEoriInformation))
+      verifyEndPointUrlHit(sub09Url)
     }
 
     "return xi eori information from the api when pbeaddress is empty" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09XiEoriInformationResponse]], any[ExecutionContext]))
-        .thenReturn(
-          Future.successful(Option(mdgXiEoriInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori))))
-        )
+      val noXiEoriAddress: String =
+        Json.toJson(Option(mdgCompanyInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))).toString
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .willReturn(ok(noXiEoriAddress))
+      )
 
-      running(app) {
-        connector.getXiEoriInformation(testEori).map { xiInfo =>
-          xiInfo mustBe Option(xiEoriInformationWithNoAddress)
-        }
-      }
+      val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
+      result.map(xiInfo => xiInfo mustBe Option(xiEoriInformationWithNoAddress))
+      verifyEndPointUrlHit(sub09Url)
     }
 
     "return None on failure" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[MdgSub09XiEoriInformationResponse]], any[ExecutionContext]))
-        .thenReturn(Future.failed(new ServiceUnavailableException("Boom")))
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
+          .willReturn(
+            aResponse()
+              .withStatus(SERVICE_UNAVAILABLE)
+              .withBody("""{"error": "Service Unavailable"}""")
+          )
+      )
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
-
-      running(app) {
-        connector.getXiEoriInformation(testEori).map { xiInfo =>
-          xiInfo mustBe None
-        }
-      }
+      val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
+      result mustBe None
+      verifyEndPointUrlHit(sub09Url)
     }
   }
 
   "retrieveSubscriptions" should {
-
     "retrieve the subscriptions when successful response is recieved" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[SubscriptionResponse]], any[ExecutionContext]))
-        .thenReturn(Future.successful(Option(subsResponseOb)))
+      val response: String = Json.toJson(Option(subsResponseOb)).toString
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .willReturn(ok(response))
+      )
 
-      running(app) {
-        connector.retrieveSubscriptions(TEST_EORI).map { res =>
-          res mustBe Option(subsResponseOb)
-        }
-      }
+      val result: Option[models.responses.SubscriptionResponse] = connector.retrieveSubscriptions(TEST_EORI).futureValue
+      result.map(res => res.toString mustBe subsResponseOb.toString)
+      verifyEndPointUrlHit(sub09Url)
     }
 
     "return None if error occurrs while retrieving the subscriptions" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[SubscriptionResponse]], any[ExecutionContext]))
-        .thenReturn(Future.failed(new ServiceUnavailableException("Error occurred")))
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
+          .willReturn(
+            aResponse()
+              .withStatus(SERVICE_UNAVAILABLE)
+              .withBody("""{"error": "Service Unavailable"}""")
+          )
+      )
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
-
-      running(app) {
-        connector.retrieveSubscriptions(TEST_EORI).map { res =>
-          res mustBe empty
-        }
-      }
+      val result: Option[models.responses.SubscriptionResponse] = connector.retrieveSubscriptions(TEST_EORI).futureValue
+      result mustBe empty
+      verifyEndPointUrlHit(sub09Url)
     }
   }
+
+  override def config: Configuration = Configuration(
+    ConfigFactory.parseString(
+      s"""
+         |microservice {
+         |  services {
+         |      secure-messaging-frontend {
+         |      protocol = http
+         |      host     = $wireMockHost
+         |      port     = $wireMockPort
+         |    }
+         |    sub09 {
+         |      host = $wireMockHost
+         |      port = $wireMockPort
+         |      bearer-token = "secret-token"
+         |      companyInformationEndpoint = "customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
+         |    }
+         |  }
+         |}
+         |""".stripMargin
+    )
+  )
 
   trait Setup {
     val testEori    = "someEori"
     val xiEori      = "XI123456789000"
     val companyName = "Example Ltd"
     val consent     = "1"
+
+    val sub09Url: String = "/customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
 
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
@@ -242,13 +282,13 @@ class Sub09ConnectorSpec extends SpecBase {
     val xiEoriInformationWithNoAddress: XiEoriInformation =
       XiEoriInformation(xiEori, consent, XiEoriAddressInformation(emptyString))
 
-    val status                                    = "test_status"
-    val statusText                                = "test_status_text"
-    val endDate                                   = "2024-10-22"
-    val paramName                                 = "POSITION"
-    val paramValue                                = "LINK"
-    val returnParameters: Array[ReturnParameters] = Seq(ReturnParameters(paramName, paramValue)).toArray
-    val vatIds: Array[VatId]                      = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID))).toArray
+    val status                                  = "test_status"
+    val statusText                              = "test_status_text"
+    val endDate                                 = "2024-10-22"
+    val paramName                               = "POSITION"
+    val paramValue                              = "LINK"
+    val returnParameters: Seq[ReturnParameters] = Seq(ReturnParameters(paramName, paramValue))
+    val vatIds: Seq[VatId]                      = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID)))
 
     val cdsEstablishmentAddress: CdsEstablishmentAddress = CdsEstablishmentAddress(
       streetAndNumber = "86 Mysore Road",
@@ -305,7 +345,7 @@ class Sub09ConnectorSpec extends SpecBase {
       typeOfLegalEntity = Some("0001"),
       contactInformation = Some(contactInformation),
       VATIDs = Some(vatIds),
-      thirdCountryUniqueIdentificationNumber = Some(Seq("321", "222").toArray),
+      thirdCountryUniqueIdentificationNumber = Some(Seq("321", "222")),
       consentToDisclosureOfPersonalData = Some("1"),
       shortName = Some("Robinson"),
       dateOfEstablishment = Some("1963-04-01"),
@@ -318,18 +358,15 @@ class Sub09ConnectorSpec extends SpecBase {
     val subsDisplayResOb: SubscriptionDisplayResponse = SubscriptionDisplayResponse(responseCommon, responseDetail)
     val subsResponseOb: SubscriptionResponse          = SubscriptionResponse(subsDisplayResOb)
 
-    val mockHttpClient: HttpClientV2   = mock[HttpClientV2]
-    val requestBuilder: RequestBuilder = mock[RequestBuilder]
-    implicit val hc: HeaderCarrier     = HeaderCarrier()
+    implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val app: Application = application
-      .overrides(
-        inject.bind[HttpClientV2].toInstance(mockHttpClient),
-        inject.bind[RequestBuilder].toInstance(requestBuilder)
-      )
+      .configure(config)
       .build()
 
-    val connector: Sub09Connector = app.injector.instanceOf[Sub09Connector]
+    val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
+    val connector: Sub09Connector      = app.injector.instanceOf[Sub09Connector]
+    val appConfig: AppConfig           = app.injector.instanceOf[AppConfig]
 
     def mdgResponse(value: JsValue): MdgSub09Response = MdgSub09Response.sub09Reads.reads(value).get
 

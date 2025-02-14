@@ -26,7 +26,8 @@ import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, ServiceUnavailableException, UpstreamErrorResponse}
+import play.api.http.Status.SERVICE_UNAVAILABLE
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
 import utils.Utils.{emptyString, randomUUID, uri}
 
@@ -68,6 +69,11 @@ class Sub09Connector @Inject() (
             Future.successful(Option(NotificationEmail(email, timestamp, None)))
 
           case _ => Future.successful(None)
+
+        }
+        .recoverWith { case UpstreamErrorResponse(_, SERVICE_UNAVAILABLE, _, _) =>
+          log.error(s"Failed to getSubscriberInformation with SERVICE_UNAVAILABLE error")
+          Future.failed(new ServiceUnavailableException("Service is unavailable"))
         }
     }
   }
@@ -153,5 +159,4 @@ class Sub09Connector @Inject() (
         }
     }
   }
-
 }

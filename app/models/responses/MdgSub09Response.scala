@@ -24,6 +24,8 @@ case class MdgSub09Response(emailAddress: Option[String], verifiedTimestamp: Opt
 
 object MdgSub09Response {
 
+  implicit val format: Format[MdgSub09Response] = Json.format[MdgSub09Response]
+
   implicit val sub09Reads: Reads[MdgSub09Response] =
     ((JsPath \\ "emailAddress").readNullable[String] and
       (JsPath \\ "emailVerificationTimestamp").readNullable[LocalDateTime])(MdgSub09Response.apply _)

@@ -18,11 +18,14 @@ package models.responses
 
 import models.AddressInformation
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{JsPath, Reads}
+import play.api.libs.json._
 
 case class MdgSub09CompanyInformationResponse(name: String, consent: Option[String], address: AddressInformation)
 
 object MdgSub09CompanyInformationResponse {
+
+  implicit val format: Format[MdgSub09CompanyInformationResponse] = Json.format[MdgSub09CompanyInformationResponse]
+
   implicit val sub09CompanyInformation: Reads[MdgSub09CompanyInformationResponse] =
     ((JsPath \\ "CDSFullName").read[String] and
       (JsPath \\ "consentToDisclosureOfPersonalData").readNullable[String] and
