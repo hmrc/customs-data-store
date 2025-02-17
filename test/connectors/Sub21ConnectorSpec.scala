@@ -20,38 +20,37 @@ import config.AppConfig
 import models.*
 import models.responses.{GetEORIHistoryResponse, ResponseCommon, ResponseDetail}
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
-import org.mockito.Mockito.when
 import play.api
-import play.api.Application
 import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.Json
-import play.api.test.Helpers.*
 import uk.gov.hmrc.http.*
 import uk.gov.hmrc.http.HttpErrorFunctions.notFoundMessage
-import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
-import utils.SpecBase
+import utils.{SpecBase, WireMockSupportProvider}
+import play.api.http.HeaderNames.AUTHORIZATION
+import com.typesafe.config.ConfigFactory
+import play.api.{Application, Configuration}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, equalTo, get, ok, urlPathMatching}
+import org.scalatest.concurrent.ScalaFutures._
 
 import java.net.URL
 import java.time.LocalDate
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class Sub21ConnectorSpec extends SpecBase {
+class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "EoriHistoryConnector" should {
     "hit the expected URL" in new Setup {
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
 
-      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext]))
-        .thenReturn(Future.successful(generateResponse(List(someEori))))
+      val response: String = Json.toJson(generateResponse(List(someEori))).toString
 
-      when(mockHttpClient.get(eqTo(url"${appConfig.sub21EORIHistoryEndpoint}$someEori"))(any()))
-        .thenReturn(requestBuilder)
+      wireMockServer.stubFor(
+        get(urlPathMatching(url))
+          .willReturn(ok(response))
+      )
 
-      running(app) {
-        await(connector.getEoriHistory(someEori))
-      }
+      val result: Seq[models.EoriPeriod] = connector.getEoriHistory(someEori).futureValue
+      verifyEndPointUrlHit(url)
     }
 
     "return a list of EoriPeriod entries" in new Setup {
@@ -88,73 +87,64 @@ class Sub21ConnectorSpec extends SpecBase {
            |  }
            |}""".stripMargin
 
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
+      val response: String = Json.toJson(Json.parse(jsonResponse).as[HistoricEoriResponse]).toString
 
-      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext]))
-        .thenReturn(Future.successful(Json.parse(jsonResponse).as[HistoricEoriResponse]))
+      wireMockServer.stubFor(
+        get(urlPathMatching(url))
+          .willReturn(ok(response))
+      )
 
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
+      val result: Seq[models.EoriPeriod] = connector.getEoriHistory(someEori).futureValue
 
-      running(app) {
+      result mustBe List(
+        EoriPeriod("testEori", Some("2019-07-24"), None),
+        EoriPeriod("historicEori1", Some("2009-05-16"), Some("2019-07-23")),
+        EoriPeriod("historicEori2", Some("2019-07-24"), Some("2019-07-23")),
+        EoriPeriod("historicEori3", Some("2019-07-24"), Some("2019-07-23"))
+      )
 
-        val response = await(connector.getEoriHistory(someEori))
-
-        response mustBe List(
-          EoriPeriod("testEori", Some("2019-07-24"), None),
-          EoriPeriod("historicEori1", Some("2009-05-16"), Some("2019-07-23")),
-          EoriPeriod("historicEori2", Some("2019-07-24"), Some("2019-07-23")),
-          EoriPeriod("historicEori3", Some("2019-07-24"), Some("2019-07-23"))
-        )
-      }
+      verifyEndPointUrlHit(url)
     }
 
     "recoverWith Not Found" in new Setup {
 
-      val compare: Future[Nothing] =
-        Future.failed(UpstreamErrorResponse(notFoundMessage("GET", actualURL.toString, "error1"), NOT_FOUND))
+      wireMockServer.stubFor(
+        get(urlPathMatching(url))
+          .withHeader(AUTHORIZATION, equalTo(appConfig.sub21BearerToken))
+          .willReturn(
+            aResponse()
+              .withStatus(NOT_FOUND)
+              .withBody(notFoundMessage("GET", actualURL.toString, "error1"))
+          )
+      )
 
-      when(requestBuilder.execute(any[HttpReads[HistoricEoriResponse]], any[ExecutionContext])).thenReturn(compare)
-
-      when(requestBuilder.setHeader(any[(String, String)]())).thenReturn(requestBuilder)
-      when(mockHttpClient.get(any[URL]())(any())).thenReturn(requestBuilder)
-
-      running(app) {
-        assertThrows[NotFoundException] {
-          await(connector.getEoriHistory(someEori))
-        }
+      assertThrows[NotFoundException] {
+        await(connector.getEoriHistory(someEori))
       }
     }
   }
 
-  trait Setup {
-    implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-
-    implicit val implicitHeaderCarrier: HeaderCarrier = HeaderCarrier(
-      authorization = Option(Authorization("myAwesomeCrypto")),
-      otherHeaders = List(("X-very-important", "foo"))
+  override def config: Configuration = Configuration(
+    ConfigFactory.parseString(
+      s"""
+         |microservice {
+         |  services {
+         |      secure-messaging-frontend {
+         |      protocol = http
+         |      host     = $wireMockHost
+         |      port     = $wireMockPort
+         |    }
+         |    sub21 {
+         |      host = $wireMockHost
+         |      port = $wireMockPort
+         |      bearer-token = "secret-token"
+         |      historicEoriEndpoint = "customs-financials-hods-stub/eorihistory/"
+         |    }
+         |  }
+         |}
+         |""".stripMargin
     )
-
-    val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
-
-    val someEori                       = "testEori"
-    val mockHttpClient: HttpClientV2   = mock[HttpClientV2]
-    val requestBuilder: RequestBuilder = mock[RequestBuilder]
-
-    val app: Application = application
-      .overrides(
-        api.inject.bind[HttpClientV2].toInstance(mockHttpClient),
-        api.inject.bind[RequestBuilder].toInstance(requestBuilder)
-      )
-      .build()
-
-    val connector: Sub21Connector = app.injector.instanceOf[Sub21Connector]
-    val appConfig: AppConfig      = app.injector.instanceOf[AppConfig]
-  }
-
-  protected def generateResponse(eoris: Seq[String]): HistoricEoriResponse =
-    HistoricEoriResponse(
-      GetEORIHistoryResponse(ResponseCommon("OK", LocalDate.now().toString), ResponseDetail(generateEoriHistory(eoris)))
-    )
+  )
 
   def generateEoriHistory(allEoris: Seq[String]): Seq[EORIHistory] = {
     val dateCalculator =
@@ -174,5 +164,32 @@ class Sub21ConnectorSpec extends SpecBase {
     }
 
     calcHistory(allEoris, Seq.empty[EORIHistory])
+  }
+
+  protected def generateResponse(eoris: Seq[String]): HistoricEoriResponse =
+    HistoricEoriResponse(
+      GetEORIHistoryResponse(ResponseCommon("OK", LocalDate.now().toString), ResponseDetail(generateEoriHistory(eoris)))
+    )
+
+  trait Setup {
+    implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+    implicit val hc: HeaderCarrier    = HeaderCarrier()
+
+    val url: String      = "/customs-financials-hods-stub/eorihistory/testEori"
+    val someEori: String = "testEori"
+
+    implicit val implicitHeaderCarrier: HeaderCarrier = HeaderCarrier(
+      authorization = Option(Authorization("myAwesomeCrypto")),
+      otherHeaders = List(("X-very-important", "foo"))
+    )
+
+    val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
+
+    val app: Application = application
+      .configure(config)
+      .build()
+
+    val connector: Sub21Connector = app.injector.instanceOf[Sub21Connector]
+    val appConfig: AppConfig      = app.injector.instanceOf[AppConfig]
   }
 }
