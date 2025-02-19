@@ -268,7 +268,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-    val address: AddressInformation                          = AddressInformation("Address Line 1", "City", Some("postCode"), "GB")
+    lazy val address: AddressInformation                          = AddressInformation("Address Line 1", "City", Some("postCode"), "GB")
     val companyInformation: CompanyInformation               = CompanyInformation(companyName, consent, address)
     val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation(companyName, "0", address)
 
