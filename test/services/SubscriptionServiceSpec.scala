@@ -175,7 +175,7 @@ class SubscriptionServiceSpec extends SpecBase {
       Some("0"),
       None,
       None,
-      Some(Seq(vatIds)),
+      Some(Array(vatIds)),
       None,
       None,
       None,
