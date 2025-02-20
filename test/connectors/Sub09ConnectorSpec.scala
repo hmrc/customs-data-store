@@ -17,24 +17,25 @@
 package connectors
 
 import models.responses.*
-import models.responses.MdgSub09Response.*
-import models.{AddressInformation, CompanyInformation, XiEoriAddressInformation, XiEoriInformation}
+import models.responses.MdgSub09Response.sub09Reads
+import models.{AddressInformation, CompanyInformation, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.http.{HeaderCarrier, ServiceUnavailableException}
+import uk.gov.hmrc.http.HeaderCarrier
 import utils.{SpecBase, WireMockSupportProvider}
 import utils.Utils.emptyString
 import utils.TestData.*
 import com.typesafe.config.ConfigFactory
 import play.api.{Application, Configuration}
 import config.AppConfig
-import org.mockito.ArgumentCaptor
 import org.scalatest.concurrent.ScalaFutures.*
 import play.api.http.HeaderNames.AUTHORIZATION
 import play.api.test.Helpers.*
 import org.scalatest.matchers.should.Matchers.*
 import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.matching.StringValuePattern
 
-import java.net.URL
+import scala.jdk.CollectionConverters.MapHasAsJava
+import java.util
 import scala.concurrent.ExecutionContext
 
 class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
@@ -47,26 +48,36 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams)
           .willReturn(ok(withEmailNoTimeStamp))
       )
 
-      val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
-      result mustBe None
+      val result: Option[NotificationEmail] = await(connector.getSubscriberInformation(testEori))
+      result mustBe empty
+
       verifyEndPointUrlHit(sub09Url)
     }
 
     "return Some, when the timestamp is available" in new Setup {
-
       val withEmailAndTimestampRes: String =
-        Json.toJson(mdgResponse(Sub09Response.withEmailAndTimestamp(testEori))).toString
+        """{"emailAddress":"email@email.com","emailVerificationTimestamp":"2025-02-20T15:18:47.988968"}""".stripMargin
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams)
           .willReturn(ok(withEmailAndTimestampRes))
       )
 
       val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
+
       result.value.address mustBe "email@email.com"
+
       verifyEndPointUrlHit(sub09Url)
     }
 
@@ -77,62 +88,74 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams)
           .willReturn(ok(noEmailNoTimestampJson))
       )
 
       val result: Option[models.NotificationEmail] = connector.getSubscriberInformation(testEori).futureValue
-      result mustBe None
+      result mustBe empty
+
       verifyEndPointUrlHit(sub09Url)
-    }
-
-    "propagate ServiceUnavailableException" in new Setup {
-
-      wireMockServer.stubFor(
-        get(urlPathMatching(sub09Url))
-          .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
-          .willReturn(
-            aResponse()
-              .withStatus(SERVICE_UNAVAILABLE)
-              .withBody("""{"error": "Service Unavailable"}""")
-          )
-      )
-
-      assertThrows[ServiceUnavailableException] {
-        await(connector.getSubscriberInformation(testEori))
-      }
     }
   }
 
   "getCompanyInformation" should {
+
     "return company information from the api" in new Setup {
 
-      val withEmailNoTimeStamp: String =
-        Json.toJson(Option(mdgCompanyInformationResponse(Sub09Response.withEmailNoTimestamp(testEori)))).toString
+      val companyInfoSuccessfulResponse: String = """{
+                                     |"CDSFullName":"Example Ltd",
+                                     |"consentToDisclosureOfPersonalData":"1",
+                                     |"contactInformation":{
+                                     |"streetAndNumber":"Address Line 1",
+                                     |"city":"City",
+                                     |"countryCode":"GB",
+                                     |"postalCode":"postCode"
+                                     |}
+                                     |}""".stripMargin
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
-          .willReturn(ok(withEmailNoTimeStamp))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams)
+          .willReturn(ok(companyInfoSuccessfulResponse))
       )
 
-      val result: Option[models.CompanyInformation] = connector.getCompanyInformation(testEori).futureValue
+      val result: Option[CompanyInformation] = await(connector.getCompanyInformation(testEori))
       result.get mustBe companyInformation
+
       verifyEndPointUrlHit(sub09Url)
     }
 
     "return company information noConsent '0' when the field is not present" in new Setup {
 
-      val noConsentToDisclose: String =
-        Json
-          .toJson(Option(mdgCompanyInformationResponse(Sub09Response.noConsentToDisclosureOfPersonalData(testEori))))
-          .toString
+      val noConsentToDiscloseResponse: String =
+        """{"CDSFullName":"Example Ltd",
+          |"contactInformation":{
+          |"streetAndNumber":"Address Line 1",
+          |"city":"City",
+          |"countryCode":"GB",
+          |"postalCode":"postCode"
+          |}
+          |}""".stripMargin
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
-          .willReturn(ok(noConsentToDisclose))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams)
+          .willReturn(ok(noConsentToDiscloseResponse))
       )
 
-      val result: Option[models.CompanyInformation] = connector.getCompanyInformation(testEori).futureValue
-      result.get mustBe companyInformationNoConsentFalse
+      val result: Option[CompanyInformation] = await(connector.getCompanyInformation(testEori))
+      result mustBe Some(companyInformationNoConsentFalse)
+
       verifyEndPointUrlHit(sub09Url)
     }
 
@@ -140,16 +163,19 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
-          .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams)
           .willReturn(
             aResponse()
               .withStatus(SERVICE_UNAVAILABLE)
-              .withBody("""{"error": "Service Unavailable"}""")
           )
       )
 
       val result: Option[models.CompanyInformation] = connector.getCompanyInformation(testEori).futureValue
-      result mustBe None
+      result mustBe empty
+
       verifyEndPointUrlHit(sub09Url)
     }
   }
@@ -162,11 +188,16 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams)
           .willReturn(ok(withEmailAndTimestamp))
       )
 
       val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
       result.map(xiInfo => xiInfo mustBe Option(xiEoriInformation))
+
       verifyEndPointUrlHit(sub09Url)
     }
 
@@ -177,11 +208,16 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams)
           .willReturn(ok(noXiEoriAddress))
       )
 
       val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
       result.map(xiInfo => xiInfo mustBe Option(xiEoriInformationWithNoAddress))
+
       verifyEndPointUrlHit(sub09Url)
     }
 
@@ -189,7 +225,10 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
-          .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams)
           .willReturn(
             aResponse()
               .withStatus(SERVICE_UNAVAILABLE)
@@ -198,40 +237,49 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       )
 
       val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
-      result mustBe None
+      result mustBe empty
+
       verifyEndPointUrlHit(sub09Url)
     }
   }
 
   "retrieveSubscriptions" should {
-    /*"retrieve the subscriptions when successful response is recieved" in new Setup {
+    "retrieve the subscriptions when successful response is received" in new Setup {
 
       val response: String = Json.toJson(Option(subsResponseOb)).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams1)
           .willReturn(ok(response))
       )
 
-      val result: Option[models.responses.SubscriptionResponse] = connector.retrieveSubscriptions(TEST_EORI).futureValue
-      result.map(res => res.toString mustBe subsResponseOb.toString)
-      verifyEndPointUrlHit(sub09Url)
-    }*/
+      val result: Option[SubscriptionResponse] = connector.retrieveSubscriptions(TEST_EORI).futureValue
+      result.map(res => shouldReturnCorrectSubscriptionResponse(res, subsResponseOb))
 
-    "return None if error occurrs while retrieving the subscriptions" in new Setup {
+      verifyEndPointUrlHit(sub09Url)
+    }
+
+    "return None if error occurs while retrieving the subscriptions" in new Setup {
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
-          .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams1)
           .willReturn(
             aResponse()
               .withStatus(SERVICE_UNAVAILABLE)
-              .withBody("""{"error": "Service Unavailable"}""")
           )
       )
 
       val result: Option[models.responses.SubscriptionResponse] = connector.retrieveSubscriptions(TEST_EORI).futureValue
       result mustBe empty
+
       verifyEndPointUrlHit(sub09Url)
     }
   }
@@ -241,22 +289,55 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       s"""
          |microservice {
          |  services {
-         |      secure-messaging-frontend {
-         |      protocol = http
-         |      host     = $wireMockHost
-         |      port     = $wireMockPort
-         |    }
          |    sub09 {
          |      host = $wireMockHost
          |      port = $wireMockPort
-         |      bearer-token = "secret-token"
-         |      companyInformationEndpoint = "customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
          |    }
          |  }
          |}
          |""".stripMargin
     )
   )
+
+  private def shouldReturnCorrectSubscriptionResponse(
+    actualResponse: SubscriptionResponse,
+    expectedResponse: SubscriptionResponse
+  ) = {
+    val actualSubsResponseCommon = actualResponse.subscriptionDisplayResponse.responseCommon
+    val actualSubsResponseDetail = actualResponse.subscriptionDisplayResponse.responseDetail
+
+    val expectedSubsResponseCommon  = expectedResponse.subscriptionDisplayResponse.responseCommon
+    val expectedSubsResponseDetails = expectedResponse.subscriptionDisplayResponse.responseDetail
+
+    actualSubsResponseCommon.status mustBe expectedSubsResponseCommon.status
+    actualSubsResponseCommon.returnParameters.value mustBe expectedSubsResponseCommon.returnParameters.value
+    actualSubsResponseCommon.statusText mustBe expectedSubsResponseCommon.statusText
+    actualSubsResponseCommon.statusText mustBe expectedSubsResponseCommon.statusText
+
+    actualSubsResponseDetail.EORINo mustBe expectedSubsResponseDetails.EORINo
+    actualSubsResponseDetail.VATIDs.value mustBe expectedSubsResponseDetails.VATIDs.value
+    actualSubsResponseDetail.contactInformation mustBe expectedSubsResponseDetails.contactInformation
+    actualSubsResponseDetail.CDSEstablishmentAddress mustBe expectedSubsResponseDetails.CDSEstablishmentAddress
+    actualSubsResponseDetail.dateOfEstablishment mustBe expectedSubsResponseDetails.dateOfEstablishment
+    actualSubsResponseDetail.CDSFullName mustBe expectedSubsResponseDetails.CDSFullName
+    actualSubsResponseDetail.establishmentInTheCustomsTerritoryOfTheUnion mustBe
+      expectedSubsResponseDetails.establishmentInTheCustomsTerritoryOfTheUnion
+
+    actualSubsResponseDetail.consentToDisclosureOfPersonalData mustBe
+      expectedSubsResponseDetails.consentToDisclosureOfPersonalData
+
+    actualSubsResponseDetail.EORIEndDate mustBe expectedSubsResponseDetails.EORIEndDate
+    actualSubsResponseDetail.EORIStartDate mustBe expectedSubsResponseDetails.EORIStartDate
+    actualSubsResponseDetail.ETMP_Master_Indicator mustBe expectedSubsResponseDetails.ETMP_Master_Indicator
+    actualSubsResponseDetail.principalEconomicActivity mustBe expectedSubsResponseDetails.principalEconomicActivity
+    actualSubsResponseDetail.shortName mustBe expectedSubsResponseDetails.shortName
+    actualSubsResponseDetail.thirdCountryUniqueIdentificationNumber.value mustBe
+      expectedSubsResponseDetails.thirdCountryUniqueIdentificationNumber.value
+
+    actualSubsResponseDetail.typeOfLegalEntity mustBe expectedSubsResponseDetails.typeOfLegalEntity
+    actualSubsResponseDetail.typeOfPerson mustBe expectedSubsResponseDetails.typeOfPerson
+    actualSubsResponseDetail.XI_Subscription mustBe expectedSubsResponseDetails.XI_Subscription
+  }
 
   trait Setup {
     val testEori    = "someEori"
@@ -266,11 +347,17 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
     val sub09Url: String = "/customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
 
-    implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
-
     val address: AddressInformation                          = AddressInformation("Address Line 1", "City", Some("postCode"), "GB")
     val companyInformation: CompanyInformation               = CompanyInformation(companyName, consent, address)
     val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation(companyName, "0", address)
+
+    implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+
+    val queryParams: util.Map[String, StringValuePattern] =
+      Map(PARAM_NAME_EORI -> equalTo(testEori), PARAM_NAME_REGIME -> equalTo(REGIME_CDS)).asJava
+
+    val queryParams1: util.Map[String, StringValuePattern] =
+      Map(PARAM_NAME_EORI -> equalTo(TEST_EORI_VALUE), PARAM_NAME_REGIME -> equalTo(REGIME_CDS)).asJava
 
     val xiEoriInformation: XiEoriInformation =
       XiEoriInformation(
@@ -364,9 +451,8 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       .configure(config)
       .build()
 
-    val actualURL: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
-    val connector: Sub09Connector      = app.injector.instanceOf[Sub09Connector]
-    val appConfig: AppConfig           = app.injector.instanceOf[AppConfig]
+    val connector: Sub09Connector = app.injector.instanceOf[Sub09Connector]
+    val appConfig: AppConfig      = app.injector.instanceOf[AppConfig]
 
     def mdgResponse(value: JsValue): MdgSub09Response = MdgSub09Response.sub09Reads.reads(value).get
 

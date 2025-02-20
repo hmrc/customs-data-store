@@ -51,7 +51,6 @@ class Sub09Connector @Inject() (
 
   def getSubscriberInformation(eori: String): Future[Option[NotificationEmail]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
-
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
       httpClient
         .get(uri(eori, endPoint))
@@ -64,12 +63,11 @@ class Sub09Connector @Inject() (
         )
         .execute[MdgSub09Response]
         .flatMap {
-
           case MdgSub09Response(Some(email), Some(timestamp)) =>
             Future.successful(Option(NotificationEmail(email, timestamp, None)))
 
-          case _ => Future.successful(None)
-
+          case _ =>
+            Future.successful(None)
         }
     }
   }
