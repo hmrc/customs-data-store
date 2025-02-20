@@ -71,10 +71,6 @@ class Sub09Connector @Inject() (
           case _ => Future.successful(None)
 
         }
-        .recoverWith { case UpstreamErrorResponse(_, SERVICE_UNAVAILABLE, _, _) =>
-          log.error(s"Failed to getSubscriberInformation with SERVICE_UNAVAILABLE error")
-          Future.failed(new ServiceUnavailableException("Service is unavailable"))
-        }
     }
   }
 
