@@ -37,7 +37,7 @@ class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
   "return false if a non 200 response returned from SUB22" in new Setup {
 
     wireMockServer.stubFor(
-      get(urlPathMatching(sub22Url))
+      put(urlPathMatching(sub22Url))
         .withHeader(AUTHORIZATION, equalTo(appConfig.sub09BearerToken))
         .willReturn(
           aResponse()
