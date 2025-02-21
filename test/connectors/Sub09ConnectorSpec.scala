@@ -300,9 +300,10 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
   )
 
   private def shouldReturnCorrectSubscriptionResponse(
-                                                       actualResponse: SubscriptionResponse,
-                                                       expectedResponse: SubscriptionResponse
-                                                     ) = {
+    actualResponse: SubscriptionResponse,
+    expectedResponse: SubscriptionResponse
+  ) = {
+
     val actualSubsResponseCommon = actualResponse.subscriptionDisplayResponse.responseCommon
     val actualSubsResponseDetail = actualResponse.subscriptionDisplayResponse.responseDetail
 
