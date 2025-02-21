@@ -34,4 +34,6 @@ object TestData {
   val EMAIL_ADDRESS: EmailAddress = EmailAddress(EMAIL_ADDRESS_VALUE)
   val TIMESTAMP_STRING            = "2007-03-20T01:02:03Z"
   val VAT_ID                      = "242"
+
+  val AUTH_BEARER_TOKEN_VALUE = "Bearer secret-token"
 }

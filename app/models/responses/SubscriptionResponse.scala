@@ -49,7 +49,7 @@ case class SubResponseCommon(
   status: String,
   statusText: Option[String],
   processingDate: String,
-  returnParameters: Option[Seq[ReturnParameters]]
+  returnParameters: Option[Array[ReturnParameters]]
 )
 
 case class SubResponseDetail(
@@ -61,8 +61,8 @@ case class SubResponseDetail(
   establishmentInTheCustomsTerritoryOfTheUnion: Option[String],
   typeOfLegalEntity: Option[String],
   contactInformation: Option[ContactInformation],
-  VATIDs: Option[Seq[VatId]],
-  thirdCountryUniqueIdentificationNumber: Option[Seq[String]],
+  VATIDs: Option[Array[VatId]],
+  thirdCountryUniqueIdentificationNumber: Option[Array[String]],
   consentToDisclosureOfPersonalData: Option[String],
   shortName: Option[String],
   dateOfEstablishment: Option[String],

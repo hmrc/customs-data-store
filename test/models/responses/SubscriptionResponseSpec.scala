@@ -101,8 +101,8 @@ class SubscriptionResponseSpec extends SpecBase {
     val paramName  = "POSITION"
     val paramValue = "LINK"
 
-    val returnParameters: Seq[ReturnParameters] = Seq(ReturnParameters(paramName, paramValue))
-    val vatIds: Seq[VatId]                      = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID)))
+    val returnParameters: Array[ReturnParameters] = Seq(ReturnParameters(paramName, paramValue)).toArray
+    val vatIds: Array[VatId]                      = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID))).toArray
 
     val cdsEstablishmentAddress: CdsEstablishmentAddress = CdsEstablishmentAddress(
       streetAndNumber = "86 Mysore Road",
@@ -159,7 +159,7 @@ class SubscriptionResponseSpec extends SpecBase {
       typeOfLegalEntity = Some("0001"),
       contactInformation = Some(contactInformation),
       VATIDs = Some(vatIds),
-      thirdCountryUniqueIdentificationNumber = Some(Seq("321", "222")),
+      thirdCountryUniqueIdentificationNumber = Some(Seq("321", "222").toArray),
       consentToDisclosureOfPersonalData = Some("1"),
       shortName = Some("Robinson"),
       dateOfEstablishment = Some("1963-04-01"),

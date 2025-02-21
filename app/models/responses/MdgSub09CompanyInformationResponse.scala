@@ -24,7 +24,8 @@ case class MdgSub09CompanyInformationResponse(name: String, consent: Option[Stri
 
 object MdgSub09CompanyInformationResponse {
 
-  implicit val format: Format[MdgSub09CompanyInformationResponse] = Json.format[MdgSub09CompanyInformationResponse]
+  implicit val sub09CompanyInformationWrites: OWrites[MdgSub09CompanyInformationResponse] =
+    Json.writes[MdgSub09CompanyInformationResponse]
 
   implicit val sub09CompanyInformation: Reads[MdgSub09CompanyInformationResponse] =
     ((JsPath \\ "CDSFullName").read[String] and

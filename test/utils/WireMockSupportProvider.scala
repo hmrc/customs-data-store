@@ -23,7 +23,19 @@ import org.scalatest.Suite
 
 trait WireMockSupportProvider extends WireMockSupport {
 
-  me: Suite =>
+  this: Suite =>
+
+  val CONTENT_TYPE = "Content-Type"
+  val ACCEPT       = "Accept"
+  val MDTP         = "MDTP"
+
+  val AUTH_BEARER_TOKEN_VALUE       = "Bearer secret-token"
+  val CONTENT_TYPE_APPLICATION_JSON = "application/json"
+
+  val PARAM_NAME_EORI   = "EORI"
+  val PARAM_NAME_eori   = "eori"
+  val PARAM_NAME_REGIME = "regime"
+  val REGIME_CDS        = "CDS"
 
   def config: Configuration
 
