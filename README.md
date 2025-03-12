@@ -3,11 +3,12 @@
 
 This repository contains the code for a persistent cache holding customs related data.
 
-| Path                                                          | Description                                                                                            |
-|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| GET /customs-data-store/eori/:eori/verified-email             | Retrieve the verified email address for a given EORI either from the cache or SUB09                    |
-| GET /customs-data-store/eori/:eori/company-information        | Retrieves the business full name and address for the given EORI                                        |
-| GET /customs-data-store/eori/:eori/eori-history               | Retrieves the historic eori's for a given EORI either from the cache or SUB21                          |
+| Path                                                          | Description                                                                                            | Comments
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|--------------
+| GET /customs-data-store/eori/:eori/verified-email             | Retrieve the verified email address for a given EORI either from the cache or SUB09                    | Will be decommissioned soon
+| GET /customs-data-store/eori/:eori/company-information        | Retrieves the business full name and address for the given EORI                                        | Will be decommissioned soon
+| GET /customs-data-store/eori/:eori/eori-history               | Retrieves the historic eori's for a given EORI either from the cache or SUB21                          | Will be decommissioned soon
+| GET /customs-data-store/eori/:eori/xieori-information         | Retrieves the XI EORI information for the EORI (provided in URI) either from the cache or SUB09        | Will be decommissioned soon
 | GET /customs-data-store/eori/xieori-information               | Retrieves the XI EORI information for the requested EORI either from the cache or SUB09                |
 | POST /customs-data-store/eori/verified-email-third-party      | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09 |
 | POST /customs-data-store/eori/company-information-third-party | Retrieves the business full name for the EORI specified in request body                                | 
@@ -15,7 +16,7 @@ This repository contains the code for a persistent cache holding customs related
 | POST /customs-data-store/update-eori-history                  | Updates the eori history for a given EORI in the cache                                                 |
 | POST /update-undeliverable-email                              | Updates undeliverable information for a given enrolmentValue                                           |
 
-## GET /eori/:eori/verified-email
+## GET /eori/:eori/verified-email (Will be decommissioned soon)
 
 An endpoint to retrieve a verified email address for a given EORI
 
@@ -36,7 +37,7 @@ An endpoint to retrieve a verified email address for a given EORI
 | 404 | No verified email has been found for the specified eori        |
 | 500 | An unexpected failure happened in the service |
 
-## GET /eori/:eori/company-information
+## GET /eori/:eori/company-information (Will be decommissioned soon)
 
 An endpoint to retrieve the business full name and address for a given EORI
 
@@ -96,7 +97,7 @@ An endpoint to update the verified email address for a given EORI and removes un
 | address | Mandatory        | The verified email address for the specified eori        |
 | timestamp | Mandatory | The timestamp when the email was verified |
 
-## GET /eori/:eori/eori-history
+## GET /eori/:eori/eori-history (Will be decommissioned soon)
 
 An endpoint that provides a list of all historic EORI's associated with a given EORI
 
@@ -124,6 +125,31 @@ An endpoint that provides a list of all historic EORI's associated with a given 
 | ---------------------------------  | ---------------------------------------------------- |
 | 200 | A sequence of historic eori's returned        |
 | 500 | An unexpected failure happened in the service |
+
+## GET /eori/:eori/xieori-information (Will be decommissioned soon)
+
+An endpoint that provides XI EORI information for the EORI provided in URI
+
+### Response body
+
+```json
+{
+  "xiEori": "XI744638982004",
+  "consent": "S",
+  "address": {
+    "pbeAddressLine1": "address line 1",
+    "pbeAddressLine2": "address line 2",
+    "pbeAddressLine3": "city 1",
+    "pbePostCode": "AA1 1AA"
+  }
+}
+```
+### Response codes
+
+| Status | Description                                                   |
+|--------|---------------------------------------------------------------|
+| 200    | XI EORI information is returned                               |
+| 404    | XI EORI information is retrieved neither from cache nor SUB09 |
 
 ## GET /eori/xieori-information
 
