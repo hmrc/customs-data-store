@@ -3,11 +3,12 @@
 
 This repository contains the code for a persistent cache holding customs related data.
 
-| Path                                                          | Description                                                                                            |
-|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| GET /customs-data-store/eori/:eori/verified-email             | Retrieve the verified email address for a given EORI either from the cache or SUB09                    |
-| GET /customs-data-store/eori/:eori/company-information        | Retrieves the business full name and address for the given EORI                                        |
-| GET /customs-data-store/eori/:eori/eori-history               | Retrieves the historic eori's for a given EORI either from the cache or SUB21                          |
+| Path                                                          | Description                                                                                            | Comments
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|--------------
+| GET /customs-data-store/eori/:eori/verified-email             | Retrieve the verified email address for a given EORI either from the cache or SUB09                    | <span style="color: red">Decommissioning soon, use either /eori/verified-email or /eori/verified-email-third-party</span>
+| GET /customs-data-store/eori/:eori/company-information        | Retrieves the business full name and address for the given EORI                                        | <span style="color: red">Decommissioning soon, use either /eori/company-information or /eori/company-information-third-party</span>
+| GET /customs-data-store/eori/:eori/eori-history               | Retrieves the historic eori's for a given EORI either from the cache or SUB21                          | <span style="color: red">Decommissioning soon, use /eori/eori-history</span>
+| GET /customs-data-store/eori/:eori/xieori-information         | Retrieves the XI EORI information for the EORI (provided in URI) either from the cache or SUB09        | <span style="color: red">Decommissioning soon, use /eori/xieori-information</span>
 | GET /customs-data-store/eori/xieori-information               | Retrieves the XI EORI information for the requested EORI either from the cache or SUB09                |
 | POST /customs-data-store/eori/verified-email-third-party      | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09 |
 | POST /customs-data-store/eori/company-information-third-party | Retrieves the business full name for the EORI specified in request body                                | 
@@ -15,7 +16,7 @@ This repository contains the code for a persistent cache holding customs related
 | POST /customs-data-store/update-eori-history                  | Updates the eori history for a given EORI in the cache                                                 |
 | POST /update-undeliverable-email                              | Updates undeliverable information for a given enrolmentValue                                           |
 
-## GET /eori/:eori/verified-email
+## GET /eori/:eori/verified-email (<span style="color: red">Decommissioning soon</span>)
 
 An endpoint to retrieve a verified email address for a given EORI
 
@@ -36,9 +37,68 @@ An endpoint to retrieve a verified email address for a given EORI
 | 404 | No verified email has been found for the specified eori        |
 | 500 | An unexpected failure happened in the service |
 
-## GET /eori/:eori/company-information
+## GET /eori/verified-email
+
+An endpoint to retrieve a verified email address for logged-in EORI
+
+### Response body
+
+```json
+{
+  "address" : "test@email.com",
+  "timestamp" : "2020-03-20T01:02:03Z"
+}
+```
+
+### Response codes
+
+| Status                               | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- |
+| 200 | A verified email has been found for the specified eori        |
+| 404 | No verified email has been found for the specified eori        |
+| 500 | An unexpected failure happened in the service |
+
+## GET /eori/:eori/company-information (<span style="color: red">Decommissioning soon<span>)
 
 An endpoint to retrieve the business full name and address for a given EORI
+
+## Response body
+
+```json
+{
+  "name": "ABC ltd",
+  "consent": "1",
+  "address" : {
+    "streetAndNumber": "12 Example Street",
+    "city": "Example",
+    "postalCode": "AA00 0AA",
+    "countryCode": "GB"
+  }
+}
+```
+
+### Fields
+
+| Field                               | Required                                          | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
+| name | Mandatory        | Company name        |
+| consent | Optional        | consentToDisclosureOfPersonalData        |
+| address | Mandatory        | The address Information for the company        |
+| address.streetAndNumber | Mandatory | The street and number where the company resides |
+| address.city | Mandatory | The city where the company resides |
+| address.postalCode | Optional | Mandatory for the country code "GB" |
+| address.countryCode | Mandatory | The country code where the company resides |
+
+### Response codes
+
+| Status                               | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- |
+| 200 | Company information found and returned        |
+| 404 | Company information not found or elements of the payload not found |
+
+## GET /eori/company-information
+
+An endpoint to retrieve the business full name and address for logged-in EORI
 
 ## Response body
 
@@ -96,7 +156,7 @@ An endpoint to update the verified email address for a given EORI and removes un
 | address | Mandatory        | The verified email address for the specified eori        |
 | timestamp | Mandatory | The timestamp when the email was verified |
 
-## GET /eori/:eori/eori-history
+## GET /eori/:eori/eori-history (<span style="color: red">Decommissioning soon</span>)
 
 An endpoint that provides a list of all historic EORI's associated with a given EORI
 
@@ -124,6 +184,61 @@ An endpoint that provides a list of all historic EORI's associated with a given 
 | ---------------------------------  | ---------------------------------------------------- |
 | 200 | A sequence of historic eori's returned        |
 | 500 | An unexpected failure happened in the service |
+
+## GET /eori/eori-history
+
+An endpoint that provides a list of all historic EORI's associated for logged-in EORI
+
+### Response body
+
+```json
+{
+"eoriHistory": [
+  {
+    "eori": "historicEori1", 
+    "validFrom": "2001-01-20T00:00:00Z", 
+    "validTo": "2001-01-20T00:00:00Z"
+  },
+  {
+    "eori": "historicEori2",
+    "validFrom": "2001-01-20T00:00:00Z",
+    "validTo": "2001-01-20T00:00:00Z"
+  }
+]
+}
+```
+### Response codes
+
+| Status                               | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- |
+| 200 | A sequence of historic eori's returned        |
+| 500 | An unexpected failure happened in the service |
+
+
+## GET /eori/:eori/xieori-information (<span style="color: red">Decommissioning soon</span>)
+
+An endpoint that provides XI EORI information for the EORI provided in URI
+
+### Response body
+
+```json
+{
+  "xiEori": "XI744638982004",
+  "consent": "S",
+  "address": {
+    "pbeAddressLine1": "address line 1",
+    "pbeAddressLine2": "address line 2",
+    "pbeAddressLine3": "city 1",
+    "pbePostCode": "AA1 1AA"
+  }
+}
+```
+### Response codes
+
+| Status | Description                                                   |
+|--------|---------------------------------------------------------------|
+| 200    | XI EORI information is returned                               |
+| 404    | XI EORI information is retrieved neither from cache nor SUB09 |
 
 ## GET /eori/xieori-information
 
