@@ -33,18 +33,36 @@ class SubscriptionResponseSpec extends SpecBase {
         actualObject.subscriptionDisplayResponse.responseCommon.returnParameters.get mustBe
           subsResponseOb.subscriptionDisplayResponse.responseCommon.returnParameters.get
 
-        actualObject.subscriptionDisplayResponse.responseDetail.XI_Subscription.get mustBe
-          subsResponseOb.subscriptionDisplayResponse.responseDetail.XI_Subscription.get
+        val actualResponseDetail: SubResponseDetail = actualObject.subscriptionDisplayResponse.responseDetail.get
 
-        actualObject.subscriptionDisplayResponse.responseDetail.contactInformation.get mustBe
-          subsResponseOb.subscriptionDisplayResponse.responseDetail.contactInformation.get
+        val expectedResponseDetail: SubResponseDetail =
+          subsResponseOb.subscriptionDisplayResponse.responseDetail.get
 
-        actualObject.subscriptionDisplayResponse.responseDetail.CDSEstablishmentAddress mustBe
-          subsResponseOb.subscriptionDisplayResponse.responseDetail.CDSEstablishmentAddress
+        actualResponseDetail.XI_Subscription.get mustBe
+          expectedResponseDetail.XI_Subscription.get
+
+        actualResponseDetail.contactInformation.get mustBe
+          expectedResponseDetail.contactInformation.get
+
+        actualResponseDetail.CDSEstablishmentAddress mustBe
+          expectedResponseDetail.CDSEstablishmentAddress
+      }
+
+      "Reads the response when response details are not present" in new Setup {
+        import models.responses.SubscriptionResponse.responseSubscriptionFormat
+
+        val actualObject: SubscriptionResponse =
+          Json.parse(subsResponseWithoutResponseDetailsString).as[SubscriptionResponse]
+
+        actualObject.subscriptionDisplayResponse.responseCommon.returnParameters.get mustBe
+          subsResponseWithoutResponseDetailsOb.subscriptionDisplayResponse.responseCommon.returnParameters.get
+
+        actualObject.subscriptionDisplayResponse.responseDetail mustBe empty
       }
 
       "Writes the object" in new Setup {
         Json.toJson(subsResponseOb) mustBe Json.parse(subsResponseString)
+        Json.toJson(subsResponseWithoutResponseDetailsOb) mustBe Json.parse(subsResponseWithoutResponseDetailsString)
       }
     }
   }
@@ -95,14 +113,30 @@ class SubscriptionResponseSpec extends SpecBase {
         |"CDSFullName":"Tony Stark",
         |"typeOfLegalEntity":"0001"}}}""".stripMargin
 
-    val status     = "test_status"
-    val statusText = "test_status_text"
-    val endDate    = "2024-10-22"
-    val paramName  = "POSITION"
-    val paramValue = "LINK"
+    val subsResponseWithoutResponseDetailsString: String =
+      """{"subscriptionDisplayResponse":{
+        |"responseCommon":{
+        |"status":"test_status",
+        |"processingDate":"2024-07-22",
+        |"statusText":"005 - No form bundle found",
+        |"returnParameters":[{"paramName":"POSITION","paramValue":"FAIL"}]
+        |}
+        |}
+        |}""".stripMargin
 
-    val returnParameters: Array[ReturnParameters] = Seq(ReturnParameters(paramName, paramValue)).toArray
-    val vatIds: Array[VatId]                      = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID))).toArray
+    val status                 = "test_status"
+    val statusText             = "test_status_text"
+    val statusTextNoFormBundle = "005 - No form bundle found"
+
+    val endDate        = "2024-10-22"
+    val paramName      = "POSITION"
+    val paramValue     = "LINK"
+    val paramFailValue = "FAIL"
+
+    val returnParameters: Array[ReturnParameters]         = Seq(ReturnParameters(paramName, paramValue)).toArray
+    val returnParametersWithFail: Array[ReturnParameters] = Seq(ReturnParameters(paramName, paramFailValue)).toArray
+
+    val vatIds: Array[VatId] = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID))).toArray
 
     val cdsEstablishmentAddress: CdsEstablishmentAddress = CdsEstablishmentAddress(
       streetAndNumber = "86 Mysore Road",
@@ -149,6 +183,13 @@ class SubscriptionResponseSpec extends SpecBase {
       returnParameters = Some(returnParameters)
     )
 
+    val responseCommonWithBusinessError: SubResponseCommon = SubResponseCommon(
+      status = status,
+      statusText = Some(statusTextNoFormBundle),
+      processingDate = DATE_STRING,
+      returnParameters = Some(returnParametersWithFail)
+    )
+
     val responseDetail: SubResponseDetail = SubResponseDetail(
       EORINo = Some(TEST_EORI),
       EORIStartDate = Some(DATE_STRING),
@@ -169,8 +210,13 @@ class SubscriptionResponseSpec extends SpecBase {
       XI_Subscription = Some(xiSubscription)
     )
 
-    val subsDisplayResOb: SubscriptionDisplayResponse = SubscriptionDisplayResponse(responseCommon, responseDetail)
+    val subsDisplayResOb: SubscriptionDisplayResponse =
+      SubscriptionDisplayResponse(responseCommon, Some(responseDetail))
 
     val subsResponseOb: SubscriptionResponse = SubscriptionResponse(subsDisplayResOb)
+
+    val subsResponseWithoutResponseDetailsOb: SubscriptionResponse = SubscriptionResponse(
+      SubscriptionDisplayResponse(responseCommonWithBusinessError, None)
+    )
   }
 }

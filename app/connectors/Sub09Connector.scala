@@ -144,13 +144,23 @@ class Sub09Connector @Inject() (
           ACCEPT           -> "application/json"
         )
         .execute[SubscriptionResponse]
-        .flatMap { response =>
-          Future.successful(Some(response))
-        }
+        .flatMap(response => processSubscriptionResponse(response))
         .recover { case e =>
           log.error(s"Failed to retrieve SubscriptionResponse with error: $e")
           None
         }
     }
   }
+
+  private def processSubscriptionResponse(response: SubscriptionResponse) =
+    if (response.subscriptionDisplayResponse.responseDetail.isDefined) {
+      Future.successful(Some(response))
+    } else {
+      log.error(
+        s"SubscriptionResponse retrieved with business error:" +
+          s" ${response.subscriptionDisplayResponse.responseCommon.statusText.getOrElse(emptyString)}"
+      )
+
+      Future.successful(None)
+    }
 }

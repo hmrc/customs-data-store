@@ -263,6 +263,25 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       verifyEndPointUrlHit(sub09Url)
     }
 
+    "return None when api call is successful and response contains business error" in new Setup {
+
+      val response: String = Json.toJson(subsResponseWithBusinessErrorOb).toString
+
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub09Url))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
+          .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
+          .withQueryParams(queryParams1)
+          .willReturn(ok(response))
+      )
+
+      val result: Option[SubscriptionResponse] = connector.retrieveSubscriptions(TEST_EORI).futureValue
+      result mustBe empty
+
+      verifyEndPointUrlHit(sub09Url)
+    }
+
     "return None if error occurs while retrieving the subscriptions" in new Setup {
 
       wireMockServer.stubFor(
@@ -305,10 +324,10 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
   ) = {
 
     val actualSubsResponseCommon = actualResponse.subscriptionDisplayResponse.responseCommon
-    val actualSubsResponseDetail = actualResponse.subscriptionDisplayResponse.responseDetail
+    val actualSubsResponseDetail = actualResponse.subscriptionDisplayResponse.responseDetail.get
 
     val expectedSubsResponseCommon  = expectedResponse.subscriptionDisplayResponse.responseCommon
-    val expectedSubsResponseDetails = expectedResponse.subscriptionDisplayResponse.responseDetail
+    val expectedSubsResponseDetails = expectedResponse.subscriptionDisplayResponse.responseDetail.get
 
     actualSubsResponseCommon.status mustBe expectedSubsResponseCommon.status
     actualSubsResponseCommon.returnParameters.value mustBe expectedSubsResponseCommon.returnParameters.value
@@ -370,13 +389,19 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     val xiEoriInformationWithNoAddress: XiEoriInformation =
       XiEoriInformation(xiEori, consent, XiEoriAddressInformation(emptyString))
 
-    val status                                    = "test_status"
-    val statusText                                = "test_status_text"
-    val endDate                                   = "2024-10-22"
-    val paramName                                 = "POSITION"
-    val paramValue                                = "LINK"
-    val returnParameters: Array[ReturnParameters] = Seq(ReturnParameters(paramName, paramValue)).toArray
-    val vatIds: Array[VatId]                      = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID))).toArray
+    val status                 = "test_status"
+    val statusText             = "test_status_text"
+    val statusTextNoFormBundle = "005 - No form bundle found"
+
+    val endDate        = "2024-10-22"
+    val paramName      = "POSITION"
+    val paramValue     = "LINK"
+    val paramFailValue = "FAIL"
+
+    val returnParameters: Array[ReturnParameters]         = Seq(ReturnParameters(paramName, paramValue)).toArray
+    val returnParametersWithFail: Array[ReturnParameters] = Seq(ReturnParameters(paramName, paramFailValue)).toArray
+
+    val vatIds: Array[VatId] = Seq(VatId(Some(COUNTRY_CODE_GB), Some(VAT_ID))).toArray
 
     val cdsEstablishmentAddress: CdsEstablishmentAddress = CdsEstablishmentAddress(
       streetAndNumber = "86 Mysore Road",
@@ -423,6 +448,13 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       returnParameters = Some(returnParameters)
     )
 
+    val responseCommonWithBusinessError: SubResponseCommon = SubResponseCommon(
+      status = status,
+      statusText = Some(statusTextNoFormBundle),
+      processingDate = DATE_STRING,
+      returnParameters = Some(returnParametersWithFail)
+    )
+
     val responseDetail: SubResponseDetail = SubResponseDetail(
       EORINo = Some(TEST_EORI),
       EORIStartDate = Some(DATE_STRING),
@@ -443,8 +475,14 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       XI_Subscription = Some(xiSubscription)
     )
 
-    val subsDisplayResOb: SubscriptionDisplayResponse = SubscriptionDisplayResponse(responseCommon, responseDetail)
-    val subsResponseOb: SubscriptionResponse          = SubscriptionResponse(subsDisplayResOb)
+    val subsDisplayResOb: SubscriptionDisplayResponse =
+      SubscriptionDisplayResponse(responseCommon, Some(responseDetail))
+
+    val subsDisplayResWithBusinessErrorOb: SubscriptionDisplayResponse =
+      SubscriptionDisplayResponse(responseCommonWithBusinessError, None)
+
+    val subsResponseOb: SubscriptionResponse                  = SubscriptionResponse(subsDisplayResOb)
+    val subsResponseWithBusinessErrorOb: SubscriptionResponse = SubscriptionResponse(subsDisplayResWithBusinessErrorOb)
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
 

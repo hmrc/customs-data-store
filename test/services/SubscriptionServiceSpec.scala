@@ -220,15 +220,15 @@ class SubscriptionServiceSpec extends SpecBase {
       responseDetail.copy(contactInformation = Some(contactInfoWithTimeStamp))
 
     val subscriptionResponse: SubscriptionResponse = SubscriptionResponse(
-      SubscriptionDisplayResponse(responseCommon, responseDetail)
+      SubscriptionDisplayResponse(responseCommon, Some(responseDetail))
     )
 
     val subscriptionResponseWithContactInfo: SubscriptionResponse = SubscriptionResponse(
-      SubscriptionDisplayResponse(responseCommon, responseDetailWithContactInfo)
+      SubscriptionDisplayResponse(responseCommon, Some(responseDetailWithContactInfo))
     )
 
     val subscriptionResponseWithTimestamp: SubscriptionResponse = SubscriptionResponse(
-      SubscriptionDisplayResponse(responseCommon, responseDetailWithTimestamp)
+      SubscriptionDisplayResponse(responseCommon, Some(responseDetailWithTimestamp))
     )
   }
 }
