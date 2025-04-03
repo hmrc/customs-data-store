@@ -30,15 +30,14 @@ class SubscriptionService @Inject() (sub09Connector: Sub09Connector)(implicit ec
     for {
       optSubscription <- sub09Connector.retrieveSubscriptions(eori)
     } yield optSubscription.fold(EmailVerifiedResponse(None)) { subsRes =>
+
       val responseDetail = subsRes.subscriptionDisplayResponse.responseDetail
 
-      if (responseDetail.isDefined) {
-        responseDetail.get.contactInformation match {
+      responseDetail.fold(EmailVerifiedResponse(None)) { res =>
+        res.contactInformation match {
           case Some(ci) if ci.emailVerificationTimestamp.isDefined => EmailVerifiedResponse(ci.emailAddress)
           case _                                                   => EmailVerifiedResponse(None)
         }
-      } else {
-        EmailVerifiedResponse(None)
       }
     }
 
@@ -49,15 +48,12 @@ class SubscriptionService @Inject() (sub09Connector: Sub09Connector)(implicit ec
 
       val responseDetail = subsRes.subscriptionDisplayResponse.responseDetail
 
-      if (responseDetail.isDefined) {
-        responseDetail.get.contactInformation match {
+      responseDetail.fold(EmailVerifiedResponse(None)) { res =>
+        res.contactInformation match {
           case Some(ci) if ci.emailAddress.isDefined => EmailVerifiedResponse(ci.emailAddress)
           case _                                     => EmailVerifiedResponse(None)
         }
-      } else {
-        EmailVerifiedResponse(None)
       }
-
     }
 
   def getUnverifiedEmail(eori: EORI): Future[EmailUnverifiedResponse] =
@@ -67,15 +63,12 @@ class SubscriptionService @Inject() (sub09Connector: Sub09Connector)(implicit ec
 
       val responseDetail = subRes.subscriptionDisplayResponse.responseDetail
 
-      if (responseDetail.isDefined) {
-        responseDetail.get.contactInformation match {
+      responseDetail.fold(EmailUnverifiedResponse(None)) { res =>
+        res.contactInformation match {
           case Some(ci) if ci.emailVerificationTimestamp.isEmpty => EmailUnverifiedResponse(ci.emailAddress)
           case _                                                 => EmailUnverifiedResponse(None)
         }
-      } else {
-        EmailUnverifiedResponse(None)
       }
-
     }
 
 }
