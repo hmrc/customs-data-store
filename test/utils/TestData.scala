@@ -16,7 +16,7 @@
 
 package utils
 
-import models.responses.{CdsEstablishmentAddress, ContactInformation, SubResponseDetail, VatId, XiSubscription}
+import models.responses.{CdsEstablishmentAddress, SubResponseDetail}
 import models.{EORI, EmailAddress}
 
 object TestData {

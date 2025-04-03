@@ -26,8 +26,7 @@ import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, ServiceUnavailableException, UpstreamErrorResponse}
-import play.api.http.Status.SERVICE_UNAVAILABLE
+import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
 import utils.Utils.{emptyString, randomUUID, uri}
 
@@ -158,7 +157,7 @@ class Sub09Connector @Inject() (
     } else {
       log.error(
         s"SubscriptionResponse retrieved with business error:" +
-          s" ${response.subscriptionDisplayResponse.responseCommon.statusText.getOrElse(emptyString)}"
+          s" ${response.subscriptionDisplayResponse.responseCommon.statusText.getOrElse("statusText not available")}"
       )
 
       Future.successful(None)
