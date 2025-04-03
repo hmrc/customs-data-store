@@ -28,21 +28,24 @@ class SubscriptionResponseSpec extends SpecBase {
       "Reads the response" in new Setup {
         import models.responses.SubscriptionResponse.responseSubscriptionFormat
 
-        val actualObject: SubscriptionResponse = Json.fromJson(Json.parse(subsResponseString)).get
+        val actualObject: SubscriptionResponse = Json.parse(subsResponseString).as[SubscriptionResponse]
 
-        actualObject.subscriptionDisplayResponse.responseCommon.returnParameters.get mustBe
-          subsResponseOb.subscriptionDisplayResponse.responseCommon.returnParameters.get
+        actualObject.subscriptionDisplayResponse.responseCommon.returnParameters
+          .getOrElse(Array[ReturnParameters]()) mustBe
+          subsResponseOb.subscriptionDisplayResponse.responseCommon.returnParameters
+            .getOrElse(Array[ReturnParameters]())
 
-        val actualResponseDetail: SubResponseDetail = actualObject.subscriptionDisplayResponse.responseDetail.get
+        val actualResponseDetail: SubResponseDetail =
+          actualObject.subscriptionDisplayResponse.responseDetail.getOrElse(defaultSubResponseDetails)
 
         val expectedResponseDetail: SubResponseDetail =
-          subsResponseOb.subscriptionDisplayResponse.responseDetail.get
+          subsResponseOb.subscriptionDisplayResponse.responseDetail.getOrElse(defaultSubResponseDetails)
 
-        actualResponseDetail.XI_Subscription.get mustBe
-          expectedResponseDetail.XI_Subscription.get
+        actualResponseDetail.XI_Subscription mustBe
+          expectedResponseDetail.XI_Subscription
 
-        actualResponseDetail.contactInformation.get mustBe
-          expectedResponseDetail.contactInformation.get
+        actualResponseDetail.contactInformation mustBe
+          expectedResponseDetail.contactInformation
 
         actualResponseDetail.CDSEstablishmentAddress mustBe
           expectedResponseDetail.CDSEstablishmentAddress

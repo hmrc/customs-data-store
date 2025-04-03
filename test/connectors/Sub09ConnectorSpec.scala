@@ -324,10 +324,12 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
   ) = {
 
     val actualSubsResponseCommon = actualResponse.subscriptionDisplayResponse.responseCommon
-    val actualSubsResponseDetail = actualResponse.subscriptionDisplayResponse.responseDetail.get
+    val actualSubsResponseDetail =
+      actualResponse.subscriptionDisplayResponse.responseDetail.getOrElse(defaultSubResponseDetails)
 
     val expectedSubsResponseCommon  = expectedResponse.subscriptionDisplayResponse.responseCommon
-    val expectedSubsResponseDetails = expectedResponse.subscriptionDisplayResponse.responseDetail.get
+    val expectedSubsResponseDetails =
+      expectedResponse.subscriptionDisplayResponse.responseDetail.getOrElse(defaultSubResponseDetails)
 
     actualSubsResponseCommon.status mustBe expectedSubsResponseCommon.status
     actualSubsResponseCommon.returnParameters.value mustBe expectedSubsResponseCommon.returnParameters.value

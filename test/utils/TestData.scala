@@ -16,6 +16,7 @@
 
 package utils
 
+import models.responses.{CdsEstablishmentAddress, ContactInformation, SubResponseDetail, VatId, XiSubscription}
 import models.{EORI, EmailAddress}
 
 object TestData {
@@ -36,4 +37,24 @@ object TestData {
   val VAT_ID                      = "242"
 
   val AUTH_BEARER_TOKEN_VALUE = "Bearer secret-token"
+
+  val defaultSubResponseDetails: SubResponseDetail = SubResponseDetail(
+    EORINo = None,
+    EORIStartDate = None,
+    EORIEndDate = None,
+    CDSFullName = "Tony Stark",
+    CDSEstablishmentAddress = CdsEstablishmentAddress("86 Mysore Road", "London", Some("SW11 5RZ"), "GB"),
+    establishmentInTheCustomsTerritoryOfTheUnion = None,
+    typeOfLegalEntity = None,
+    contactInformation = None,
+    VATIDs = None,
+    thirdCountryUniqueIdentificationNumber = None,
+    consentToDisclosureOfPersonalData = None,
+    shortName = None,
+    dateOfEstablishment = None,
+    typeOfPerson = None,
+    principalEconomicActivity = None,
+    ETMP_Master_Indicator = false,
+    XI_Subscription = None
+  )
 }
