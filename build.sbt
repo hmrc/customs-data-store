@@ -3,9 +3,8 @@ import uk.gov.hmrc.DefaultBuildSettings.itSettings
 
 val appName = "customs-data-store"
 
-val silencerVersion  = "1.7.14"
-val bootstrapVersion = "9.0.0"
-val scala3_3_3       = "3.3.3"
+val silencerVersion = "1.7.14"
+val scala3_3_3      = "3.3.3"
 
 val testDirectory            = "test"
 val scalaStyleConfigFile     = "scalastyle-config.xml"
@@ -61,7 +60,9 @@ lazy val it = project
   .enablePlugins(PlayScala)
   .dependsOn(microservice % "test->test")
   .settings(itSettings())
-  .settings(libraryDependencies ++= Seq("uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % Test))
+  .settings(
+    libraryDependencies ++= Seq("uk.gov.hmrc" %% "bootstrap-test-play-30" % AppDependencies.bootstrapVersion % Test)
+  )
 
 addCommandAlias(
   "runAllChecks",
