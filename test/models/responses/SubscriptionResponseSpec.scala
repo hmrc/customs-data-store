@@ -48,14 +48,25 @@ class SubscriptionResponseSpec extends SpecBase {
           expectedResponseDetail.CDSEstablishmentAddress
       }
 
-      "Reads the response when response details are not present" in new Setup {
+      "Reads the response where responseDetail is not present" in new Setup {
         import models.responses.SubscriptionResponse.responseSubscriptionFormat
 
         val actualObject: SubscriptionResponse =
           Json.parse(subsResponseWithoutResponseDetailsString).as[SubscriptionResponse]
 
-        actualObject.subscriptionDisplayResponse.responseCommon.returnParameters.get mustBe
-          subsResponseWithoutResponseDetailsOb.subscriptionDisplayResponse.responseCommon.returnParameters.get
+        val actualResponseCommon: SubResponseCommon = actualObject.subscriptionDisplayResponse.responseCommon
+
+        val expectedResponseCommon: SubResponseCommon =
+          subsResponseWithoutResponseDetailsOb.subscriptionDisplayResponse.responseCommon
+
+        actualResponseCommon.status mustBe expectedResponseCommon.status
+        actualResponseCommon.statusText mustBe expectedResponseCommon.statusText
+        actualResponseCommon.processingDate mustBe expectedResponseCommon.processingDate
+
+        actualResponseCommon.returnParameters.getOrElse(
+          Array[ReturnParameters]()
+        ) mustBe expectedResponseCommon.returnParameters
+          .getOrElse(Array[ReturnParameters]())
 
         actualObject.subscriptionDisplayResponse.responseDetail mustBe empty
       }
