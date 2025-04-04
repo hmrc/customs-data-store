@@ -69,6 +69,16 @@ class SubscriptionServiceSpec extends SpecBase {
           }
         }
       }
+
+      "return EmailVerifiedResponse with None when there is no response detail in SubscriptionResponse" in new Setup {
+        when(mockSub09Connector.retrieveSubscriptions(EORI("Trader EORI")))
+          .thenReturn(Future.successful(Some(subscriptionResponseWithNoResponseDetail)))
+
+        running(app) {
+          val result = await(service.getVerifiedEmail(EORI("Trader EORI")))
+          result mustBe EmailVerifiedResponse(None)
+        }
+      }
     }
 
     "getEmailAddress" should {
@@ -97,6 +107,16 @@ class SubscriptionServiceSpec extends SpecBase {
           }
         }
       }
+
+      "return EmailVerifiedResponse with None when there is no response detail in SubscriptionResponse" in new Setup {
+        when(mockSub09Connector.retrieveSubscriptions(EORI("Trader EORI")))
+          .thenReturn(Future.successful(Some(subscriptionResponseWithNoResponseDetail)))
+
+        running(app) {
+          val result = await(service.getEmailAddress(EORI("Trader EORI")))
+          result mustBe EmailVerifiedResponse(None)
+        }
+      }
     }
 
     "getUnverifiedEmail" should {
@@ -123,6 +143,16 @@ class SubscriptionServiceSpec extends SpecBase {
           result.map { eunv =>
             eunv mustBe EmailUnverifiedResponse(Option(EmailAddress(emailAddress)))
           }
+        }
+      }
+
+      "return EmailUnverifiedResponse with None when there is no response detail in SubscriptionResponse" in new Setup {
+        when(mockSub09Connector.retrieveSubscriptions(EORI("Trader EORI")))
+          .thenReturn(Future.successful(Some(subscriptionResponseWithNoResponseDetail)))
+
+        running(app) {
+          val result = await(service.getUnverifiedEmail(EORI("Trader EORI")))
+          result mustBe EmailUnverifiedResponse(None)
         }
       }
     }
@@ -220,15 +250,19 @@ class SubscriptionServiceSpec extends SpecBase {
       responseDetail.copy(contactInformation = Some(contactInfoWithTimeStamp))
 
     val subscriptionResponse: SubscriptionResponse = SubscriptionResponse(
-      SubscriptionDisplayResponse(responseCommon, responseDetail)
+      SubscriptionDisplayResponse(responseCommon, Some(responseDetail))
     )
 
     val subscriptionResponseWithContactInfo: SubscriptionResponse = SubscriptionResponse(
-      SubscriptionDisplayResponse(responseCommon, responseDetailWithContactInfo)
+      SubscriptionDisplayResponse(responseCommon, Some(responseDetailWithContactInfo))
     )
 
     val subscriptionResponseWithTimestamp: SubscriptionResponse = SubscriptionResponse(
-      SubscriptionDisplayResponse(responseCommon, responseDetailWithTimestamp)
+      SubscriptionDisplayResponse(responseCommon, Some(responseDetailWithTimestamp))
+    )
+
+    val subscriptionResponseWithNoResponseDetail: SubscriptionResponse = SubscriptionResponse(
+      SubscriptionDisplayResponse(responseCommon, None)
     )
   }
 }

@@ -30,9 +30,14 @@ class SubscriptionService @Inject() (sub09Connector: Sub09Connector)(implicit ec
     for {
       optSubscription <- sub09Connector.retrieveSubscriptions(eori)
     } yield optSubscription.fold(EmailVerifiedResponse(None)) { subsRes =>
-      subsRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
-        case Some(ci) if ci.emailVerificationTimestamp.isDefined => EmailVerifiedResponse(ci.emailAddress)
-        case _                                                   => EmailVerifiedResponse(None)
+
+      val responseDetail = subsRes.subscriptionDisplayResponse.responseDetail
+
+      responseDetail.fold(EmailVerifiedResponse(None)) { res =>
+        res.contactInformation match {
+          case Some(ci) if ci.emailVerificationTimestamp.isDefined => EmailVerifiedResponse(ci.emailAddress)
+          case _                                                   => EmailVerifiedResponse(None)
+        }
       }
     }
 
@@ -40,9 +45,14 @@ class SubscriptionService @Inject() (sub09Connector: Sub09Connector)(implicit ec
     for {
       optSubscription <- sub09Connector.retrieveSubscriptions(eori)
     } yield optSubscription.fold(EmailVerifiedResponse(None)) { subsRes =>
-      subsRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
-        case Some(ci) if ci.emailAddress.isDefined => EmailVerifiedResponse(ci.emailAddress)
-        case _                                     => EmailVerifiedResponse(None)
+
+      val responseDetail = subsRes.subscriptionDisplayResponse.responseDetail
+
+      responseDetail.fold(EmailVerifiedResponse(None)) { res =>
+        res.contactInformation match {
+          case Some(ci) if ci.emailAddress.isDefined => EmailVerifiedResponse(ci.emailAddress)
+          case _                                     => EmailVerifiedResponse(None)
+        }
       }
     }
 
@@ -50,9 +60,14 @@ class SubscriptionService @Inject() (sub09Connector: Sub09Connector)(implicit ec
     for {
       optSubscription <- sub09Connector.retrieveSubscriptions(eori)
     } yield optSubscription.fold(EmailUnverifiedResponse(None)) { subRes =>
-      subRes.subscriptionDisplayResponse.responseDetail.contactInformation match {
-        case Some(ci) if ci.emailVerificationTimestamp.isEmpty => EmailUnverifiedResponse(ci.emailAddress)
-        case _                                                 => EmailUnverifiedResponse(None)
+
+      val responseDetail = subRes.subscriptionDisplayResponse.responseDetail
+
+      responseDetail.fold(EmailUnverifiedResponse(None)) { res =>
+        res.contactInformation match {
+          case Some(ci) if ci.emailVerificationTimestamp.isEmpty => EmailUnverifiedResponse(ci.emailAddress)
+          case _                                                 => EmailUnverifiedResponse(None)
+        }
       }
     }
 
