@@ -38,7 +38,38 @@ class UndeliverableEmailControllerSpec extends SpecBase {
 
   "makeUndeliverable" should {
 
-    "return 404 if user has not been found in the data-store based on EORI" in new Setup {
+    "return 404 if record is not found for the EORI while retrieving the data" in new Setup {
+
+      when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
+
+      val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(
+        Json.obj(
+          "subject"   -> "some subject",
+          "eventId"   -> "some id",
+          "groupId"   -> "someGroupId",
+          "timestamp" -> currentDateTimeString,
+          "event"     -> Json.obj(
+            "id"           -> "some-id",
+            "emailAddress" -> "some@email.com",
+            "event"        -> "some event",
+            "detected"     -> currentDateTimeString,
+            "code"         -> 12,
+            "reason"       -> "unknown reason",
+            "tags"         -> Json.obj("enrolment" -> s"HMRC-CUS-ORG~EORINumber~$testEori", "source" -> "sdds")
+          )
+        )
+      )
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe NOT_FOUND
+
+        verify(mockEmailRepository, times(0)).findAndUpdate(any(), any())
+      }
+    }
+
+    "return 404 if user has not been found in the data-store based on EORI for findAndUpdate" in new Setup {
 
       val detectedDate: LocalDateTime = LocalDateTime.now()
 
@@ -90,6 +121,8 @@ class UndeliverableEmailControllerSpec extends SpecBase {
         val result = route(app, request).value
 
         status(result) mustBe NOT_FOUND
+
+        verify(mockEmailRepository, times(1)).findAndUpdate(any(), any())
       }
     }
 
