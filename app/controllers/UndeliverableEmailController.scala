@@ -51,11 +51,10 @@ class UndeliverableEmailController @Inject() (
           } yield {
             val existingEmailAddress = existingEmailAddressOpt.getOrElse(emptyString)
 
-            if (existingEmailAddress == request.body.event.emailAddress) {
-              updateUndeliverableInformationForTheEori(request, eori)
+            if (existingEmailAddress.nonEmpty) {
+              checkEmailAddressAndProcessUndeliverableInfo(request, eori, existingEmailAddress)
             } else {
-              log.warn("Mismatch between incoming (undeliverable) and existing (in database) email address")
-              Future.successful(NoContent)
+              Future.successful(NotFound)
             }
           }
 
@@ -64,6 +63,18 @@ class UndeliverableEmailController @Inject() (
         case None => Future.successful(BadRequest)
       }
   }
+
+  private def checkEmailAddressAndProcessUndeliverableInfo(
+    request: Request[UndeliverableInformation],
+    eori: String,
+    existingEmailAddress: String
+  )(implicit hc: HeaderCarrier) =
+    if (existingEmailAddress == request.body.event.emailAddress) {
+      updateUndeliverableInformationForTheEori(request, eori)
+    } else {
+      log.warn("Mismatch between incoming (undeliverable) and existing (in database) email address")
+      Future.successful(NoContent)
+    }
 
   private def updateUndeliverableInformationForTheEori(
     request: Request[UndeliverableInformation],
