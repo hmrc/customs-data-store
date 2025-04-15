@@ -44,21 +44,11 @@ class UndeliverableEmailController @Inject() (
       request.body.extractEori match {
 
         case Some(eori) =>
-          val result = for {
-            existingNotifEmail: Option[NotificationEmail] <- emailRepository.get(eori)
-            existingEmailAddressOpt: Option[String]       <-
-              Future.successful(existingNotifEmail.fold(Option(emptyString))(notifEmail => Option(notifEmail.address)))
-          } yield {
-            val existingEmailAddress = existingEmailAddressOpt.getOrElse(emptyString)
-
-            if (existingEmailAddress.nonEmpty) {
-              checkEmailAddressAndProcessUndeliverableInfo(request, eori, existingEmailAddress)
-            } else {
-              Future.successful(NotFound)
-            }
+          emailRepository.get(eori).flatMap {
+            case Some(notifEmail) if notifEmail.address.nonEmpty =>
+              checkEmailAddressAndProcessUndeliverableInfo(request, eori, notifEmail.address)
+            case _                                               => Future.successful(NotFound)
           }
-
-          result.flatten
 
         case None => Future.successful(BadRequest)
       }
