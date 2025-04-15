@@ -42,17 +42,22 @@ class UndeliverableEmailController @Inject() (
   def makeUndeliverable(): Action[UndeliverableInformation] = Action.async(parse.json[UndeliverableInformation]) {
     implicit request =>
       request.body.extractEori match {
-
-        case Some(eori) =>
-          emailRepository.get(eori).flatMap {
-            case Some(notifEmail) if notifEmail.address.nonEmpty =>
-              checkEmailAddressAndProcessUndeliverableInfo(request, eori, notifEmail.address)
-            case _                                               => Future.successful(NotFound)
-          }
-
-        case None => Future.successful(BadRequest)
+        case Some(eori) => retrieveExistingEmailAddressForTheEoriAndProcess(request, eori)
+        case None       => Future.successful(BadRequest)
       }
   }
+
+  private def retrieveExistingEmailAddressForTheEoriAndProcess(
+    request: Request[UndeliverableInformation],
+    eori: String
+  )(implicit
+    hc: HeaderCarrier
+  ) =
+    emailRepository.get(eori).flatMap {
+      case Some(notifEmail) if notifEmail.address.nonEmpty =>
+        checkEmailAddressAndProcessUndeliverableInfo(request, eori, notifEmail.address)
+      case _                                               => Future.successful(NotFound)
+    }
 
   private def checkEmailAddressAndProcessUndeliverableInfo(
     request: Request[UndeliverableInformation],
