@@ -18,13 +18,14 @@ package controllers
 
 import connectors.Sub22Connector
 import models.repositories.NotificationEmailMongo
-import models.{FailedToProcess, ProcessResult, ProcessSucceeded, UndeliverableInformation}
-import play.api.mvc.{Action, ControllerComponents}
+import models.{FailedToProcess, NotificationEmail, ProcessResult, ProcessSucceeded, UndeliverableInformation}
+import play.api.mvc.{Action, ControllerComponents, Request, Result}
 import play.api.{Logger, LoggerLike}
 import repositories.EmailRepository
 import services.AuditingService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import utils.Utils.emptyString
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,23 +42,51 @@ class UndeliverableEmailController @Inject() (
   def makeUndeliverable(): Action[UndeliverableInformation] = Action.async(parse.json[UndeliverableInformation]) {
     implicit request =>
       request.body.extractEori match {
-
-        case Some(eori) =>
-          emailRepository
-            .findAndUpdate(eori, request.body)
-            .flatMap {
-              case Some(record) =>
-                auditingService.auditBouncedEmail(request.body)
-                updateSub22(request.body, record, eori).map(_ => NoContent)
-              case _            => Future.successful(NotFound)
-            }
-            .recover { case err =>
-              log.error(s"Failed to mark email as undeliverable: ${err.getMessage}"); InternalServerError
-            }
-
-        case None => Future.successful(BadRequest)
+        case Some(eori) => retrieveExistingEmailAddressForTheEoriAndProcess(request, eori)
+        case None       => Future.successful(BadRequest)
       }
   }
+
+  private def retrieveExistingEmailAddressForTheEoriAndProcess(
+    request: Request[UndeliverableInformation],
+    eori: String
+  )(implicit
+    hc: HeaderCarrier
+  ) =
+    emailRepository.get(eori).flatMap {
+      case Some(notifEmail) if notifEmail.address.nonEmpty =>
+        checkEmailAddressAndProcessUndeliverableInfo(request, eori, notifEmail.address)
+      case _                                               => Future.successful(NotFound)
+    }
+
+  private def checkEmailAddressAndProcessUndeliverableInfo(
+    request: Request[UndeliverableInformation],
+    eori: String,
+    existingEmailAddress: String
+  )(implicit hc: HeaderCarrier) =
+    if (existingEmailAddress == request.body.event.emailAddress) {
+      updateUndeliverableInformationForTheEori(request, eori)
+    } else {
+      log.warn("Mismatch between incoming (undeliverable) and existing (in database) email address")
+      Future.successful(NoContent)
+    }
+
+  private def updateUndeliverableInformationForTheEori(
+    request: Request[UndeliverableInformation],
+    eori: String
+  )(implicit hc: HeaderCarrier): Future[Result] =
+    emailRepository
+      .findAndUpdate(eori, request.body)
+      .flatMap {
+        case Some(record) =>
+          auditingService.auditBouncedEmail(request.body)
+          updateSub22(request.body, record, eori).map(_ => NoContent)
+        case _            => Future.successful(NotFound)
+      }
+      .recover { case err =>
+        log.error(s"Failed to mark email as undeliverable: ${err.getMessage}")
+        InternalServerError
+      }
 
   private def updateSub22(
     undeliverableInformation: UndeliverableInformation,
