@@ -1,9 +1,11 @@
 
 # customs-data-store
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Coverage](https://img.shields.io/badge/test_coverage-90-green.svg)](/target/scala-3.3.5/scoverage-report/index.html) [![Accessibility](https://img.shields.io/badge/WCAG2.2-AA-purple.svg)](https://www.gov.uk/service-manual/helping-people-to-use-your-service/understanding-wcag)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Coverage](https://img.shields.io/badge/test_coverage-90-green.svg)](/target/scala-3.7.0/scoverage-report/index.html) [![Accessibility](https://img.shields.io/badge/WCAG2.2-AA-purple.svg)](https://www.gov.uk/service-manual/helping-people-to-use-your-service/understanding-wcag)
 
 This repository contains the code for a persistent cache holding customs related data.
+
+This Microservice is a common backend service and used by other CDS teams (Exports and Reimbursement) as well.
 
 ## Running the service
 
@@ -49,9 +51,7 @@ In Postman
 
 ### Login enrolments
 
-The service can be accessed by using below enrolments and with below sample EORI numbers, via http://localhost:9949/auth-login-stub/gg-sign-in (on local) or https://<host:port>/auth-login-stub/gg-sign-in on DEV/QA/STAGING
-
-Redirect URL - `/customs/payment-records`
+The service's endpoints (that need Enrolment to access) can be accessed by using below enrolments
 
 | Enrolment Key	 | Identifier Name | Identifier Value |
 |----------------|-----------------|------------------|
@@ -77,10 +77,6 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 
 ## Available Routes
 
-You can find a list of microservice specific routes here - `/conf/app.routes`
-
-Application entrypoint:  `/customs/payment-records`
-
 | Path                                                          | Description                                                                                            | Comments                                                                                                                                                                           |
 |---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | GET /customs-data-store/eori/:eori/verified-email             | Retrieve the verified email address for a given EORI either from the cache or SUB09                    | <span style="color: red">Decommissioning soon, use either /customs-data-store/eori/verified-email or /customs-data-store/customs-data-store/eori/verified-email-third-party</span> |
@@ -95,39 +91,7 @@ Application entrypoint:  `/customs/payment-records`
 | POST /update-undeliverable-email                              | Updates undeliverable information for a given enrolmentValue                                           |                                                                                                                                                                                    |
 
 ## Feature Switches
-
-> ### Caution!
-> There's a risk of WIP features being exposed in production!
-> **Don't** enable features in `application.conf`, as this will apply globally by default
-### Enable features
-| Command                                       | Description                                        |
-|-----------------------------------------------|----------------------------------------------------|
-| `sbt "run -Dfeatures.some-feature-name=true"` | enables a feature locally without risking exposure |
-
-### Available feature flags
-| Flag | Description |
-|------|-------------|
-|      |             |
-
-Different features can be enabled / disabled per-environment via the `app-config-<env>` project by setting `features.some-feature: true`
-
-## Helpful commands
-
-| Command                                       | Description                                                                                                 |
-|-----------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| `sbt runAllChecks`                            | Runs all standard code checks                                                                               |
-| `sbt clean`                                   | Cleans code                                                                                                 |
-| `sbt compile`                                 | Better to say 'Compiles the code'                                                                           |
-| `sbt coverage`                                | Prints code coverage                                                                                        |
-| `sbt test`                                    | Runs unit tests                                                                                             |
-| `sbt it/test`                                 | Runs integration tests                                                                                      |
-| `sbt scalafmtCheckAll`                        | Runs code formatting checks based on .scalafmt.conf                                                         |
-| `sbt scalastyle`                              | Runs code style checks based on /scalastyle-config.xml                                                      |
-| `sbt Test/scalastyle`                         | Runs code style checks for unit test code /test-scalastyle-config.xml                                       |
-| `sbt coverageReport`                          | Produces a code coverage report                                                                             |
-| `sbt "test/testOnly *TEST_FILE_NAME*"`        | runs tests for a single file                                                                                |
-| `sbt clean coverage test coverageReport`      | Generates a unit test coverage report that you can find here target/scala-3.3.5/scoverage-report/index.html |
-| `sbt "run -Dfeatures.some-feature-name=true"` | enables a feature locally without risking exposure                                                          |
+Not applicable
 
 ## GET /eori/:eori/verified-email (<span style="color: red">Decommissioning soon</span>)
 
@@ -536,13 +500,21 @@ An endpoint to update undeliverable information for an enrolmentValue
 | 500 | An unexpected failure happened in the service |
 
 
+## Helpful commands
 
-### License
+| Command                                       | Description                                                                                                 |
+|-----------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `sbt runAllChecks`                            | Runs all standard code checks                                                                               |
+| `sbt clean`                                   | Cleans code                                                                                                 |
+| `sbt compile`                                 | Better to say 'Compiles the code'                                                                           |
+| `sbt coverage`                                | Prints code coverage                                                                                        |
+| `sbt test`                                    | Runs unit tests                                                                                             |
+| `sbt it/test`                                 | Runs integration tests                                                                                      |
+| `sbt scalafmtCheckAll`                        | Runs code formatting checks based on .scalafmt.conf                                                         |
+| `sbt scalastyle`                              | Runs code style checks based on /scalastyle-config.xml                                                      |
+| `sbt Test/scalastyle`                         | Runs code style checks for unit test code /test-scalastyle-config.xml                                       |
+| `sbt coverageReport`                          | Produces a code coverage report                                                                             |
+| `sbt "test/testOnly *TEST_FILE_NAME*"`        | runs tests for a single file                                                                                |
+| `sbt clean coverage test coverageReport`      | Generates a unit test coverage report that you can find here target/scala-3.3.5/scoverage-report/index.html |
+| `sbt "run -Dfeatures.some-feature-name=true"` | enables a feature locally without risking exposure                                                          |
 
-This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
-
-## All tests and checks
-
-This is a sbt command alias specific to this project. It will run a scala style check, run unit tests, run integration
-tests and produce a coverage report:
-> `sbt runAllChecks`

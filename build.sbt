@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings.itSettings
 val appName = "customs-data-store"
 
 val silencerVersion = "1.7.14"
-val scala3_3_3      = "3.3.3"
+val scala3_3_3      = "3.7.0"
 
 val testDirectory            = "test"
 val scalaStyleConfigFile     = "scalastyle-config.xml"
