@@ -19,6 +19,7 @@ package controllers
 import actionbuilders.{AuthorisedRequest, RequestWithEori}
 import connectors.Sub21Connector
 import models.EoriPeriod
+import models.requests.EoriRequest
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import play.api.{Logger, LoggerLike}
@@ -48,6 +49,16 @@ class EoriHistoryController @Inject() (
 
   def getEoriHistoryV2: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
     val eori = request.eori.value
+
+    historicEoriRepository.get(eori).flatMap {
+      case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
+        Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
+      case _                                                                   => retrieveAndStoreHistoricEoris(eori)
+    }
+  }
+
+  def retrieveEoriHistoryThirdParty: Action[EoriRequest] = Action.async(parse.json[EoriRequest]) { implicit request =>
+    val eori = request.body.eori
 
     historicEoriRepository.get(eori).flatMap {
       case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
