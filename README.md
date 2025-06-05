@@ -86,6 +86,7 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 | GET /customs-data-store/eori/xieori-information               | Retrieves the XI EORI information for the requested EORI either from the cache or SUB09                |                                                                                                                                                                                    |
 | POST /customs-data-store/eori/verified-email-third-party      | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09 |                                                                                                                                                                                    |
 | POST /customs-data-store/eori/company-information-third-party | Retrieves the business full name for the EORI specified in request body                                |                                                                                                                                                                                    |
+| POST /customs-data-store/eori/eori-history-third-party        | Retrieves the historic EORIs for a given third-party EORI                                              |                                                                                                                                                                                    |
 | POST /customs-data-store/update-email                         | Populates a new verified email address in the cache and removes undeliverable information              |                                                                                                                                                                                    |
 | POST /customs-data-store/update-eori-history                  | Updates the eori history for a given EORI in the cache                                                 |                                                                                                                                                                                    |
 | POST /update-undeliverable-email                              | Updates undeliverable information for a given enrolmentValue                                           |                                                                                                                                                                                    |
@@ -430,6 +431,50 @@ An endpoint to retrieve the business full name and address for EORI specified in
 | 400 | Malformed request |
 | 404 | No verified email has been found for the specified eori        |
 | 500 | An unexpected failure happened in the service |
+
+
+## POST /eori/eori-history-third-party
+
+An endpoint to retrieve the historic EORIs of a given third party EORI (not the logged in user's EORI)
+
+### Example request
+
+```json
+{
+  "eori" : "testEori"
+}
+```
+### Fields
+
+| Field                               | Required                                          | Description                                                          |
+| ---------------------------------  | ---------------------------------------------------- |----------------------------------------------------------------------|
+| eori | Mandatory        | The eori for which historically associated EORIs are to be retrieved |
+
+### Response body
+
+```json
+{
+"eoriHistory": [
+  {
+    "eori": "historicEori1", 
+    "validFrom": "2001-01-20T00:00:00Z", 
+    "validTo": "2001-01-20T00:00:00Z"
+  },
+  {
+    "eori": "historicEori2",
+    "validFrom": "2001-01-20T00:00:00Z",
+    "validTo": "2001-01-20T00:00:00Z"
+  }
+]
+}
+```
+### Response codes
+
+| Status                               | Description                                          |
+| ---------------------------------  | ---------------------------------------------------- |
+| 200 | A sequence of historic eori's returned        |
+| 500 | An unexpected failure happened in the service |
+
 
 ## POST /update-eori-history
 

@@ -12,8 +12,9 @@ GET         /eori/eori-history                          controllers.EoriHistoryC
 GET         /eori/:eori/xieori-information              controllers.XiEoriController.getXiEoriInformation(eori: String)
 GET         /eori/xieori-information                    controllers.XiEoriController.getXiEoriInformationV2()
 
-POST         /eori/verified-email-third-party           controllers.VerifiedEmailController.retrieveVerifiedEmailThirdParty()
-POST         /eori/company-information-third-party      controllers.CompanyInformationController.retrieveCompanyInformationThirdParty()
+POST        /eori/verified-email-third-party            controllers.VerifiedEmailController.retrieveVerifiedEmailThirdParty()
+POST        /eori/company-information-third-party       controllers.CompanyInformationController.retrieveCompanyInformationThirdParty()
+POST        /eori/eori-history-third-party              controllers.EoriHistoryController.retrieveEoriHistoryThirdParty()
 
 POST        /update-email                               controllers.VerifiedEmailController.updateVerifiedEmail()
 POST        /update-undeliverable-email                 controllers.UndeliverableEmailController.makeUndeliverable()
