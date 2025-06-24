@@ -18,19 +18,18 @@ package connectors
 
 import config.AppConfig
 import config.Headers.*
-import models.responses.{
-  MdgSub09CompanyInformationResponse, MdgSub09Response, MdgSub09XiEoriInformationResponse, SubscriptionResponse
-}
-import models.{CompanyInformation, EORI, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
+import models.responses.SubscriptionResponse
+import models.{CompanyInformation, EORI, NotificationEmail, XiEoriInformation}
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
-import utils.Utils.{emptyString, randomUUID, uri}
+import utils.Utils.{randomUUID, uri}
 
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -43,98 +42,69 @@ class Sub09Connector @Inject() (
   val log: LoggerLike = Logger(this.getClass)
 
   private val metricsResourceName = "mdg.get.company-information"
-  private val defaultConsent      = "0"
   private val endPoint            = appConfig.sub09GetSubscriptionsEndpoint
 
   private def localDate: String = LocalDateTime.now().format(rfc1123DateTimeFormatter)
 
-  def getSubscriberInformation(eori: String): Future[Option[NotificationEmail]] = {
+  def getSubscriberInformation(eori: String): Future[Option[NotificationEmail]] =
+    getSubscriptionAndProcessResponse(eori, "Subscriber Information")
+      .map { response =>
+        for {
+          subDisplayResponse <- response
+          detail             <- subDisplayResponse.subscriptionDisplayResponse.responseDetail
+          contactInfo        <- detail.contactInformation
+          email              <- contactInfo.emailAddress
+          timestamp          <- contactInfo.emailVerificationTimestamp
+        } yield NotificationEmail(email.value, LocalDateTime.parse(timestamp.stripSuffix("Z")), None)
+      }
+
+  def getCompanyInformation(eori: String): Future[Option[CompanyInformation]] =
+    getSubscriptionAndProcessResponse(eori, "Company Information")
+      .map { response =>
+        for {
+          subDisplayResponse <- response
+          detail             <- subDisplayResponse.subscriptionDisplayResponse.responseDetail
+          name                = detail.CDSFullName
+          consent            <- detail.consentToDisclosureOfPersonalData
+          contactInfo        <- detail.contactInformation
+          address             = contactInfo.toAddress getOrElse detail.CDSEstablishmentAddress.toAddress
+        } yield CompanyInformation(name, consent, address)
+      }
+
+  def getXiEoriInformation(eori: String): Future[Option[XiEoriInformation]] =
+    getSubscriptionAndProcessResponse(eori, "XI Eori Information")
+      .map { response =>
+        for {
+          subDisplayResponse <- response
+          detail             <- subDisplayResponse.subscriptionDisplayResponse.responseDetail
+          xiSub              <- detail.XI_Subscription
+          xiEori              = xiSub.XI_EORINo
+          consent             = xiSub.XI_ConsentToDisclose
+          address            <- xiSub.PBEAddress
+        } yield XiEoriInformation(xiEori, consent, address.toXiEoriAddress)
+      }
+
+  def retrieveSubscriptions(eori: EORI): Future[Option[SubscriptionResponse]] =
+    getSubscriptionAndProcessResponse(eori.value, "Subscription Response")
+
+  private def getSubscriptionAndProcessResponse(eori: String, infoType: String) = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
+
+    def processSubscriptionResponse(response: SubscriptionResponse) =
+      if (response.subscriptionDisplayResponse.responseDetail.isDefined) {
+        Future.successful(Some(response))
+      } else {
+        log.warn(
+          s"SubscriptionResponse retrieved with business error:" +
+            s" ${response.subscriptionDisplayResponse.responseCommon.statusText.getOrElse("statusText not available")}"
+        )
+
+        Future.successful(None)
+      }
 
     metricsReporter.withResponseTimeLogging(metricsResourceName) {
       httpClient
         .get(uri(eori, endPoint))
-        .setHeader(
-          AUTHORIZATION    -> appConfig.sub09BearerToken,
-          DATE             -> localDate,
-          X_CORRELATION_ID -> randomUUID,
-          X_FORWARDED_HOST -> "MDTP",
-          ACCEPT           -> "application/json"
-        )
-        .execute[MdgSub09Response]
-        .flatMap {
-          case MdgSub09Response(Some(email), Some(timestamp)) =>
-            Future.successful(Option(NotificationEmail(email, timestamp, None)))
-
-          case _ => Future.successful(None)
-        }
-    }
-  }
-
-  def getCompanyInformation(eori: String): Future[Option[CompanyInformation]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
-    metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      httpClient
-        .get(uri(eori, endPoint))
-        .setHeader(
-          AUTHORIZATION    -> appConfig.sub09BearerToken,
-          DATE             -> localDate,
-          X_CORRELATION_ID -> randomUUID,
-          X_FORWARDED_HOST -> "MDTP",
-          ACCEPT           -> "application/json"
-        )
-        .execute[Option[MdgSub09CompanyInformationResponse]]
-        .flatMap { response =>
-          Future.successful(
-            response.map(v => CompanyInformation(v.name, v.consent.getOrElse(defaultConsent), v.address))
-          )
-        }
-        .recover { case e =>
-          log.error(s"Failed to retrieve company information with error: $e")
-          None
-        }
-    }
-  }
-
-  def getXiEoriInformation(eori: String): Future[Option[XiEoriInformation]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
-    metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      httpClient
-        .get(uri(eori, endPoint))
-        .setHeader(
-          AUTHORIZATION    -> appConfig.sub09BearerToken,
-          DATE             -> localDate,
-          X_CORRELATION_ID -> randomUUID,
-          X_FORWARDED_HOST -> "MDTP",
-          ACCEPT           -> "application/json"
-        )
-        .execute[Option[MdgSub09XiEoriInformationResponse]]
-        .flatMap { response =>
-          Future.successful(
-            response.map(v =>
-              XiEoriInformation(
-                v.xiEori,
-                v.consent.getOrElse(defaultConsent),
-                v.address.getOrElse(XiEoriAddressInformation(emptyString))
-              )
-            )
-          )
-        }
-        .recover { case e =>
-          log.error(s"Failed to retrieve xi eori information with error: $e")
-          None
-        }
-    }
-  }
-
-  def retrieveSubscriptions(eori: EORI): Future[Option[SubscriptionResponse]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
-    metricsReporter.withResponseTimeLogging(metricsResourceName) {
-      httpClient
-        .get(uri(eori.value, endPoint))
         .setHeader(
           AUTHORIZATION    -> appConfig.sub09BearerToken,
           DATE             -> localDate,
@@ -143,23 +113,11 @@ class Sub09Connector @Inject() (
           ACCEPT           -> "application/json"
         )
         .execute[SubscriptionResponse]
-        .flatMap(response => processSubscriptionResponse(response))
+        .flatMap(processSubscriptionResponse)
         .recover { case e =>
-          log.error(s"Failed to retrieve SubscriptionResponse with error: $e")
+          log.error(s"Failed to retrieve $infoType with error: $e")
           None
         }
     }
   }
-
-  private def processSubscriptionResponse(response: SubscriptionResponse) =
-    if (response.subscriptionDisplayResponse.responseDetail.isDefined) {
-      Future.successful(Some(response))
-    } else {
-      log.error(
-        s"SubscriptionResponse retrieved with business error:" +
-          s" ${response.subscriptionDisplayResponse.responseCommon.statusText.getOrElse("statusText not available")}"
-      )
-
-      Future.successful(None)
-    }
 }
