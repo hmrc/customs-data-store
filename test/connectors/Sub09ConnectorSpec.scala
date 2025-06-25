@@ -125,7 +125,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
         .toJson(
           subsResponseOb.copy(
             subscriptionDisplayResponse = subsDisplayResOb.copy(
-              responseDetail = Some(responseDetail.copy(consentToDisclosureOfPersonalData = Some("0")))
+              responseDetail = Some(responseDetail.copy(consentToDisclosureOfPersonalData = None))
             )
           )
         )

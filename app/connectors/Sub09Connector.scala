@@ -42,6 +42,7 @@ class Sub09Connector @Inject() (
   val log: LoggerLike = Logger(this.getClass)
 
   private val metricsResourceName = "mdg.get.company-information"
+  private val defaultConsent      = "0"
   private val endPoint            = appConfig.sub09GetSubscriptionsEndpoint
 
   private def localDate: String = LocalDateTime.now().format(rfc1123DateTimeFormatter)
@@ -65,7 +66,7 @@ class Sub09Connector @Inject() (
           subDisplayResponse <- response
           detail             <- subDisplayResponse.subscriptionDisplayResponse.responseDetail
           name                = detail.CDSFullName
-          consent            <- detail.consentToDisclosureOfPersonalData
+          consent            <- detail.consentToDisclosureOfPersonalData orElse Some(defaultConsent)
           contactInfo        <- detail.contactInformation
           address             = contactInfo.toAddress getOrElse detail.CDSEstablishmentAddress.toAddress
         } yield CompanyInformation(name, consent, address)
