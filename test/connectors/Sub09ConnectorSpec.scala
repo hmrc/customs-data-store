@@ -16,27 +16,25 @@
 
 package connectors
 
-import models.responses.*
-import models.responses.MdgSub09Response.sub09Reads
-import models.{AddressInformation, CompanyInformation, NotificationEmail, XiEoriAddressInformation, XiEoriInformation}
-import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.http.HeaderCarrier
-import utils.{SpecBase, WireMockSupportProvider}
-import utils.Utils.emptyString
-import utils.TestData.*
-import com.typesafe.config.ConfigFactory
-import play.api.{Application, Configuration}
-import config.AppConfig
-import org.scalatest.concurrent.ScalaFutures.*
-import play.api.http.HeaderNames.AUTHORIZATION
-import play.api.test.Helpers.*
-import org.scalatest.matchers.should.Matchers.*
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.StringValuePattern
+import com.typesafe.config.ConfigFactory
+import config.AppConfig
+import models.responses.*
+import models.*
+import org.scalatest.concurrent.ScalaFutures.*
+import org.scalatest.matchers.should.Matchers.*
+import play.api.http.HeaderNames.AUTHORIZATION
+import play.api.libs.json.{JsValue, Json}
+import play.api.test.Helpers.*
+import play.api.{Application, Configuration}
+import uk.gov.hmrc.http.HeaderCarrier
+import utils.TestData.*
+import utils.Utils.emptyString
+import utils.{SpecBase, WireMockSupportProvider}
 
-import scala.jdk.CollectionConverters.MapHasAsJava
 import java.util
-import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.MapHasAsJava
 
 class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
@@ -44,7 +42,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     "return None when the timestamp is not available" in new Setup {
 
       val withEmailNoTimeStamp: String =
-        Json.toJson(mdgResponse(Sub09Response.withEmailNoTimestamp(testEori))).toString
+        Json.toJson(Sub09Response.withEmailNoTimestamp(testEori)).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -63,7 +61,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
     "return Some, when the timestamp is available" in new Setup {
       val withEmailAndTimestampRes: String =
-        """{"emailAddress":"email@email.com","emailVerificationTimestamp":"2025-02-20T15:18:47.988968"}""".stripMargin
+        Json.toJson(Sub09Response.withEmailAndTimestamp(testEori)).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -84,7 +82,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     "return None when the email is not available" in new Setup {
 
       val noEmailNoTimestampJson: String =
-        Json.toJson(mdgResponse(Sub09Response.noEmailNoTimestamp(testEori))).toString
+        Json.toJson(Sub09Response.noEmailNoTimestamp(testEori)).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -106,24 +104,13 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
     "return company information from the api" in new Setup {
 
-      val companyInfoSuccessfulResponse: String = """{
-                                                    |"CDSFullName":"Example Ltd",
-                                                    |"consentToDisclosureOfPersonalData":"1",
-                                                    |"contactInformation":{
-                                                    |"streetAndNumber":"Address Line 1",
-                                                    |"city":"City",
-                                                    |"countryCode":"GB",
-                                                    |"postalCode":"postCode"
-                                                    |}
-                                                    |}""".stripMargin
-
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
           .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
           .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
           .withHeader(AUTHORIZATION, equalTo(AUTH_BEARER_TOKEN_VALUE))
           .withQueryParams(queryParams)
-          .willReturn(ok(companyInfoSuccessfulResponse))
+          .willReturn(ok(Json.toJson(subsResponseOb).toString))
       )
 
       val result: Option[CompanyInformation] = await(connector.getCompanyInformation(testEori))
@@ -134,15 +121,15 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
     "return company information noConsent '0' when the field is not present" in new Setup {
 
-      val noConsentToDiscloseResponse: String =
-        """{"CDSFullName":"Example Ltd",
-          |"contactInformation":{
-          |"streetAndNumber":"Address Line 1",
-          |"city":"City",
-          |"countryCode":"GB",
-          |"postalCode":"postCode"
-          |}
-          |}""".stripMargin
+      val noConsentToDiscloseResponse: String = Json
+        .toJson(
+          subsResponseOb.copy(
+            subscriptionDisplayResponse = subsDisplayResOb.copy(
+              responseDetail = Some(responseDetail.copy(consentToDisclosureOfPersonalData = None))
+            )
+          )
+        )
+        .toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -184,7 +171,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     "return xi eori information from the api" in new Setup {
 
       val withEmailAndTimestamp: String =
-        Json.toJson(Option(mdgCompanyInformationResponse(Sub09Response.withEmailAndTimestamp(testEori)))).toString
+        Json.toJson(Sub09Response.withEmailAndTimestamp(testEori)).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -196,7 +183,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       )
 
       val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
-      result.map(xiInfo => xiInfo mustBe Option(xiEoriInformation))
+      result.map(xiInfo => xiInfo mustBe xiEoriInformation)
 
       verifyEndPointUrlHit(sub09Url)
     }
@@ -204,7 +191,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     "return xi eori information from the api when pbeaddress is empty" in new Setup {
 
       val noXiEoriAddress: String =
-        Json.toJson(Option(mdgCompanyInformationResponse(Sub09Response.noXiEoriAddressInformation(testEori)))).toString
+        Json.toJson(Sub09Response.noXiEoriAddressInformation(testEori)).toString
 
       wireMockServer.stubFor(
         get(urlPathMatching(sub09Url))
@@ -369,10 +356,6 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
     val sub09Url: String = "/customs-financials-hods-stub/subscriptions/subscriptiondisplay/v1"
 
-    val address: AddressInformation                          = AddressInformation("Address Line 1", "City", Some("postCode"), "GB")
-    val companyInformation: CompanyInformation               = CompanyInformation(companyName, consent, address)
-    val companyInformationNoConsentFalse: CompanyInformation = CompanyInformation(companyName, "0", address)
-
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
     val queryParams: util.Map[String, StringValuePattern] =
@@ -461,7 +444,7 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
       EORINo = Some(TEST_EORI),
       EORIStartDate = Some(DATE_STRING),
       EORIEndDate = Some(endDate),
-      CDSFullName = COMPANY_NAME,
+      CDSFullName = companyName,
       CDSEstablishmentAddress = cdsEstablishmentAddress,
       establishmentInTheCustomsTerritoryOfTheUnion = Some("0"),
       typeOfLegalEntity = Some("0001"),
@@ -486,6 +469,11 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
     val subsResponseOb: SubscriptionResponse                  = SubscriptionResponse(subsDisplayResOb)
     val subsResponseWithBusinessErrorOb: SubscriptionResponse = SubscriptionResponse(subsDisplayResWithBusinessErrorOb)
 
+    val companyInformation: CompanyInformation               =
+      CompanyInformation(companyName, consent, contactInformation.toAddress.get)
+    val companyInformationNoConsentFalse: CompanyInformation =
+      CompanyInformation(companyName, "0", contactInformation.toAddress.get)
+
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val app: Application = application
@@ -494,13 +482,165 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
     val connector: Sub09Connector = app.injector.instanceOf[Sub09Connector]
     val appConfig: AppConfig      = app.injector.instanceOf[AppConfig]
-
-    def mdgResponse(value: JsValue): MdgSub09Response = MdgSub09Response.sub09Reads.reads(value).get
-
-    def mdgCompanyInformationResponse(value: JsValue): MdgSub09CompanyInformationResponse =
-      MdgSub09CompanyInformationResponse.sub09CompanyInformation.reads(value).get
-
-    def mdgXiEoriInformationResponse(value: JsValue): MdgSub09XiEoriInformationResponse =
-      MdgSub09XiEoriInformationResponse.sub09XiEoriInformation.reads(value).get
   }
+}
+
+object Sub09Response {
+
+  private val timeStampKey                         = "--THE-TIMESTAMP--"
+  private val emailKey                             = "--THE-EMAIL--"
+  private val eoriKey                              = "--THE-EORI-HERE--"
+  private val consentToDisclosureOfPersonalDataKEY = "--THE-CONSENT--"
+  private val xiEoriAddressKey                     = "--XI-EORI-ADDRESS--"
+
+  def withEmailAndTimestamp(eori: String): JsValue = {
+    val response = sub09Response(eori)
+      .replace(emailKey, """ "emailAddress": "email@email.com", """)
+      .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
+      .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
+      .replace(
+        xiEoriAddressKey,
+        """"PBEAddress": {
+          |          "pbeAddressLine1": "Example Rd",
+          |          "pbeAddressLine2": "Example",
+          |          "pbeAddressLine3": "GB",
+          |          "pbePostCode": "AA00 0AA"
+          |        },""".stripMargin
+      )
+    Json.parse(response)
+  }
+
+  def withEmailNoTimestamp(eori: String): JsValue = {
+    val response = sub09Response(eori)
+      .replace(emailKey, """ "emailAddress": "email@email.com", """)
+      .replace(timeStampKey, emptyString)
+      .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
+      .replace(
+        xiEoriAddressKey,
+        """"PBEAddress": {
+          |          "pbeAddressLine1": "Example Rd",
+          |          "pbeAddressLine2": "Example",
+          |          "pbeAddressLine3": "GB",
+          |          "pbePostCode": "AA00 0AA"
+          |        },""".stripMargin
+      )
+    Json.parse(response)
+  }
+
+  def noEmailNoTimestamp(eori: String): JsValue = {
+    val response = sub09Response(eori)
+      .replace(emailKey, emptyString)
+      .replace(timeStampKey, emptyString)
+      .replace(consentToDisclosureOfPersonalDataKEY, """ "consentToDisclosureOfPersonalData": "1",""")
+      .replace(
+        xiEoriAddressKey,
+        """"PBEAddress": {
+          |          "pbeAddressLine1": "Example Rd",
+          |          "pbeAddressLine2": "Example",
+          |          "pbeAddressLine3": "GB",
+          |          "pbePostCode": "AA00 0AA"
+          |        },""".stripMargin
+      )
+    Json.parse(response)
+  }
+
+  def noConsentToDisclosureOfPersonalData(eori: String): JsValue = {
+    val response = sub09Response(eori)
+      .replace(emailKey, """ "emailAddress": "email@email.com", """)
+      .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
+      .replace(consentToDisclosureOfPersonalDataKEY, emptyString)
+      .replace(
+        xiEoriAddressKey,
+        """"PBEAddress": {
+          |          "pbeAddressLine1": "Example Rd",
+          |          "pbeAddressLine2": "Example",
+          |          "pbeAddressLine3": "GB",
+          |          "pbePostCode": "AA00 0AA"
+          |        },""".stripMargin
+      )
+    Json.parse(response)
+  }
+
+  def noXiEoriAddressInformation(eori: String): JsValue = {
+    val response = sub09Response(eori)
+      .replace(emailKey, """ "emailAddress": "email@email.com", """)
+      .replace(timeStampKey, """ "emailVerificationTimestamp": "2019-09-06T12:30:59Z",""")
+      .replace(consentToDisclosureOfPersonalDataKEY, emptyString)
+      .replace(xiEoriAddressKey, emptyString)
+    Json.parse(response)
+  }
+
+  // scalastyle:off
+  protected def sub09Response(eori: String): String =
+    s"""
+       |{
+       |  "subscriptionDisplayResponse": {
+       |    "responseCommon": {
+       |      "status": "OK",
+       |      "statusText": "Optional status text from ETMP",
+       |      "processingDate": "2016-08-17T19:33:47Z",
+       |      "returnParameters": [
+       |        {
+       |          "paramName": "POSITION",
+       |          "paramValue": "LINK"
+       |        }
+       |      ]
+       |    },
+       |    "responseDetail": {
+       |      "EORINo": "$eoriKey",
+       |      "EORIStartDate": "1999-01-01",
+       |      "EORIEndDate": "2020-01-01",
+       |      "CDSFullName": "Example Ltd",
+       |      "CDSEstablishmentAddress": {
+       |        "streetAndNumber": "Example Rd",
+       |        "city": "Example",
+       |        "postalCode": "AA00 0AA",
+       |        "countryCode": "GB"
+       |      },
+       |      "establishmentInTheCustomsTerritoryOfTheUnion": "0",
+       |      "typeOfLegalEntity": "0001",
+       |      "contactInformation": {
+       |        "personOfContact": "Full Name",
+       |        "streetAndNumber": "Address Line 1",
+       |        "city": "City",
+       |        "postalCode": "postCode",
+       |        "countryCode": "GB",
+       |        "telephoneNumber": "077999999",
+       |        $timeStampKey
+       |        $emailKey
+       |        "faxNumber": "fax"
+       |      },
+       |      "VATIDs": [
+       |        {
+       |          "countryCode": "GB",
+       |          "VATID": "VAT-1"
+       |        }
+       |      ],
+       |      "thirdCountryUniqueIdentificationNumber": [
+       |        "GB",
+       |        "FR"
+       |      ],
+       |      $consentToDisclosureOfPersonalDataKEY
+       |      "shortName": "Mick",
+       |      "dateOfEstablishment": "1963-04-01",
+       |      "typeOfPerson": "1",
+       |      "principalEconomicActivity": "2000",
+       |      "ETMP_Master_Indicator": true,
+       |      "XI_Subscription": {
+       |        "XI_EORINo": "XI123456789000",
+       |        $xiEoriAddressKey
+       |        "XI_VATNumber": "GB123456789",
+       |        "EU_VATNumber": [
+       |          { "countryCode": "GB",
+       |          "VATId": "123456891012" }
+       |        ],
+       |        "XI_ConsentToDisclose": "1",
+       |        "XI_SICCode": "7600"
+       |      }
+       |    }
+       |  }
+       |}
+    """.stripMargin.replace(eoriKey, eori)
+  // scalastyle:on
+
 }

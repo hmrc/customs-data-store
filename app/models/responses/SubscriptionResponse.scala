@@ -16,7 +16,7 @@
 
 package models.responses
 
-import models.{EORI, EmailAddress}
+import models.{AddressInformation, EORI, EmailAddress, XiEoriAddressInformation}
 import play.api.libs.json.{Json, OFormat}
 
 case class SubscriptionResponse(subscriptionDisplayResponse: SubscriptionDisplayResponse)
@@ -28,7 +28,9 @@ case class CdsEstablishmentAddress(
   city: String,
   postalCode: Option[String],
   countryCode: String
-)
+) {
+  val toAddress: AddressInformation = AddressInformation(streetAndNumber, city, postalCode, countryCode)
+}
 
 case class ContactInformation(
   personOfContact: Option[String],
@@ -41,7 +43,13 @@ case class ContactInformation(
   faxNumber: Option[String],
   emailAddress: Option[EmailAddress],
   emailVerificationTimestamp: Option[String]
-)
+) {
+  val toAddress: Option[AddressInformation] = for {
+    streetAndNo <- streetAndNumber
+    city        <- city
+    countryCode <- countryCode
+  } yield AddressInformation(streetAndNo, city, postalCode, countryCode)
+}
 
 case class VatId(countryCode: Option[String], VATID: Option[String])
 
@@ -90,7 +98,15 @@ case class PbeAddress(
   pbeAddressLine3: Option[String],
   pbeAddressLine4: Option[String],
   pbePostCode: Option[String]
-)
+) {
+  val toXiEoriAddress: XiEoriAddressInformation = XiEoriAddressInformation(
+    pbeAddressLine1,
+    pbeAddressLine2,
+    pbeAddressLine3,
+    pbeAddressLine4,
+    pbePostCode
+  )
+}
 
 case class EUVATNumber(countryCode: Option[String], VATId: Option[String])
 
