@@ -4,14 +4,14 @@ import uk.gov.hmrc.DefaultBuildSettings.itSettings
 val appName = "customs-data-store"
 
 val silencerVersion = "1.7.14"
-val scala3_3_3      = "3.7.0"
+val scala3_7_0      = "3.7.0"
 
 val testDirectory            = "test"
 val scalaStyleConfigFile     = "scalastyle-config.xml"
 val testScalaStyleConfigFile = "test-scalastyle-config.xml"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := scala3_3_3
+ThisBuild / scalaVersion := scala3_7_0
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -30,6 +30,7 @@ lazy val microservice = Project(appName, file("."))
     scalafmtPrintDiff := true,
     scalafmtFailOnErrors := true,
     scalacOptions := scalacOptions.value.diff(Seq("-Wunused:all")),
+    scalacOptions ++= Seq("-source:3.4-migration", "-rewrite"),
     Test / scalacOptions ++= Seq(
       "-Wunused:imports",
       "-Wunused:params",
@@ -39,11 +40,9 @@ lazy val microservice = Project(appName, file("."))
     ),
     libraryDependencies ++= Seq(
       compilerPlugin(
-        "com.github.ghik" % "silencer-plugin" % silencerVersion
-          cross CrossVersion.for3Use2_13With("", ".12")
+        "com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.for3Use2_13With("", ".12")
       ),
-      "com.github.ghik" % "silencer-lib" % silencerVersion % Provided
-        cross CrossVersion.for3Use2_13With("", ".12")
+      "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.for3Use2_13With("", ".12")
     )
   )
   .settings(Test / parallelExecution := false)

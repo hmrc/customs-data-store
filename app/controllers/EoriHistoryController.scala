@@ -85,22 +85,34 @@ class EoriHistoryController @Inject() (
   }
 
   private def retrieveAndStoreHistoricEoris(eori: String): Future[Result] =
-    for {
-      eoriHistory  <- eoriHistoryConnector.getEoriHistory(eori)
-      updateResult <- historicEoriRepository.set(eoriHistory)
-      result       <- updateResult match {
-                        case HistoricEoriSuccessful =>
-                          historicEoriRepository.get(eori).map {
-                            case Left(_)      => InternalServerError
-                            case Right(value) => Ok(Json.toJson(EoriHistoryResponse(value)))
-                          }
-                        case _                      => Future.successful(InternalServerError)
-                      }
-    } yield result
+    eoriHistoryConnector
+      .getEoriHistory(eori)
+      .flatMap {
+        case Nil =>
+          log.warn("No EORI history found for EORI - skipping cache update")
+          Future.successful(Ok(Json.toJson(EoriHistoryResponse(Seq()))))
+
+        case eoriHistory =>
+          for {
+            updateResult <- historicEoriRepository.set(eoriHistory)
+            result       <- updateResult match {
+                              case HistoricEoriSuccessful =>
+                                historicEoriRepository.get(eori).flatMap {
+                                  case Left(_)      => Future.successful(InternalServerError)
+                                  case Right(value) => Future.successful(Ok(Json.toJson(EoriHistoryResponse(value))))
+                                }
+                              case _                      => Future.successful(InternalServerError)
+                            }
+          } yield result
+      }
+      .recover { case ex =>
+        log.error("Unexpected error retrieving or storing EORI")
+        InternalServerError
+      }
 
   case class EoriHistoryResponse(eoriHistory: Seq[EoriPeriod])
 
-  object EoriHistoryResponse {
+  private object EoriHistoryResponse {
     implicit val format: OFormat[EoriHistoryResponse] = Json.format[EoriHistoryResponse]
   }
 }

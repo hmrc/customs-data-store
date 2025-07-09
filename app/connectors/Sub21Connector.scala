@@ -19,20 +19,20 @@ package connectors
 import config.AppConfig
 import models.*
 import config.Headers.AUTHORIZATION
+import play.api.Logging
 import play.api.http.Status.NOT_FOUND
 import services.MetricsReporterService
-import uk.gov.hmrc.http.HttpErrorFunctions.notFoundMessage
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.UpstreamErrorResponse.WithStatusCode
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class Sub21Connector @Inject() (appConfig: AppConfig, http: HttpClientV2, metricsReporter: MetricsReporterService)(
   implicit ec: ExecutionContext
-) {
+) extends Logging {
 
   def getEoriHistory(eori: String): Future[Seq[EoriPeriod]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -53,7 +53,12 @@ class Sub21Connector @Inject() (appConfig: AppConfig, http: HttpClientV2, metric
         }
         .recoverWith {
           case e @ WithStatusCode(NOT_FOUND) if e.message.contains(NOT_FOUND.toString) =>
-            Future.failed(new NotFoundException(notFoundMessage("GET", url.toString, e.message)))
+            logger.warn("EORI history not found")
+            Future.successful(Seq.empty[EoriPeriod])
+
+          case other =>
+            logger.error("Unexpected error retrieving EORI history", other)
+            Future.failed(other)
         }
     }
   }

@@ -24,6 +24,8 @@ object TestData {
   val TEST_EORI_VALUE     = "test_eori"
   val TEST_XI_EORI_VALUE  = "XI_EORI_No"
   val TEST_EORI: EORI     = EORI(TEST_EORI_VALUE)
+  val twenty: Int         = 20
+  val oneHundred: Int     = 100
 
   val DATE_STRING  = "2024-07-22"
   val COMPANY_NAME = "Tony Stark"

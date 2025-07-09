@@ -53,7 +53,7 @@ object UndeliverableInformationEvent {
       (JsPath \\ "code").readNullable[Int] and
       (JsPath \\ "reason").readNullable[String] and
       (JsPath \\ "enrolment").read[String] and
-      (JsPath \\ "source").readNullable[String])(UndeliverableInformationEvent.apply _)
+      (JsPath \\ "source").readNullable[String])(UndeliverableInformationEvent.apply)
 
   implicit val writes: OWrites[UndeliverableInformationEvent] = Json.writes[UndeliverableInformationEvent]
 }

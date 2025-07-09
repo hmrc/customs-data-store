@@ -20,7 +20,6 @@ import config.AppConfig
 import models.*
 import models.responses.{GetEORIHistoryResponse, ResponseCommon, ResponseDetail}
 import org.mockito.ArgumentCaptor
-import play.api
 import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.*
@@ -51,6 +50,8 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
       val result: Seq[models.EoriPeriod] = connector.getEoriHistory(someEori).futureValue
       verifyEndPointUrlHit(url)
+
+      result.nonEmpty mustBe true
     }
 
     "return a list of EoriPeriod entries" in new Setup {
@@ -117,10 +118,8 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
               .withBody(notFoundMessage("GET", actualURL.toString, "error1"))
           )
       )
-
-      assertThrows[NotFoundException] {
-        await(connector.getEoriHistory(someEori))
-      }
+      val result: Seq[EoriPeriod] = await(connector.getEoriHistory(someEori))
+      result mustBe empty
     }
   }
 
