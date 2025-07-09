@@ -22,7 +22,6 @@ import config.AppConfig
 import models.responses.*
 import models.{UndeliverableInformation, UndeliverableInformationEvent}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import play.api
 import play.api.libs.json.Json
 import play.api.test.Helpers.*
 import play.api.{Application, Configuration}
@@ -30,7 +29,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.{SpecBase, WireMockSupportProvider}
 
 import java.time.LocalDateTime
-import scala.concurrent.ExecutionContext
 
 class Sub22ConnectorSpec extends SpecBase with WireMockSupportProvider {
 

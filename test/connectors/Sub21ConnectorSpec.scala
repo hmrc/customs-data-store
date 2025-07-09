@@ -20,7 +20,6 @@ import config.AppConfig
 import models.*
 import models.responses.{GetEORIHistoryResponse, ResponseCommon, ResponseDetail}
 import org.mockito.ArgumentCaptor
-import play.api
 import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.*
@@ -49,7 +48,7 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
           .willReturn(ok(response))
       )
 
-      val result: Seq[models.EoriPeriod] = connector.getEoriHistory(someEori).futureValue
+      connector.getEoriHistory(someEori).futureValue
       verifyEndPointUrlHit(url)
     }
 
