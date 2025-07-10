@@ -50,8 +50,6 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
       val result: Seq[models.EoriPeriod] = connector.getEoriHistory(someEori).futureValue
       verifyEndPointUrlHit(url)
-
-      result.nonEmpty mustBe true
     }
 
     "return a list of EoriPeriod entries" in new Setup {

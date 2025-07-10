@@ -30,7 +30,6 @@ lazy val microservice = Project(appName, file("."))
     scalafmtPrintDiff := true,
     scalafmtFailOnErrors := true,
     scalacOptions := scalacOptions.value.diff(Seq("-Wunused:all")),
-    scalacOptions ++= Seq("-source:3.4-migration", "-rewrite"),
     Test / scalacOptions ++= Seq(
       "-Wunused:imports",
       "-Wunused:params",
