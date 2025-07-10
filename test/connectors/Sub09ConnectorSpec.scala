@@ -202,8 +202,11 @@ class Sub09ConnectorSpec extends SpecBase with WireMockSupportProvider {
           .willReturn(ok(noXiEoriAddress))
       )
 
-      val result: Option[models.XiEoriInformation] = connector.getXiEoriInformation(testEori).futureValue
-      result.map(xiInfo => xiInfo mustBe Option(xiEoriInformationWithNoAddress))
+      val result: Option[XiEoriInformation] = await(connector.getXiEoriInformation(testEori))
+
+      result.getOrElse(
+        XiEoriInformation(emptyString, emptyString, XiEoriAddressInformation(emptyString, None, None, None, None))
+      ) mustBe xiEoriInformationWithNoAddress
 
       verifyEndPointUrlHit(sub09Url)
     }

@@ -63,7 +63,7 @@ class DefaultHistoricEoriRepository @Inject() ()(
       })
 
   override def set(eoriHistory: Seq[EoriPeriod]): Future[HistoricEoriRepositoryResult] = {
-    val query = in("eoriHistory.eori", eoriHistory.map(_.eori): _*)
+    val query = in("eoriHistory.eori", eoriHistory.map(_.eori)*)
 
     val update = Updates.combine(
       Updates.set("eoriHistory", eoriHistory.map(Codecs.toBson(_))),
@@ -94,7 +94,7 @@ object EoriHistory {
     (
       (__ \ "eoriHistory").read[Seq[EoriPeriod]] and
         (__ \ "lastUpdated").read(MongoJavatimeFormats.localDateTimeReads)
-    )(EoriHistory.apply _)
+    )(EoriHistory.apply)
   implicit val format: Format[EoriHistory]    = Format(reads, Json.writes[EoriHistory])
 }
 
