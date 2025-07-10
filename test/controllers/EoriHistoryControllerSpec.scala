@@ -39,7 +39,7 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
 
   "getEoriHistory" should {
     "return 200 OK and skip caching if sub21 returns no EORI history (empty Seq)" in new Setup {
-      private val testEori = "testEori"
+      private val testEori         = "testEori"
       private val getRoute: String = routes.EoriHistoryController.getEoriHistory(testEori).url
 
       when(mockHistoricEoriRepository.get(eqTo(testEori)))
