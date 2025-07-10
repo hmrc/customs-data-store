@@ -48,7 +48,7 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
           .willReturn(ok(response))
       )
 
-      val result: Seq[models.EoriPeriod] = connector.getEoriHistory(someEori).futureValue
+      connector.getEoriHistory(someEori).futureValue
       verifyEndPointUrlHit(url)
     }
 

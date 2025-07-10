@@ -30,6 +30,11 @@ lazy val microservice = Project(appName, file("."))
     scalafmtPrintDiff := true,
     scalafmtFailOnErrors := true,
     scalacOptions := scalacOptions.value.diff(Seq("-Wunused:all")),
+    scalacOptions ++= Seq(
+      "-Wconf:src=routes/.*:s",
+      "-Wconf:msg=Flag.*repeatedly:s",
+      "-Wconf:msg=Implicit parameters should be provided with a `using` clause:s"
+    ),
     Test / scalacOptions ++= Seq(
       "-Wunused:imports",
       "-Wunused:params",

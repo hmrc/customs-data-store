@@ -18,7 +18,7 @@ package connectors
 
 import config.AppConfig
 import config.Headers.*
-import models.responses.SubscriptionResponse
+import models.responses.{PbeAddress, SubscriptionResponse}
 import models.{CompanyInformation, EORI, NotificationEmail, XiEoriInformation}
 import play.api.{Logger, LoggerLike}
 import services.MetricsReporterService
@@ -26,7 +26,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import utils.DateTimeUtils.rfc1123DateTimeFormatter
-import utils.Utils.{randomUUID, uri}
+import utils.Utils.{emptyString, randomUUID, uri}
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -81,7 +81,7 @@ class Sub09Connector @Inject() (
           xiSub              <- detail.XI_Subscription
           xiEori              = xiSub.XI_EORINo
           consent             = xiSub.XI_ConsentToDisclose
-          address            <- xiSub.PBEAddress
+          address            <- xiSub.PBEAddress orElse Some(PbeAddress(emptyString, None, None, None, None))
         } yield XiEoriInformation(xiEori, consent, address.toXiEoriAddress)
       }
 
