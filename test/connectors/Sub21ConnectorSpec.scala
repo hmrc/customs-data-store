@@ -116,10 +116,8 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
               .withBody(notFoundMessage("GET", actualURL.toString, "error1"))
           )
       )
-
-      assertThrows[NotFoundException] {
-        await(connector.getEoriHistory(someEori))
-      }
+      val result: Seq[EoriPeriod] = await(connector.getEoriHistory(someEori))
+      result mustBe empty
     }
   }
 

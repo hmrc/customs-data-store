@@ -68,39 +68,64 @@ class EoriHistoryController @Inject() (
   }
 
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
-    (for {
-      eoriHistory                <- eoriHistoryConnector.getEoriHistory(request.body.eori)
-      updateEoriSucceeded        <- historicEoriRepository.set(Seq(request.body))
-      updateEoriHistorySucceeded <- updateEoriSucceeded match {
-                                      case HistoricEoriSuccessful => historicEoriRepository.set(eoriHistory)
-                                      case _                      => Future.successful(FailedToUpdateHistoricEori)
-                                    }
-    } yield updateEoriHistorySucceeded match {
-      case HistoricEoriSuccessful => NoContent
-      case _                      => InternalServerError
-    }).recover { case err =>
-      log.info(s"Failed to find EoriHistory: ${err.getMessage}")
-      if (err.getMessage.contains("Not found")) NotFound else InternalServerError
-    }
+    eoriHistoryConnector
+      .getEoriHistory(request.body.eori)
+      .flatMap {
+        case Nil =>
+          log.warn("No EORI history found for EORI - skipping cache update")
+          Future.successful(NotFound)
+
+        case eoriHistory =>
+          for {
+            updateEoriSucceeded        <- historicEoriRepository.set(Seq(request.body))
+            updateEoriHistorySucceeded <- updateEoriSucceeded match {
+                                            case HistoricEoriSuccessful => historicEoriRepository.set(eoriHistory)
+                                            case _                      => Future.successful(FailedToUpdateHistoricEori)
+                                          }
+          } yield updateEoriHistorySucceeded match {
+            case HistoricEoriSuccessful => NoContent
+            case _                      => InternalServerError
+          }
+      }
+      .recover { case err =>
+        log.info(s"Failed to find EoriHistory: ${err.getMessage}")
+        if (err.getMessage.contains("Not found") || err.getMessage.contains("Not Found")) {
+          NotFound
+        } else {
+          InternalServerError
+        }
+      }
   }
 
   private def retrieveAndStoreHistoricEoris(eori: String): Future[Result] =
-    for {
-      eoriHistory  <- eoriHistoryConnector.getEoriHistory(eori)
-      updateResult <- historicEoriRepository.set(eoriHistory)
-      result       <- updateResult match {
-                        case HistoricEoriSuccessful =>
-                          historicEoriRepository.get(eori).map {
-                            case Left(_)      => InternalServerError
-                            case Right(value) => Ok(Json.toJson(EoriHistoryResponse(value)))
-                          }
-                        case _                      => Future.successful(InternalServerError)
-                      }
-    } yield result
+    eoriHistoryConnector
+      .getEoriHistory(eori)
+      .flatMap {
+        case Nil =>
+          log.warn("No EORI history found for EORI - skipping cache update")
+          Future.successful(Ok(Json.toJson(EoriHistoryResponse(Seq()))))
+
+        case eoriHistory =>
+          for {
+            updateResult <- historicEoriRepository.set(eoriHistory)
+            result       <- updateResult match {
+                              case HistoricEoriSuccessful =>
+                                historicEoriRepository.get(eori).flatMap {
+                                  case Left(_)      => Future.successful(InternalServerError)
+                                  case Right(value) => Future.successful(Ok(Json.toJson(EoriHistoryResponse(value))))
+                                }
+                              case _                      => Future.successful(InternalServerError)
+                            }
+          } yield result
+      }
+      .recover { case ex =>
+        log.error("Unexpected error retrieving or storing EORI")
+        InternalServerError
+      }
 
   case class EoriHistoryResponse(eoriHistory: Seq[EoriPeriod])
 
-  object EoriHistoryResponse {
+  private object EoriHistoryResponse {
     implicit val format: OFormat[EoriHistoryResponse] = Json.format[EoriHistoryResponse]
   }
 }
