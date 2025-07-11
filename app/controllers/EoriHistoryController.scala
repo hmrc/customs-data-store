@@ -68,20 +68,29 @@ class EoriHistoryController @Inject() (
   }
 
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
-    (for {
-      eoriHistory                <- eoriHistoryConnector.getEoriHistory(request.body.eori)
-      updateEoriSucceeded        <- historicEoriRepository.set(Seq(request.body))
-      updateEoriHistorySucceeded <- updateEoriSucceeded match {
-                                      case HistoricEoriSuccessful => historicEoriRepository.set(eoriHistory)
-                                      case _                      => Future.successful(FailedToUpdateHistoricEori)
-                                    }
-    } yield updateEoriHistorySucceeded match {
-      case HistoricEoriSuccessful => NoContent
-      case _                      => InternalServerError
-    }).recover { case err =>
-      log.info(s"Failed to find EoriHistory: ${err.getMessage}")
-      if (err.getMessage.contains("Not found")) NotFound else InternalServerError
-    }
+    eoriHistoryConnector
+      .getEoriHistory(request.body.eori)
+      .flatMap {
+        case Nil =>
+          log.warn("No EORI history found for EORI - skipping cache update")
+          Future.successful(NotFound)
+
+        case eoriHistory =>
+          for {
+            updateEoriSucceeded        <- historicEoriRepository.set(Seq(request.body))
+            updateEoriHistorySucceeded <- updateEoriSucceeded match {
+                                            case HistoricEoriSuccessful => historicEoriRepository.set(eoriHistory)
+                                            case _                      => Future.successful(FailedToUpdateHistoricEori)
+                                          }
+          } yield updateEoriHistorySucceeded match {
+            case HistoricEoriSuccessful => NoContent
+            case _                      => InternalServerError
+          }
+      }
+      .recover { case err =>
+        log.info(s"Failed to find EoriHistory: ${err.getMessage}")
+        if (err.getMessage.contains("Not found")) NotFound else InternalServerError
+      }
   }
 
   private def retrieveAndStoreHistoricEoris(eori: String): Future[Result] =

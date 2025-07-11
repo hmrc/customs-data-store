@@ -436,8 +436,25 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
   }
 
   "updateEoriHistory" should {
-    "return 204 if the update to historic EORI was successful" in new Setup {
+    "return 404 NOT_FOUND and skip caching if sub21 returns no EORI history (empty Seq)" in new Setup {
+      when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)))
+
       when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(Seq.empty))
+
+      running(app) {
+        val body: JsObject                         = Json.obj("eori" -> "")
+        val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, postRoute).withJsonBody(body)
+
+        val result = route(app, request).value
+
+        status(result) mustBe NOT_FOUND
+      }
+    }
+
+    "return 204 if the update to historic EORI was successful" in new Setup {
+      val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
+
+      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
 
       when(mockHistoricEoriRepository.set(any()))
         .thenReturn(Future.successful(HistoricEoriSuccessful))
@@ -457,7 +474,9 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
     }
 
     "return InternalServerError if the update did not succeed the second time" in new Setup {
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(Seq.empty))
+      val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
+
+      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
 
       when(mockHistoricEoriRepository.set(any()))
         .thenReturn(Future.successful(HistoricEoriSuccessful))
@@ -477,7 +496,9 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
     }
 
     "return InternalServerError if the update did not succeed the first time" in new Setup {
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(Seq.empty))
+      val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
+
+      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
 
       when(mockHistoricEoriRepository.set(any()))
         .thenReturn(Future.successful(FailedToUpdateHistoricEori))
