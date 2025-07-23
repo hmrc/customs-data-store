@@ -19,6 +19,8 @@ package utils
 import models.responses.{CdsEstablishmentAddress, SubResponseDetail}
 import models.{EORI, EmailAddress}
 
+import java.time.LocalDateTime
+
 object TestData {
   val EMAIL_ADDRESS_VALUE = "test@test.com"
   val TEST_EORI_VALUE     = "test_eori"
@@ -37,6 +39,15 @@ object TestData {
   val VAT_ID                      = "242"
 
   val AUTH_BEARER_TOKEN_VALUE = "Bearer secret-token"
+
+  val YEAR    = 2024
+  val MONTH   = 12
+  val DAY     = 15
+  val HOURS   = 16
+  val MINUTES = 30
+  val SECONDS = 35
+
+  val TEST_LOCAL_DATE_TIME: LocalDateTime = LocalDateTime.of(YEAR, MONTH, DAY, HOURS, MINUTES, SECONDS)
 
   val defaultSubResponseDetails: SubResponseDetail = SubResponseDetail(
     EORINo = None,
