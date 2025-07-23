@@ -30,6 +30,8 @@ import java.time.LocalDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import utils.TestData.{DATE_STRING, TEST_EORI_VALUE, TEST_LOCAL_DATE_TIME}
+import play.api.libs.json.{JsResultException, Json}
 
 class HistoricEoriRepositorySpec extends SpecBase {
 
@@ -95,6 +97,21 @@ class HistoricEoriRepositorySpec extends SpecBase {
     }
   }
 
+  "EoriHistory" should {
+
+    "generate correct output for Json Writes" in new Setup {
+      Json.toJson(eoriHistoryOb) mustBe Json.parse(eoriHistoryObJsString)
+    }
+
+    "throw exception for invalid Json" in {
+      val invalidJson = "{ \"period\": \"pending\" }"
+
+      intercept[JsResultException] {
+        Json.parse(invalidJson).as[EoriHistory]
+      }
+    }
+  }
+
   trait Setup {
     val eori1: String = "EORI00000001"
     val eori2: String = "EORI00000002"
@@ -107,6 +124,14 @@ class HistoricEoriRepositorySpec extends SpecBase {
     val period3: EoriPeriod = EoriPeriod(eori3, Some("2003-01-20T00:00:00Z"), None)
     val period4: EoriPeriod = EoriPeriod(eori4, Some("2005-01-20T00:00:00Z"), None)
     val period5: EoriPeriod = EoriPeriod(eori5, Some("2006-01-20T00:00:00Z"), None)
+
+    val eoriPeriod: EoriPeriod        = EoriPeriod(TEST_EORI_VALUE, Some(DATE_STRING), Some(DATE_STRING))
+    val eoriHistoryOb: EoriHistory    = EoriHistory(Seq(eoriPeriod), TEST_LOCAL_DATE_TIME)
+    val eoriHistoryObJsString: String =
+      """{"eoriPeriods":[
+        |{"eori":"test_eori","validFrom":"2024-07-22","validUntil":"2024-07-22"}
+        |],
+        |"lastUpdated":"2024-12-15T16:30:35"}""".stripMargin
 
     def toFuture(condition: Assertion): Future[Assertion] = Future.successful(condition)
 
