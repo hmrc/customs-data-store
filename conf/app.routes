@@ -9,7 +9,6 @@ GET         /eori/company-information                   controllers.CompanyInfor
 GET         /eori/:eori/eori-history                    controllers.EoriHistoryController.getEoriHistory(eori: String)
 GET         /eori/eori-history                          controllers.EoriHistoryController.getEoriHistoryV2()
 
-GET         /eori/:eori/xieori-information              controllers.XiEoriController.getXiEoriInformation(eori: String)
 GET         /eori/xieori-information                    controllers.XiEoriController.getXiEoriInformationV2()
 
 POST        /eori/verified-email-third-party            controllers.VerifiedEmailController.retrieveVerifiedEmailThirdParty()
