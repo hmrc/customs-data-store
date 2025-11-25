@@ -21,67 +21,17 @@ import connectors.Sub09Connector
 import models.{XiEoriAddressInformation, XiEoriInformation}
 import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
+import play.api.{Application, inject}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import play.api.{Application, inject}
 import repositories.XiEoriInformationRepository
+import utils.{MockAuthConnector, SpecBase}
 import utils.TestData.TEST_EORI_VALUE
 import utils.Utils.emptyString
-import utils.{MockAuthConnector, SpecBase}
 
 import scala.concurrent.Future
 
 class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
-
-  "getXiEoriInformation" should {
-
-    "return xi eori information if stored in the database" in new Setup {
-      when(mockXiEoriInformationRepository.get(any()))
-        .thenReturn(Future.successful(Some(xiEoriInformation)))
-
-      running(app) {
-        val request = FakeRequest(GET, getXiEoriInformationRoute)
-
-        val result = route(app, request).value
-
-        contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
-      }
-    }
-
-    "return not found if no information found for user" in new Setup {
-      when(mockXiEoriInformationRepository.get(any()))
-        .thenReturn(Future.successful(None))
-
-      when(mockSubscriptionInfoConnector.getXiEoriInformation(any()))
-        .thenReturn(Future.successful(None))
-
-      running(app) {
-        val request = FakeRequest(GET, getXiEoriInformationRoute)
-
-        val result = route(app, request).value
-
-        status(result) mustBe NOT_FOUND
-      }
-    }
-
-    "return company information and store in the database when no existing data in the database" in new Setup {
-      when(mockXiEoriInformationRepository.get(any()))
-        .thenReturn(Future.successful(None))
-
-      when(mockSubscriptionInfoConnector.getXiEoriInformation(any()))
-        .thenReturn(Future.successful(Some(xiEoriInformation)))
-
-      when(mockXiEoriInformationRepository.set(eori, xiEoriInformation)).thenReturn(Future.unit)
-
-      running(app) {
-        val request = FakeRequest(GET, getXiEoriInformationRoute)
-
-        val result = route(app, request).value
-
-        contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
-      }
-    }
-  }
 
   "getXiEoriInformationV2" should {
 
@@ -148,7 +98,6 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
 
     val eori: String = "testEori"
 
-    val getXiEoriInformationRoute: String   = routes.XiEoriController.getXiEoriInformation(eori).url
     val getXiEoriInformationV2Route: String = routes.XiEoriController.getXiEoriInformationV2().url
 
     val mockXiEoriInformationRepository: XiEoriInformationRepository = mock[XiEoriInformationRepository]

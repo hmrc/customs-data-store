@@ -37,13 +37,6 @@ class XiEoriController @Inject() (
 )(implicit executionContext: ExecutionContext)
     extends BackendController(cc) {
 
-  def getXiEoriInformation(eori: String): Action[AnyContent] = Action.async {
-    retrieveXiEoriInfoAndStore(eori).flatMap {
-      case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
-      case None                    => storeEmptyXiInfoInDBAndReturn404(eori)
-    }
-  }
-
   def getXiEoriInformationV2: Action[AnyContent] = authorisedRequest async {
     implicit request: RequestWithEori[AnyContent] =>
       val eori = request.eori.value
