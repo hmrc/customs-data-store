@@ -117,7 +117,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
       when(mockEmailRepository.get(any())).thenReturn(Future.successful(None))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(None))
 
-      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailV2Route)
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(POST, getVerifiedEmailV2Route)
 
       running(app) {
         val result = route(app, request).value
@@ -132,7 +132,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
       when(mockSubscriptionInfoService.getSubscriberInformation(any())).thenReturn(Future.successful(None))
 
-      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailV2Route)
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(POST, getVerifiedEmailV2Route)
 
       running(app) {
         val result = route(app, request).value
@@ -155,7 +155,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
 
         when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(SuccessfulEmail))
 
-        val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailV2Route)
+        val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(POST, getVerifiedEmailV2Route)
 
         running(app) {
           val result = route(app, request).value
@@ -176,7 +176,7 @@ class VerifiedEmailControllerSpec extends SpecBase with MockAuthConnector {
 
       when(mockEmailRepository.set(any(), any())).thenReturn(Future.successful(FailedToRetrieveEmail))
 
-      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getVerifiedEmailV2Route)
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(POST, getVerifiedEmailV2Route)
 
       running(app) {
         val result = route(app, request).value
