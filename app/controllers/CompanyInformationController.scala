@@ -37,13 +37,6 @@ class CompanyInformationController @Inject() (
 )(implicit executionContext: ExecutionContext)
     extends BackendController(cc) {
 
-  def getCompanyInformation(eori: String): Action[AnyContent] = Action.async {
-    retrieveCompanyInformationAndStore(eori).flatMap {
-      case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
-      case None                     => Future.successful(NotFound)
-    }
-  }
-
   def getCompanyInformationV2: Action[AnyContent] = authorisedRequest async {
     implicit request: RequestWithEori[AnyContent] =>
       val eori = request.eori.value

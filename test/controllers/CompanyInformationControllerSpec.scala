@@ -33,56 +33,6 @@ import scala.concurrent.Future
 
 class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
 
-  "getCompanyInformation" should {
-
-    "return company information if stored in the database" in new Setup {
-      when(mockCompanyInformationRepository.get(any()))
-        .thenReturn(Future.successful(Some(companyInformation)))
-
-      running(app) {
-        val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformation(TEST_EORI_VALUE).url)
-
-        val result = route(app, request).value
-
-        contentAsJson(result).as[CompanyInformation] mustBe companyInformation
-      }
-    }
-
-    "return not found if no information found for user" in new Setup {
-      when(mockCompanyInformationRepository.get(any()))
-        .thenReturn(Future.successful(None))
-
-      when(mockSubscriptionInfoConnector.getCompanyInformation(any()))
-        .thenReturn(Future.successful(None))
-
-      running(app) {
-        val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformation(TEST_EORI_VALUE).url)
-
-        val result = route(app, request).value
-
-        status(result) mustBe NOT_FOUND
-      }
-    }
-
-    "return company information and store in the database when no existing data in the database" in new Setup {
-      when(mockCompanyInformationRepository.get(any()))
-        .thenReturn(Future.successful(None))
-
-      when(mockSubscriptionInfoConnector.getCompanyInformation(any()))
-        .thenReturn(Future.successful(Some(companyInformation)))
-
-      when(mockCompanyInformationRepository.set(TEST_EORI_VALUE, companyInformation)).thenReturn(Future.unit)
-
-      running(app) {
-        val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformation(TEST_EORI_VALUE).url)
-
-        val result = route(app, request).value
-
-        contentAsJson(result).as[CompanyInformation] mustBe companyInformation
-      }
-    }
-  }
-
   "getCompanyInformationV2" should {
 
     "return company information if stored in the database" in new Setup {

@@ -51,7 +51,7 @@ In Postman
 
 ### Login enrolments
 
-The service's endpoints (that need Enrolment to access) can be accessed by using below enrolments
+The service's endpoints (that need Enrolment to access) can be accessed by using below enrolments.
 
 | Enrolment Key	 | Identifier Name | Identifier Value |
 |----------------|-----------------|------------------|
@@ -80,7 +80,6 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 | Path                                                          | Description                                                                                            | Comments                                                                                                                                                                  |
 |---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | GET /customs-data-store/eori/:eori/verified-email             | Retrieve the verified email address for a given EORI either from the cache or SUB09                    | <span style="color: red">Decommissioning soon, use either /customs-data-store/eori/verified-email or /customs-data-store/eori/verified-email-third-party</span>           |
-| GET /customs-data-store/eori/:eori/company-information        | Retrieves the business full name and address for the given EORI                                        | <span style="color: red">Decommissioning soon, use either /customs-data-store/eori/company-information or /customs-data-store/eori/company-information-third-party</span> |
 | GET /customs-data-store/eori/:eori/eori-history               | Retrieves the historic eori's for a given EORI either from the cache or SUB21                          | <span style="color: red">Decommissioning soon, use /customs-data-store/eori/eori-history</span>                                                                           |
 | GET /customs-data-store/eori/xieori-information               | Retrieves the XI EORI information for the requested EORI either from the cache or SUB09                |                                                                                                                                                                           |
 | POST /customs-data-store/eori/verified-email-third-party      | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09 |                                                                                                                                                                           |
@@ -95,7 +94,7 @@ Not applicable
 
 ## GET /eori/:eori/verified-email (<span style="color: red">Decommissioning soon</span>)
 
-An endpoint to retrieve a verified email address for a given EORI
+An endpoint to retrieve a verified email address for a given EORI.
 
 ### Response body
 
@@ -116,7 +115,7 @@ An endpoint to retrieve a verified email address for a given EORI
 
 ## GET /eori/verified-email
 
-An endpoint to retrieve a verified email address for logged-in EORI
+An endpoint to retrieve a verified email address for logged-in EORI.
 
 ### Response body
 
@@ -135,47 +134,9 @@ An endpoint to retrieve a verified email address for logged-in EORI
 | 404    | No verified email has been found for the specified eori |
 | 500    | An unexpected failure happened in the service           |
 
-## GET /eori/:eori/company-information (<span style="color: red">Decommissioning soon<span>)
-
-An endpoint to retrieve the business full name and address for a given EORI
-
-## Response body
-
-```json
-{
-  "name": "ABC ltd",
-  "consent": "1",
-  "address" : {
-    "streetAndNumber": "12 Example Street",
-    "city": "Example",
-    "postalCode": "AA00 0AA",
-    "countryCode": "GB"
-  }
-}
-```
-
-### Fields
-
-| Field                               | Required                                          | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
-| name | Mandatory        | Company name        |
-| consent | Optional        | consentToDisclosureOfPersonalData        |
-| address | Mandatory        | The address Information for the company        |
-| address.streetAndNumber | Mandatory | The street and number where the company resides |
-| address.city | Mandatory | The city where the company resides |
-| address.postalCode | Optional | Mandatory for the country code "GB" |
-| address.countryCode | Mandatory | The country code where the company resides |
-
-### Response codes
-
-| Status                               | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- |
-| 200 | Company information found and returned        |
-| 404 | Company information not found or elements of the payload not found |
-
 ## GET /eori/company-information
 
-An endpoint to retrieve the business full name and address for logged-in EORI
+An endpoint to retrieve the business full name and address for logged-in EORI.
 
 ## Response body
 
@@ -213,7 +174,7 @@ An endpoint to retrieve the business full name and address for logged-in EORI
 
 ## POST /update-email
 
-An endpoint to update the verified email address for a given EORI and removes undeliverable information
+An endpoint to update the verified email address for a given EORI and removes undeliverable information.
 
 ### Example request
 
@@ -235,7 +196,7 @@ An endpoint to update the verified email address for a given EORI and removes un
 
 ## GET /eori/:eori/eori-history (<span style="color: red">Decommissioning soon</span>)
 
-An endpoint that provides a list of all historic EORI's associated with a given EORI
+An endpoint that provides a list of all historic EORI's associated with a given EORI.
 
 ### Response body
 
@@ -264,7 +225,7 @@ An endpoint that provides a list of all historic EORI's associated with a given 
 
 ## GET /eori/eori-history
 
-An endpoint that provides a list of all historic EORI's associated for logged-in EORI
+An endpoint that provides a list of all historic EORI's associated for logged-in EORI.
 
 ### Response body
 
@@ -294,7 +255,7 @@ An endpoint that provides a list of all historic EORI's associated for logged-in
 
 ## GET /eori/xieori-information
 
-An endpoint that provides XI EORI information for the requested EORI
+An endpoint that provides XI EORI information for the requested EORI.
 
 ### Response body
 
@@ -319,7 +280,7 @@ An endpoint that provides XI EORI information for the requested EORI
 
 ## POST /eori/verified-email-third-party
 
-An endpoint to retrieve a verified email address for EORI specified in request body
+An endpoint to retrieve a verified email address for EORI specified in request body.
 
 ### Example request
 
@@ -355,7 +316,7 @@ An endpoint to retrieve a verified email address for EORI specified in request b
 
 ## POST /eori/company-information-third-party
 
-An endpoint to retrieve the business full name and address for EORI specified in request body
+An endpoint to retrieve the business full name and address for EORI specified in request body.
 
 ### Example request
 
@@ -409,7 +370,7 @@ An endpoint to retrieve the business full name and address for EORI specified in
 
 ## POST /eori/eori-history-third-party
 
-An endpoint to retrieve the historic EORIs of a given third party EORI (not the logged in user's EORI)
+An endpoint to retrieve the historic EORIs of a given third party EORI (not the logged-in user's EORI).
 
 ### Example request
 
@@ -452,7 +413,7 @@ An endpoint to retrieve the historic EORIs of a given third party EORI (not the 
 
 ## POST /update-eori-history
 
-An endpoint to populate the historic EORI's for a given EORI
+An endpoint to populate the historic EORI's for a given EORI.
 
 ### Example request
 
@@ -471,7 +432,7 @@ An endpoint to populate the historic EORI's for a given EORI
 
 ## POST /update-undeliverable-email
 
-An endpoint to update undeliverable information for an enrolmentValue
+An endpoint to update undeliverable information for an enrolmentValue.
 
 ### Request parameters
 | Param                               | Type                                          | Optional/Mandatory|
