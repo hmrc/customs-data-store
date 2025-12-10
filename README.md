@@ -80,7 +80,6 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 | Path                                                          | Description                                                                                            | Comments                                                                                                                                                                  |
 |---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | GET /customs-data-store/eori/:eori/verified-email             | Retrieve the verified email address for a given EORI either from the cache or SUB09                    | <span style="color: red">Decommissioning soon, use either /customs-data-store/eori/verified-email or /customs-data-store/eori/verified-email-third-party</span>           |
-| GET /customs-data-store/eori/:eori/eori-history               | Retrieves the historic eori's for a given EORI either from the cache or SUB21                          | <span style="color: red">Decommissioning soon, use /customs-data-store/eori/eori-history</span>                                                                           |
 | GET /customs-data-store/eori/xieori-information               | Retrieves the XI EORI information for the requested EORI either from the cache or SUB09                |                                                                                                                                                                           |
 | POST /customs-data-store/eori/verified-email-third-party      | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09 |                                                                                                                                                                           |
 | POST /customs-data-store/eori/company-information-third-party | Retrieves the business full name for the EORI specified in request body                                |                                                                                                                                                                           |
@@ -194,34 +193,6 @@ An endpoint to update the verified email address for a given EORI and removes un
 | address | Mandatory        | The verified email address for the specified eori        |
 | timestamp | Mandatory | The timestamp when the email was verified |
 
-## GET /eori/:eori/eori-history (<span style="color: red">Decommissioning soon</span>)
-
-An endpoint that provides a list of all historic EORI's associated with a given EORI.
-
-### Response body
-
-```json
-{
-"eoriHistory": [
-  {
-    "eori": "historicEori1", 
-    "validFrom": "2001-01-20T00:00:00Z", 
-    "validTo": "2001-01-20T00:00:00Z"
-  },
-  {
-    "eori": "historicEori2",
-    "validFrom": "2001-01-20T00:00:00Z",
-    "validTo": "2001-01-20T00:00:00Z"
-  }
-]
-}
-```
-### Response codes
-
-| Status                               | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- |
-| 200 | A sequence of historic eori's returned        |
-| 500 | An unexpected failure happened in the service |
 
 ## GET /eori/eori-history
 

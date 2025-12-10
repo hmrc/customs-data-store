@@ -4,10 +4,7 @@ GET         /eori/:eori/verified-email                  controllers.VerifiedEmai
 GET         /eori/verified-email                        controllers.VerifiedEmailController.getVerifiedEmailV2()
 
 GET         /eori/company-information                   controllers.CompanyInformationController.getCompanyInformationV2
-
-GET         /eori/:eori/eori-history                    controllers.EoriHistoryController.getEoriHistory(eori: String)
 GET         /eori/eori-history                          controllers.EoriHistoryController.getEoriHistoryV2()
-
 GET         /eori/xieori-information                    controllers.XiEoriController.getXiEoriInformationV2()
 
 POST        /eori/verified-email-third-party            controllers.VerifiedEmailController.retrieveVerifiedEmailThirdParty()
