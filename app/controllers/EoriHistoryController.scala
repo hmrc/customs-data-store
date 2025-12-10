@@ -39,14 +39,6 @@ class EoriHistoryController @Inject() (
 
   val log: LoggerLike = Logger(this.getClass)
 
-  def getEoriHistory(eori: String): Action[AnyContent] = Action.async {
-    historicEoriRepository.get(eori).flatMap {
-      case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
-        Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
-      case _                                                                   => retrieveAndStoreHistoricEoris(eori)
-    }
-  }
-
   def getEoriHistoryV2: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
     val eori = request.eori.value
 
