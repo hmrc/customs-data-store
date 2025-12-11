@@ -39,19 +39,6 @@ class VerifiedEmailController @Inject() (
 )(implicit executionContext: ExecutionContext)
     extends BackendController(cc) {
 
-  def getVerifiedEmail(eori: String): Action[AnyContent] = Action.async {
-    def retrieveAndStoreEmail: Future[Result] =
-      (for {
-        notificationEmail <- OptionT(subscriptionInfoConnector.getSubscriberInformation(eori))
-        result            <- OptionT.liftF(storeEmail(eori, notificationEmail))
-      } yield result).getOrElse(NotFound)
-
-    emailRepo.get(eori).flatMap {
-      case Some(value) => Future.successful(Ok(Json.toJson(value)))
-      case None        => retrieveAndStoreEmail
-    }
-  }
-
   def getVerifiedEmailV2: Action[AnyContent] = authorisedRequest async {
     implicit request: RequestWithEori[AnyContent] =>
       emailRepo.get(request.eori.value).flatMap {

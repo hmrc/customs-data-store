@@ -40,7 +40,7 @@ class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
         .thenReturn(Future.successful(Some(companyInformation)))
 
       running(app) {
-        val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformationV2.url)
+        val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformationV2().url)
 
         val result = route(app, request).value
 
@@ -56,7 +56,7 @@ class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
         .thenReturn(Future.successful(None))
 
       running(app) {
-        val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformationV2.url)
+        val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformationV2().url)
 
         val result = route(app, request).value
 
@@ -74,7 +74,7 @@ class CompanyInformationControllerSpec extends SpecBase with MockAuthConnector {
       when(mockCompanyInformationRepository.set(TEST_EORI_VALUE, companyInformation)).thenReturn(Future.unit)
 
       running(app) {
-        val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformationV2.url)
+        val request = FakeRequest(GET, routes.CompanyInformationController.getCompanyInformationV2().url)
 
         val result = route(app, request).value
 

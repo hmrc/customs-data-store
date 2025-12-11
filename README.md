@@ -79,7 +79,6 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 
 | Path                                                          | Description                                                                                            | Comments                                                                                                                                                                  |
 |---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| GET /customs-data-store/eori/:eori/verified-email             | Retrieve the verified email address for a given EORI either from the cache or SUB09                    | <span style="color: red">Decommissioning soon, use either /customs-data-store/eori/verified-email or /customs-data-store/eori/verified-email-third-party</span>           |
 | GET /customs-data-store/eori/xieori-information               | Retrieves the XI EORI information for the requested EORI either from the cache or SUB09                |                                                                                                                                                                           |
 | POST /customs-data-store/eori/verified-email-third-party      | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09 |                                                                                                                                                                           |
 | POST /customs-data-store/eori/company-information-third-party | Retrieves the business full name for the EORI specified in request body                                |                                                                                                                                                                           |
@@ -90,27 +89,6 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 
 ## Feature Switches
 Not applicable
-
-## GET /eori/:eori/verified-email (<span style="color: red">Decommissioning soon</span>)
-
-An endpoint to retrieve a verified email address for a given EORI.
-
-### Response body
-
-```json
-{
-  "address" : "test@email.com",
-  "timestamp" : "2020-03-20T01:02:03Z"
-}
-```
-
-### Response codes
-
-| Status | Description                                             |
-|--------|---------------------------------------------------------|
-| 200    | A verified email has been found for the specified eori  |
-| 404    | No verified email has been found for the specified eori |
-| 500    | An unexpected failure happened in the service           |
 
 ## GET /eori/verified-email
 

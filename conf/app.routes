@@ -1,9 +1,7 @@
 # microservice specific routes
 
-GET         /eori/:eori/verified-email                  controllers.VerifiedEmailController.getVerifiedEmail(eori: String)
 GET         /eori/verified-email                        controllers.VerifiedEmailController.getVerifiedEmailV2()
-
-GET         /eori/company-information                   controllers.CompanyInformationController.getCompanyInformationV2
+GET         /eori/company-information                   controllers.CompanyInformationController.getCompanyInformationV2()
 GET         /eori/eori-history                          controllers.EoriHistoryController.getEoriHistoryV2()
 GET         /eori/xieori-information                    controllers.XiEoriController.getXiEoriInformationV2()
 
