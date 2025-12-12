@@ -1,11 +1,10 @@
-
 # customs-data-store
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Coverage](https://img.shields.io/badge/test_coverage-90-green.svg)](/target/scala-3.7.0/scoverage-report/index.html) [![Accessibility](https://img.shields.io/badge/WCAG2.2-AA-purple.svg)](https://www.gov.uk/service-manual/helping-people-to-use-your-service/understanding-wcag)
 
 This repository contains the code for a persistent cache holding customs related data.
 
-This Microservice is a common backend service and used by other CDS teams (Exports and Reimbursement) as well.
+This Microservice is a common backend service and used by other Services like CDS Exports, CDS Financials, CDS Reimbursements etc.
 
 ## Running the service
 
@@ -21,7 +20,8 @@ Default service port on local - 9893
 
 There are a number of dependencies required to run the service.
 
-The easiest way to get started with these is via the service manager CLI - you can find the installation guide [here](https://docs.tax.service.gov.uk/mdtp-handbook/documentation/developer-set-up/set-up-service-manager.html)
+The easiest way to get started with these is via the service manager CLI - you can find the installation
+guide [here](https://docs.tax.service.gov.uk/mdtp-handbook/documentation/developer-set-up/set-up-service-manager.html)
 
 | Command                              | Description                                                      |
 |--------------------------------------|------------------------------------------------------------------|
@@ -31,13 +31,19 @@ The easiest way to get started with these is via the service manager CLI - you c
 | `sbt run` or `sbt "run 9893"`        | (from root dir) to compile the current service with your changes |
 
 ## Running and testing on localhost:
-If you want to run [customs-data-store](https://github.com/hmrc/customs-data-store) locally then you also have to run [customs-financials-hods-stub](https://github.com/hmrc/customs-financials-hods-stub) so that it can retrieve historic Eoris from there.  
-To start the service from sbt: `sbt "run 9893" ` or from service manager: `sm --start CUSTOMS_DATA_STORE CUSTOMS_FINANCIALS_HODS_STUB -f`  
+
+If you want to run [customs-data-store](https://github.com/hmrc/customs-data-store) locally then you also have to
+run [customs-financials-hods-stub](https://github.com/hmrc/customs-financials-hods-stub) so that it can retrieve
+historic Eoris from there.  
+To start the service from sbt: `sbt "run 9893" ` or from service manager:
+`sm --start CUSTOMS_DATA_STORE CUSTOMS_FINANCIALS_HODS_STUB -f`  
 In Postman
+
 1. Send in any of the below requests to http://localhost:9893/customs-data-store/
 2. Add and `Authorization` header and set its value to whatever is in `application.conf  ` under the key `server-token`
 
 ### Runtime Dependencies
+
 (These are subject to change and may not include every dependency)
 
 * `AUTH`
@@ -77,17 +83,24 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 
 ## Available Routes
 
-| Path                                                          | Description                                                                                            | Comments                                                                                                                                                                  |
-|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| GET /customs-data-store/eori/xieori-information               | Retrieves the XI EORI information for the requested EORI either from the cache or SUB09                |                                                                                                                                                                           |
-| POST /customs-data-store/eori/verified-email-third-party      | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09 |                                                                                                                                                                           |
-| POST /customs-data-store/eori/company-information-third-party | Retrieves the business full name for the EORI specified in request body                                |                                                                                                                                                                           |
-| POST /customs-data-store/eori/eori-history-third-party        | Retrieves the historic EORIs for a given third-party EORI                                              |                                                                                                                                                                           |
-| POST /customs-data-store/update-email                         | Populates a new verified email address in the cache and removes undeliverable information              |                                                                                                                                                                           |
-| POST /customs-data-store/update-eori-history                  | Updates the eori history for a given EORI in the cache                                                 |                                                                                                                                                                           |
-| POST /update-undeliverable-email                              | Updates undeliverable information for a given enrolmentValue                                           |                                                                                                                                                                           |
+| Path                                                           | Description                                                                                            | Comments |
+|----------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|
+| GET /customs-data-store/eori/verified-email                    | Retrieves a verified email address for the logged-in EORI either from cache or SUB09                   |          |
+| GET /customs-data-store/eori/company-information               | Retrieves the business full name and address for the logged-in EORI either from cache or SUB09         |          |
+| GET /customs-data-store/eori/eori-history                      | Retrieves a list of all historic EORI's associated with the logged-in EORI either from cache or SUB09  |          |
+| GET /customs-data-store/eori/xieori-information                | Retrieves XI EORI information for the logged-in EORI either from cache or SUB09                        |          |
+| POST /customs-data-store/eori/verified-email-third-party       | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09 |          |
+| POST /customs-data-store/eori/company-information-third-party  | Retrieves the business full name for the EORI specified in request body either from cache or SUB09     |          |
+| POST /customs-data-store/eori/eori-history-third-party         | Retrieves the historic EORIs for the EORI specified in request body from cache or SUB21                |          |
+| POST /customs-data-store/update-email                          | Populates a new verified email address in the cache and removes undeliverable information              |          |
+| POST /customs-data-store/update-eori-history                   | Updates the eori history for a given EORI in the cache                                                 |          |
+| POST /customs-data-store/update-undeliverable-email            | Updates undeliverable information for a given enrolmentValue                                           |          |
+| GET /customs-data-store/subscriptions/subscriptionsdisplay     | Internal Use Only                                                                                      |          |
+| GET /customs-data-store/subscriptions/unverified-email-display | Internal Use Only                                                                                      |          |
+| GET /customs-data-store/subscriptions/email-display            | Internal Use Only                                                                                      |          |
 
 ## Feature Switches
+
 Not applicable
 
 ## GET /eori/verified-email
@@ -98,8 +111,8 @@ An endpoint to retrieve a verified email address for logged-in EORI.
 
 ```json
 {
-  "address" : "test@email.com",
-  "timestamp" : "2020-03-20T01:02:03Z"
+  "address": "test@email.com",
+  "timestamp": "2020-03-20T01:02:03Z"
 }
 ```
 
@@ -121,7 +134,7 @@ An endpoint to retrieve the business full name and address for logged-in EORI.
 {
   "name": "ABC ltd",
   "consent": "1",
-  "address" : {
+  "address": {
     "streetAndNumber": "12 Example Street",
     "city": "Example",
     "postalCode": "AA00 0AA",
@@ -132,79 +145,56 @@ An endpoint to retrieve the business full name and address for logged-in EORI.
 
 ### Fields
 
-| Field                               | Required                                          | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
-| name | Mandatory        | Company name        |
-| consent | Optional        | consentToDisclosureOfPersonalData        |
-| address | Mandatory        | The address Information for the company        |
+| Field                   | Required  | Description                                     |
+|-------------------------|-----------|-------------------------------------------------|
+| name                    | Mandatory | Company name                                    |
+| consent                 | Optional  | consentToDisclosureOfPersonalData               |
+| address                 | Mandatory | The address Information for the company         |
 | address.streetAndNumber | Mandatory | The street and number where the company resides |
-| address.city | Mandatory | The city where the company resides |
-| address.postalCode | Optional | Mandatory for the country code "GB" |
-| address.countryCode | Mandatory | The country code where the company resides |
+| address.city            | Mandatory | The city where the company resides              |
+| address.postalCode      | Optional  | Mandatory for the country code "GB"             |
+| address.countryCode     | Mandatory | The country code where the company resides      |
 
 ### Response codes
 
-| Status                               | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- |
-| 200 | Company information found and returned        |
-| 404 | Company information not found or elements of the payload not found |
-
-## POST /update-email
-
-An endpoint to update the verified email address for a given EORI and removes undeliverable information.
-
-### Example request
-
-```json
-{
-  "eori" : "someEori",
-  "address" : "test@email.com",
-  "timestamp" : "2020-03-20T01:02:03Z"
-}
-```
-
-### Fields
-
-| Field                               | Required                                          | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
-| eori | Mandatory        | The eori used to provide a verified email address to        |
-| address | Mandatory        | The verified email address for the specified eori        |
-| timestamp | Mandatory | The timestamp when the email was verified |
-
+| Status | Description                                                        |
+|--------|--------------------------------------------------------------------|
+| 200    | Company information found and returned                             |
+| 404    | Company information not found or elements of the payload not found |
 
 ## GET /eori/eori-history
 
-An endpoint that provides a list of all historic EORI's associated for logged-in EORI.
+An endpoint that retrieves a list of all historic EORI's associated with logged-in EORI.
 
 ### Response body
 
 ```json
 {
-"eoriHistory": [
-  {
-    "eori": "historicEori1", 
-    "validFrom": "2001-01-20T00:00:00Z", 
-    "validTo": "2001-01-20T00:00:00Z"
-  },
-  {
-    "eori": "historicEori2",
-    "validFrom": "2001-01-20T00:00:00Z",
-    "validTo": "2001-01-20T00:00:00Z"
-  }
-]
+  "eoriHistory": [
+    {
+      "eori": "historicEori1",
+      "validFrom": "2001-01-20T00:00:00Z",
+      "validTo": "2001-01-20T00:00:00Z"
+    },
+    {
+      "eori": "historicEori2",
+      "validFrom": "2001-01-20T00:00:00Z",
+      "validTo": "2001-01-20T00:00:00Z"
+    }
+  ]
 }
 ```
+
 ### Response codes
 
-| Status                               | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- |
-| 200 | A sequence of historic eori's returned        |
-| 500 | An unexpected failure happened in the service |
-
+| Status | Description                                   |
+|--------|-----------------------------------------------|
+| 200    | A sequence of historic eori's returned        |
+| 500    | An unexpected failure happened in the service |
 
 ## GET /eori/xieori-information
 
-An endpoint that provides XI EORI information for the requested EORI.
+An endpoint that retrieves XI EORI information for the requested EORI.
 
 ### Response body
 
@@ -220,6 +210,7 @@ An endpoint that provides XI EORI information for the requested EORI.
   }
 }
 ```
+
 ### Response codes
 
 | Status | Description                                                   |
@@ -235,33 +226,33 @@ An endpoint to retrieve a verified email address for EORI specified in request b
 
 ```json
 {
-  "eori" : "testEori"
+  "eori": "testEori"
 }
 ```
 
 ### Fields
 
-| Field                               | Required                                          | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
-| eori | Mandatory        | The eori used to provide a verified email address to        |
+| Field | Required  | Description                                          |
+|-------|-----------|------------------------------------------------------|
+| eori  | Mandatory | The eori used to provide a verified email address to |
 
 ### Response body
 
 ```json
 {
-  "address" : "test@email.com",
-  "timestamp" : "2020-03-20T01:02:03Z"
+  "address": "test@email.com",
+  "timestamp": "2020-03-20T01:02:03Z"
 }
 ```
 
 ### Response codes
 
-| Status                               | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- |
-| 200 | A verified email has been found for the specified eori        |
-| 400 | Malformed request |
-| 404 | No verified email has been found for the specified eori        |
-| 500 | An unexpected failure happened in the service |
+| Status | Description                                             |
+|--------|---------------------------------------------------------|
+| 200    | A verified email has been found for the specified eori  |
+| 400    | Malformed request                                       |
+| 404    | No verified email has been found for the specified eori |
+| 500    | An unexpected failure happened in the service           |
 
 ## POST /eori/company-information-third-party
 
@@ -271,14 +262,15 @@ An endpoint to retrieve the business full name and address for EORI specified in
 
 ```json
 {
-  "eori" : "testEori"
+  "eori": "testEori"
 }
 ```
+
 ### Fields
 
-| Field                               | Required                                          | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
-| eori | Mandatory        | The eori used to provide a verified email address to        |
+| Field | Required  | Description                                          |
+|-------|-----------|------------------------------------------------------|
+| eori  | Mandatory | The eori used to provide a verified email address to |
 
 ### Response body
 
@@ -286,7 +278,7 @@ An endpoint to retrieve the business full name and address for EORI specified in
 {
   "name": "ABC ltd",
   "consent": "1",
-  "address" : {
+  "address": {
     "streetAndNumber": "12 Example Street",
     "city": "Example",
     "postalCode": "AA00 0AA",
@@ -297,25 +289,24 @@ An endpoint to retrieve the business full name and address for EORI specified in
 
 ### Fields
 
-| Field                               | Required                                          | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- | ---------------------------------------------------- |
-| name | Mandatory        | Company name        |
-| consent | Optional        | consentToDisclosureOfPersonalData        |
-| address | Mandatory        | The address Information for the company        |
+| Field                   | Required  | Description                                     |
+|-------------------------|-----------|-------------------------------------------------|
+| name                    | Mandatory | Company name                                    |
+| consent                 | Optional  | consentToDisclosureOfPersonalData               |
+| address                 | Mandatory | The address Information for the company         |
 | address.streetAndNumber | Mandatory | The street and number where the company resides |
-| address.city | Mandatory | The city where the company resides |
-| address.postalCode | Optional | Mandatory for the country code "GB" |
-| address.countryCode | Mandatory | The country code where the company resides |
+| address.city            | Mandatory | The city where the company resides              |
+| address.postalCode      | Optional  | Mandatory for the country code "GB"             |
+| address.countryCode     | Mandatory | The country code where the company resides      |
 
 ### Response codes
 
-| Status                               | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- |
-| 200 | A verified email has been found for the specified eori        |
-| 400 | Malformed request |
-| 404 | No verified email has been found for the specified eori        |
-| 500 | An unexpected failure happened in the service |
-
+| Status | Description                                             |
+|--------|---------------------------------------------------------|
+| 200    | A verified email has been found for the specified eori  |
+| 400    | Malformed request                                       |
+| 404    | No verified email has been found for the specified eori |
+| 500    | An unexpected failure happened in the service           |
 
 ## POST /eori/eori-history-third-party
 
@@ -325,40 +316,63 @@ An endpoint to retrieve the historic EORIs of a given third party EORI (not the 
 
 ```json
 {
-  "eori" : "testEori"
+  "eori": "testEori"
 }
 ```
+
 ### Fields
 
-| Field                               | Required                                          | Description                                                          |
-| ---------------------------------  | ---------------------------------------------------- |----------------------------------------------------------------------|
-| eori | Mandatory        | The eori for which historically associated EORIs are to be retrieved |
+| Field | Required  | Description                                                          |
+|-------|-----------|----------------------------------------------------------------------|
+| eori  | Mandatory | The eori for which historically associated EORIs are to be retrieved |
 
 ### Response body
 
 ```json
 {
-"eoriHistory": [
-  {
-    "eori": "historicEori1", 
-    "validFrom": "2001-01-20T00:00:00Z", 
-    "validTo": "2001-01-20T00:00:00Z"
-  },
-  {
-    "eori": "historicEori2",
-    "validFrom": "2001-01-20T00:00:00Z",
-    "validTo": "2001-01-20T00:00:00Z"
-  }
-]
+  "eoriHistory": [
+    {
+      "eori": "historicEori1",
+      "validFrom": "2001-01-20T00:00:00Z",
+      "validTo": "2001-01-20T00:00:00Z"
+    },
+    {
+      "eori": "historicEori2",
+      "validFrom": "2001-01-20T00:00:00Z",
+      "validTo": "2001-01-20T00:00:00Z"
+    }
+  ]
 }
 ```
+
 ### Response codes
 
-| Status                               | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- |
-| 200 | A sequence of historic eori's returned        |
-| 500 | An unexpected failure happened in the service |
+| Status | Description                                   |
+|--------|-----------------------------------------------|
+| 200    | A sequence of historic eori's returned        |
+| 500    | An unexpected failure happened in the service |
 
+## POST /update-email
+
+An endpoint to update the verified email address for a given EORI and removes undeliverable information.
+
+### Example request
+
+```json
+{
+  "eori": "someEori",
+  "address": "test@email.com",
+  "timestamp": "2020-03-20T01:02:03Z"
+}
+```
+
+### Fields
+
+| Field     | Required  | Description                                          |
+|-----------|-----------|------------------------------------------------------|
+| eori      | Mandatory | The eori used to provide a verified email address to |
+| address   | Mandatory | The verified email address for the specified eori    |
+| timestamp | Mandatory | The timestamp when the email was verified            |
 
 ## POST /update-eori-history
 
@@ -368,36 +382,36 @@ An endpoint to populate the historic EORI's for a given EORI.
 
 ```json
 {
-  "eori" : "testEori"
+  "eori": "testEori"
 }
 ```
 
 ### Response codes
 
-| Status                               | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- |
-| 204 | Successfully updated the historic EORI's in the cache       |
-| 500 | An unexpected failure happened in the service |
+| Status | Description                                           |
+|--------|-------------------------------------------------------|
+| 204    | Successfully updated the historic EORI's in the cache |
+| 500    | An unexpected failure happened in the service         |
 
 ## POST /update-undeliverable-email
 
 An endpoint to update undeliverable information for an enrolmentValue.
 
 ### Request parameters
-| Param                               | Type                                          | Optional/Mandatory|
-| ---------------------------------  | ---------------------------------------------------- | --- |
-| subject | String       | Mandatory |
-| eventId | String       | Mandatory |
-| groupId | String       | Mandatory |
-| timestamp | DateTime       | Mandatory |
-| event.id | String       | Mandatory |
-| event.enrolment | String       | Mandatory |
-| event.emailAddress | String       | Mandatory |
-| event.event | String       | Mandatory |
-| event.detected | DateTime       | Mandatory |
-| event.code | Int       | Optional |
-| event.reason | String       | Optional |
 
+| Param              | Type     | Optional/Mandatory |
+|--------------------|----------|--------------------|
+| subject            | String   | Mandatory          |
+| eventId            | String   | Mandatory          |
+| groupId            | String   | Mandatory          |
+| timestamp          | DateTime | Mandatory          |
+| event.id           | String   | Mandatory          |
+| event.enrolment    | String   | Mandatory          |
+| event.emailAddress | String   | Mandatory          |
+| event.event        | String   | Mandatory          |
+| event.detected     | DateTime | Mandatory          |
+| event.code         | Int      | Optional           |
+| event.reason       | String   | Optional           |
 
 ### Example request
 
@@ -421,13 +435,12 @@ An endpoint to update undeliverable information for an enrolmentValue.
 
 ### Response codes
 
-| Status                               | Description                                          |
-| ---------------------------------  | ---------------------------------------------------- |
-| 204 | Successfully updated undeliverable information for enrolmentValue  |
-| 404 | No update was performed on a record either due to it not existing or already having the same undeliverable information present |
-| 400 | If enrolmentKey is not equal to 'HMRC-CUS-ORG' OR If enrolmentIdentifier is not equal to 'EORINumber' |
-| 500 | An unexpected failure happened in the service |
-
+| Status | Description                                                                                                                    |
+|--------|--------------------------------------------------------------------------------------------------------------------------------|
+| 204    | Successfully updated undeliverable information for enrolmentValue                                                              |
+| 404    | No update was performed on a record either due to it not existing or already having the same undeliverable information present |
+| 400    | If enrolmentKey is not equal to 'HMRC-CUS-ORG' OR If enrolmentIdentifier is not equal to 'EORINumber'                          |
+| 500    | An unexpected failure happened in the service                                                                                  |
 
 ## Helpful commands
 
