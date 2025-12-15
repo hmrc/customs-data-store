@@ -2,26 +2,16 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Coverage](https://img.shields.io/badge/test_coverage-90-green.svg)](/target/scala-3.7.0/scoverage-report/index.html) [![Accessibility](https://img.shields.io/badge/WCAG2.2-AA-purple.svg)](https://www.gov.uk/service-manual/helping-people-to-use-your-service/understanding-wcag)
 
-This repository contains the code for a persistent cache holding customs related data.
+This repository contains the code for a persistent cache that holds customs-related data.
 
-This Microservice is a common backend service and used by other Services like CDS Exports, CDS Financials, CDS Reimbursements etc.
+This microservice is a common backend service, which is used by other services. For example, it is used by CDS Exports, CDS Financials and CDS Reimbursements.
 
-## Running the service
-
-*From the root directory*
-
-`sbt run` - starts the service locally
-
-`sbt runAllChecks` - Will run all checks required for a successful build
-
-Default service port on local - 9893
-
-### Required dependencies
+##  Pre-requisites
 
 There are a number of dependencies required to run the service.
 
-The easiest way to get started with these is via the service manager CLI - you can find the installation
-guide [here](https://docs.tax.service.gov.uk/mdtp-handbook/documentation/developer-set-up/set-up-service-manager.html)
+The easiest way to get started with these is via the Service Manager command line interface. You can find the installation
+instructions in the [MDTP HandBook](https://docs.tax.service.gov.uk/mdtp-handbook/documentation/developer-set-up/set-up-service-manager.html).
 
 | Command                              | Description                                                      |
 |--------------------------------------|------------------------------------------------------------------|
@@ -30,45 +20,11 @@ guide [here](https://docs.tax.service.gov.uk/mdtp-handbook/documentation/develop
 | `sm2 --stop CUSTOMS_DATA_STORE`      | Stop the micro service                                           |
 | `sbt run` or `sbt "run 9893"`        | (from root dir) to compile the current service with your changes |
 
-## Running and testing on localhost:
-
-If you want to run [customs-data-store](https://github.com/hmrc/customs-data-store) locally then you also have to
-run [customs-financials-hods-stub](https://github.com/hmrc/customs-financials-hods-stub) so that it can retrieve
-historic Eoris from there.  
-To start the service from sbt: `sbt "run 9893" ` or from service manager:
-`sm --start CUSTOMS_DATA_STORE CUSTOMS_FINANCIALS_HODS_STUB -f`  
-In Postman
-
-1. Send in any of the below requests to http://localhost:9893/customs-data-store/
-2. Add and `Authorization` header and set its value to whatever is in `application.conf  ` under the key `server-token`
-
-### Runtime Dependencies
-
-(These are subject to change and may not include every dependency)
-
-* `AUTH`
-* `AUTH_LOGIN_STUB`
-* `AUTH_LOGIN_API`
-* `BAS_GATEWAY`
-* `CA_FRONTEND`
-* `SSO`
-* `USER_DETAILS`
-* `CUSTOMS_FINANCIALS_SDES_STUB`
-
-### Login enrolments
-
-The service's endpoints (that need Enrolment to access) can be accessed by using below enrolments.
-
-| Enrolment Key	 | Identifier Name | Identifier Value |
-|----------------|-----------------|------------------|
-| `HMRC-CUS-ORG` | `EORINumber`    | `GB744638982000` |
-| `HMRC-CUS-ORG` | `EORINumber`    | `GB744638982001` |
-
 ## Testing
 
 The minimum requirement for test coverage is 90%. Builds will fail when the project drops below this threshold.
 
-### Unit Tests
+### Unit tests
 
 | Command                                | Description                  |
 |----------------------------------------|------------------------------|
@@ -81,7 +37,7 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 |------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | `sbt clean coverage test coverageReport` | Generates a unit test coverage report that you can find here target/scala-3.3.5/scoverage-report/index.html |
 
-## Available Routes
+## Available routes
 
 | Path                                                           | Description                                                                                            | Comments |
 |----------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|
@@ -99,7 +55,7 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 | GET /customs-data-store/subscriptions/unverified-email-display | Internal Use Only                                                                                      |          |
 | GET /customs-data-store/subscriptions/email-display            | Internal Use Only                                                                                      |          |
 
-## Feature Switches
+## Feature switches
 
 Not applicable
 
