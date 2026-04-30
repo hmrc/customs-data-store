@@ -49,17 +49,17 @@ class HistoricEoriRepositorySpec extends SpecBase {
     "fail to UpdateHistoricEori" in new Setup {
       val eoriHistory: Seq[EoriPeriod] = Seq(period1, period2)
 
-      repoWithUnacknowledgedWrite.set(eoriHistory).map { result =>
+      repoWithUnacknowledgedWrite.set(eoriHistory, true).map { result =>
         result mustBe FailedToUpdateHistoricEori
       }
     }
 
     "retrieve eori history with any of its historic eoris" in new Setup {
-      val history: EoriHistory = EoriHistory(Seq(period1, period2), LocalDateTime.now)
+      val history: EoriHistory = EoriHistory(Seq(period1, period2), true, LocalDateTime.now)
 
       await(for {
-        _  <- repository.set(Seq(period1, period2))
-        _  <- repository.set(Seq(period4, period5))
+        _  <- repository.set(Seq(period1, period2), true)
+        _  <- repository.set(Seq(period4, period5), true)
         t1 <- repository.get(period1.eori)
         t2 <- repository.get(period2.eori)
         _  <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
@@ -70,7 +70,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
 
     "retrieve trader information by the latest historic eori" in new Setup {
       await(for {
-        _     <- repository.set(Seq(period1, period3))
+        _     <- repository.set(Seq(period1, period3), true)
         eoris <- repository.get(period1.eori)
         _     <- toFuture(eoris.getOrElse(Seq()) mustBe Seq(period1, period3))
         _     <- repository.collection.drop().toFuture().map(_ => ())
@@ -79,7 +79,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
 
     "retrieve trader information by the earliest historic eori" in new Setup {
       await(for {
-        _     <- repository.set(Seq(period1, period3))
+        _     <- repository.set(Seq(period1, period3), true)
         eoris <- repository.get(period3.eori)
         _     <- toFuture(eoris.getOrElse(Seq()) mustBe Seq(period1, period3))
         _     <- repository.collection.drop().toFuture().map(_ => ())
@@ -126,7 +126,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
     val period5: EoriPeriod = EoriPeriod(eori5, Some("2006-01-20T00:00:00Z"), None)
 
     val eoriPeriod: EoriPeriod        = EoriPeriod(TEST_EORI_VALUE, Some(DATE_STRING), Some(DATE_STRING))
-    val eoriHistoryOb: EoriHistory    = EoriHistory(Seq(eoriPeriod), TEST_LOCAL_DATE_TIME)
+    val eoriHistoryOb: EoriHistory    = EoriHistory(Seq(eoriPeriod), true, TEST_LOCAL_DATE_TIME)
     val eoriHistoryObJsString: String =
       """{"eoriPeriods":[
         |{"eori":"test_eori","validFrom":"2024-07-22","validUntil":"2024-07-22"}

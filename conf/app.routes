@@ -7,7 +7,8 @@ GET         /eori/xieori-information                    controllers.XiEoriContro
 
 POST        /eori/verified-email-third-party            controllers.VerifiedEmailController.retrieveVerifiedEmailThirdParty()
 POST        /eori/company-information-third-party       controllers.CompanyInformationController.retrieveCompanyInformationThirdParty()
-POST        /eori/eori-history-third-party              controllers.EoriHistoryController.retrieveEoriHistoryThirdParty()
+POST        /eori/eori-history-third-party              controllers.EoriHistoryController.retrieveEoriHistoryThirdParty(gbOnly: Boolean = true)
+POST        /eori/gbxi-eori-history-third-party         controllers.EoriHistoryController.retrieveEoriHistoryThirdParty(gbOnly: Boolean = false)
 
 POST        /update-email                               controllers.VerifiedEmailController.updateVerifiedEmail()
 POST        /update-undeliverable-email                 controllers.UndeliverableEmailController.makeUndeliverable()
