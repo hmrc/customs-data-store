@@ -56,6 +56,8 @@ class EoriHistoryController @Inject() (
       case false => historicEoriRepository.getGbxi(eori)
     }
     getEoriHistory.flatMap {
+      case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) && gbOnly =>
+        Future.successful(Ok(Json.toJson(EoriHistoryResponse(filterOutXiEoris(eoriPeriods)))))
       case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
         Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
       case _                                                                   => retrieveAndStoreHistoricEoris(eori, gbOnly)
@@ -122,6 +124,9 @@ class EoriHistoryController @Inject() (
         InternalServerError
       }
   }
+
+  private def filterOutXiEoris(eoriPeriods: Seq[EoriPeriod]): Seq[EoriPeriod] =
+    eoriPeriods.filterNot(_.eori.startsWith("XI"))
 
   case class EoriHistoryResponse(eoriHistory: Seq[EoriPeriod])
 
