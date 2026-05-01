@@ -17,7 +17,7 @@
 package controllers
 
 import actionbuilders.{AuthorisedRequest, RequestWithEori}
-import connectors.Sub21Connector
+import connectors.Sub24Connector
 import models.EoriPeriod
 import models.requests.EoriRequest
 import play.api.libs.json.{Json, OFormat}
@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EoriHistoryController @Inject() (
   historicEoriRepository: HistoricEoriRepository,
-  eoriHistoryConnector: Sub21Connector,
+  eoriHistoryConnector: Sub24Connector,
   cc: ControllerComponents,
   authorisedRequest: AuthorisedRequest
 )(implicit executionContext: ExecutionContext)

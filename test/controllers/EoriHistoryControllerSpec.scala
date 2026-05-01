@@ -23,7 +23,7 @@ import play.api.{Application, inject}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import connectors.Sub21Connector
+import connectors.Sub24Connector
 import models.EoriPeriod
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson}
 import repositories.{FailedToRetrieveHistoricEori, FailedToUpdateHistoricEori, HistoricEoriRepository, HistoricEoriSuccessful}
@@ -405,12 +405,12 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
     val postRoute: String          = routes.EoriHistoryController.updateEoriHistory().url
 
     val mockHistoricEoriRepository: HistoricEoriRepository = mock[HistoricEoriRepository]
-    val mockHistoryService: Sub21Connector                 = mock[Sub21Connector]
+    val mockHistoryService: Sub24Connector                 = mock[Sub24Connector]
 
     val app: Application = application
       .overrides(
         inject.bind[HistoricEoriRepository].toInstance(mockHistoricEoriRepository),
-        inject.bind[Sub21Connector].toInstance(mockHistoryService),
+        inject.bind[Sub24Connector].toInstance(mockHistoryService),
         inject.bind[CustomAuthConnector].toInstance(mockAuthConnector)
       )
       .build()
