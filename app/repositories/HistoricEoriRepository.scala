@@ -16,12 +16,13 @@
 
 package repositories
 
+import com.mongodb.client.model
 import com.mongodb.client.model.Indexes.ascending
 import models.EoriPeriod
-import org.mongodb.scala.model.Filters.{equal, in}
-import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions, Updates}
+import org.mongodb.scala.model.Filters.{equal, in, and, notEqual}
+import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, UpdateOptions, Updates}
 import play.api.Configuration
-import play.api.libs.functional.syntax._
+import play.api.libs.functional.syntax.*
 import play.api.libs.json.{Format, Json, Reads, __}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
@@ -64,7 +65,7 @@ class DefaultHistoricEoriRepository @Inject() ()(
 
   override def getGbxi(id: String): Future[Either[HistoricEoriRepositoryResult, Seq[EoriPeriod]]] =
     collection
-      .find(equal("eoriHistory.eori", id))
+      .find(and(equal("eoriHistory.eori", id), notEqual("gbOnly", true)))
       .toFuture()
       .map(_.headOption match {
         case Some(value) => Right(value.eoriPeriods)

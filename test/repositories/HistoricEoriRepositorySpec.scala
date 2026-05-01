@@ -131,6 +131,7 @@ class HistoricEoriRepositorySpec extends SpecBase {
       """{"eoriPeriods":[
         |{"eori":"test_eori","validFrom":"2024-07-22","validUntil":"2024-07-22"}
         |],
+        |"gbOnly":true,
         |"lastUpdated":"2024-12-15T16:30:35"}""".stripMargin
 
     def toFuture(condition: Assertion): Future[Assertion] = Future.successful(condition)
