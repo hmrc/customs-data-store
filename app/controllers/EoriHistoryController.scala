@@ -39,13 +39,18 @@ class EoriHistoryController @Inject() (
 
   val log: LoggerLike = Logger(this.getClass)
 
-  def getEoriHistoryV2: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
+  def getEoriHistoryV2(gbOnly: Boolean): Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
     val eori = request.eori.value
-
-    historicEoriRepository.get(eori).flatMap {
+    val getEoriHistory = gbOnly match {
+      case true => historicEoriRepository.get(eori)
+      case false => historicEoriRepository.getGbxi(eori)
+    }
+    getEoriHistory.flatMap {
+      case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) && gbOnly =>
+        Future.successful(Ok(Json.toJson(EoriHistoryResponse(filterOutXiEoris(eoriPeriods)))))
       case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
         Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
-      case _                                                                   => retrieveAndStoreHistoricEoris(eori)
+      case _                                                                   => retrieveAndStoreHistoricEoris(eori, gbOnly)
     }
   }
 
