@@ -37,12 +37,21 @@ class HistoricEoriRepositorySpec extends SpecBase {
 
   "HistoricEoriRepository" should {
 
-    "not retrieve trader information when the store is empty" in new Setup {
+    "not retrieve trader information from get when the store is empty" in new Setup {
       await(for {
         eoris1 <- repository.get(period1.eori)
         _      <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
         eoris2 <- repository.get(period2.eori)
         _      <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+      } yield {})
+    }
+
+    "not retrieve trader information from getGbxi when the store is empty" in new Setup {
+      await(for {
+        eoris1 <- repository.getGbxi(period1.eori)
+        _ <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        eoris2 <- repository.getGbxi(period2.eori)
+        _ <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
       } yield {})
     }
 
@@ -54,17 +63,65 @@ class HistoricEoriRepositorySpec extends SpecBase {
       }
     }
 
-    "retrieve eori history with any of its historic eoris" in new Setup {
+    "retrieve GB AND XI eori history with any of its historic EORIs from get" in new Setup {
+      val history: EoriHistory = EoriHistory(Seq(period1, period2, period6), false, LocalDateTime.now)
+
+      await(for {
+        _  <- repository.set(Seq(period1, period2, period6), false)
+        _  <- repository.set(Seq(period4, period5), false)
+        t1 <- repository.get(period1.eori)
+        t2 <- repository.get(period2.eori)
+        t3 <- repository.get(period6.eori)
+        _  <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- toFuture(t3.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- repository.collection.drop().toFuture().map(_ => ())
+      } yield ())
+    }
+
+    "retrieve GB AND XI eori history with any of its historic EORIs from getGbxi only when Gbonly flag is false" in new Setup {
+      val history: EoriHistory = EoriHistory(Seq(period1, period2, period6), false, LocalDateTime.now)
+
+      await(for {
+        _ <- repository.set(Seq(period1, period2, period6), false)
+        _ <- repository.set(Seq(period4, period5), false)
+        t1 <- repository.getGbxi(period1.eori)
+        t2 <- repository.getGbxi(period2.eori)
+        t3 <- repository.getGbxi(period6.eori)
+        _ <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _ <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _ <- toFuture(t3.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _ <- repository.collection.drop().toFuture().map(_ => ())
+      } yield ())
+    }
+
+    "do no retrieve GB AND XI eori history with any of its historic EORIs from getGbxi when Gbonly flag is true" in new Setup {
+      val history: EoriHistory = EoriHistory(Seq(period1, period2, period6), false, LocalDateTime.now)
+
+      await(for {
+        _ <- repository.set(Seq(period1, period2, period6), true)
+        _ <- repository.set(Seq(period4, period5), true)
+        t1 <- repository.getGbxi(period1.eori)
+        t2 <- repository.getGbxi(period2.eori)
+        t3 <- repository.getGbxi(period6.eori)
+        _ <- toFuture(t1.swap.getOrElse(Seq(FailedToRetrieveHistoricEori)) mustBe FailedToRetrieveHistoricEori)
+        _ <- toFuture(t2.swap.getOrElse(Seq(FailedToRetrieveHistoricEori)) mustBe FailedToRetrieveHistoricEori)
+        _ <- toFuture(t3.swap.getOrElse(Seq(FailedToRetrieveHistoricEori)) mustBe FailedToRetrieveHistoricEori)
+        _ <- repository.collection.drop().toFuture().map(_ => ())
+      } yield ())
+    }
+
+    "retrieve eori history with any of its historic EORIs from get" in new Setup {
       val history: EoriHistory = EoriHistory(Seq(period1, period2), true, LocalDateTime.now)
 
       await(for {
-        _  <- repository.set(Seq(period1, period2), true)
-        _  <- repository.set(Seq(period4, period5), true)
+        _ <- repository.set(Seq(period1, period2), true)
+        _ <- repository.set(Seq(period4, period5), true)
         t1 <- repository.get(period1.eori)
         t2 <- repository.get(period2.eori)
-        _  <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
-        _  <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
-        _  <- repository.collection.drop().toFuture().map(_ => ())
+        _ <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _ <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _ <- repository.collection.drop().toFuture().map(_ => ())
       } yield ())
     }
 
@@ -95,6 +152,16 @@ class HistoricEoriRepositorySpec extends SpecBase {
         _      <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
+
+    "not retrieve trader information for eoris that are not historic eoris in getGbxi" in new Setup {
+      await(for {
+        eoris1 <- repository.getGbxi(period4.eori)
+        _ <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        eoris2 <- repository.getGbxi(period5.eori)
+        _ <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        _ <- repository.collection.drop().toFuture().map(_ => ())
+      } yield {})
+    }
   }
 
   "EoriHistory" should {
@@ -118,12 +185,14 @@ class HistoricEoriRepositorySpec extends SpecBase {
     val eori3: String = "EORI00000003"
     val eori4: String = "EORI00000004"
     val eori5: String = "EORI00000005"
+    val eori6: String = "XIEORI00000005"
 
     val period1: EoriPeriod = EoriPeriod(eori1, Some("2001-01-20T00:00:00Z"), None)
     val period2: EoriPeriod = EoriPeriod(eori2, Some("2002-01-20T00:00:00Z"), None)
     val period3: EoriPeriod = EoriPeriod(eori3, Some("2003-01-20T00:00:00Z"), None)
     val period4: EoriPeriod = EoriPeriod(eori4, Some("2005-01-20T00:00:00Z"), None)
     val period5: EoriPeriod = EoriPeriod(eori5, Some("2006-01-20T00:00:00Z"), None)
+    val period6: EoriPeriod = EoriPeriod(eori6, Some("2006-01-20T00:00:00Z"), None)
 
     val eoriPeriod: EoriPeriod        = EoriPeriod(TEST_EORI_VALUE, Some(DATE_STRING), Some(DATE_STRING))
     val eoriHistoryOb: EoriHistory    = EoriHistory(Seq(eoriPeriod), true, TEST_LOCAL_DATE_TIME)
