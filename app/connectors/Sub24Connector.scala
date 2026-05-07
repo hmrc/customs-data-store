@@ -30,7 +30,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class Sub24Connector @Inject()(appConfig: AppConfig, http: HttpClientV2, metricsReporter: MetricsReporterService)(
+class Sub24Connector @Inject() (appConfig: AppConfig, http: HttpClientV2, metricsReporter: MetricsReporterService)(
   implicit ec: ExecutionContext
 ) extends Logging {
 
@@ -38,16 +38,18 @@ class Sub24Connector @Inject()(appConfig: AppConfig, http: HttpClientV2, metrics
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging("mdg.get.eori-history") {
-      val url     = gbOnly match {
-        case true => if (appConfig.sub24Enabled) url"${appConfig.sub24EORIHistoryEndpoint}$eori" else url"${appConfig.sub21EORIHistoryEndpoint}$eori"
-        case false => url"${appConfig.sub24EORIHistoryEndpoint}$eori"
+      val url = gbOnly match {
+        case true  =>
+          if (appConfig.sub24Enabled) url"${appConfig.sub24EORIHistoryEndpoint}$eori"
+          else url"${appConfig.sub21EORIHistoryEndpoint}$eori"
+        case false => url"${appConfig.sub24EORIHistoryEndpoint}$eori/1"
       }
-      
+
       val sub21Headers = AUTHORIZATION -> appConfig.sub21BearerToken
       val sub24Headers = AUTHORIZATION -> appConfig.sub24BearerToken
-      
+
       val headers = if (appConfig.sub24Enabled) sub24Headers else sub21Headers
-      
+
       http
         .get(url)
         .setHeader(headers)

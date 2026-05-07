@@ -54,10 +54,10 @@ class AppConfig @Inject() (val configuration: Configuration, servicesConfig: Ser
 
   lazy val sub24EORIHistoryEndpoint: String =
     servicesConfig.baseUrl("sub24") / configuration.get[String]("microservice.services.sub24.historicEoriEndpoint")
-    
+
   lazy val sub24BearerToken: String =
     s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub24.bearer-token")}"
-    
+
   var sub24Enabled: Boolean = configuration.get[Boolean]("features.sub24-enabled")
 
   implicit class URLSyntacticSugar(left: String) {

@@ -19,7 +19,7 @@ package repositories
 import com.mongodb.client.model
 import com.mongodb.client.model.Indexes.ascending
 import models.EoriPeriod
-import org.mongodb.scala.model.Filters.{equal, in, and, notEqual}
+import org.mongodb.scala.model.Filters.{and, equal, in, notEqual}
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, UpdateOptions, Updates}
 import play.api.Configuration
 import play.api.libs.functional.syntax.*
@@ -69,7 +69,7 @@ class DefaultHistoricEoriRepository @Inject() ()(
       .toFuture()
       .map(_.headOption match {
         case Some(value) => Right(value.eoriPeriods)
-        case None => Left(FailedToRetrieveHistoricEori)
+        case None        => Left(FailedToRetrieveHistoricEori)
       })
 
   override def set(eoriHistory: Seq[EoriPeriod], gbOnly: Boolean): Future[HistoricEoriRepositoryResult] = {

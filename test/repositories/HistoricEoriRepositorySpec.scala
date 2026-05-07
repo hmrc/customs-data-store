@@ -49,9 +49,9 @@ class HistoricEoriRepositorySpec extends SpecBase {
     "not retrieve trader information from getGbxi when the store is empty" in new Setup {
       await(for {
         eoris1 <- repository.getGbxi(period1.eori)
-        _ <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        _      <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
         eoris2 <- repository.getGbxi(period2.eori)
-        _ <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        _      <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
       } yield {})
     }
 
@@ -83,15 +83,15 @@ class HistoricEoriRepositorySpec extends SpecBase {
       val history: EoriHistory = EoriHistory(Seq(period1, period2, period6), false, LocalDateTime.now)
 
       await(for {
-        _ <- repository.set(Seq(period1, period2, period6), false)
-        _ <- repository.set(Seq(period4, period5), false)
+        _  <- repository.set(Seq(period1, period2, period6), false)
+        _  <- repository.set(Seq(period4, period5), false)
         t1 <- repository.getGbxi(period1.eori)
         t2 <- repository.getGbxi(period2.eori)
         t3 <- repository.getGbxi(period6.eori)
-        _ <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
-        _ <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
-        _ <- toFuture(t3.getOrElse(Seq()) mustBe history.eoriPeriods)
-        _ <- repository.collection.drop().toFuture().map(_ => ())
+        _  <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- toFuture(t3.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- repository.collection.drop().toFuture().map(_ => ())
       } yield ())
     }
 
@@ -99,15 +99,15 @@ class HistoricEoriRepositorySpec extends SpecBase {
       val history: EoriHistory = EoriHistory(Seq(period1, period2, period6), false, LocalDateTime.now)
 
       await(for {
-        _ <- repository.set(Seq(period1, period2, period6), true)
-        _ <- repository.set(Seq(period4, period5), true)
+        _  <- repository.set(Seq(period1, period2, period6), true)
+        _  <- repository.set(Seq(period4, period5), true)
         t1 <- repository.getGbxi(period1.eori)
         t2 <- repository.getGbxi(period2.eori)
         t3 <- repository.getGbxi(period6.eori)
-        _ <- toFuture(t1.swap.getOrElse(Seq(FailedToRetrieveHistoricEori)) mustBe FailedToRetrieveHistoricEori)
-        _ <- toFuture(t2.swap.getOrElse(Seq(FailedToRetrieveHistoricEori)) mustBe FailedToRetrieveHistoricEori)
-        _ <- toFuture(t3.swap.getOrElse(Seq(FailedToRetrieveHistoricEori)) mustBe FailedToRetrieveHistoricEori)
-        _ <- repository.collection.drop().toFuture().map(_ => ())
+        _  <- toFuture(t1.swap.getOrElse(Seq(FailedToRetrieveHistoricEori)) mustBe FailedToRetrieveHistoricEori)
+        _  <- toFuture(t2.swap.getOrElse(Seq(FailedToRetrieveHistoricEori)) mustBe FailedToRetrieveHistoricEori)
+        _  <- toFuture(t3.swap.getOrElse(Seq(FailedToRetrieveHistoricEori)) mustBe FailedToRetrieveHistoricEori)
+        _  <- repository.collection.drop().toFuture().map(_ => ())
       } yield ())
     }
 
@@ -115,13 +115,13 @@ class HistoricEoriRepositorySpec extends SpecBase {
       val history: EoriHistory = EoriHistory(Seq(period1, period2), true, LocalDateTime.now)
 
       await(for {
-        _ <- repository.set(Seq(period1, period2), true)
-        _ <- repository.set(Seq(period4, period5), true)
+        _  <- repository.set(Seq(period1, period2), true)
+        _  <- repository.set(Seq(period4, period5), true)
         t1 <- repository.get(period1.eori)
         t2 <- repository.get(period2.eori)
-        _ <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
-        _ <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
-        _ <- repository.collection.drop().toFuture().map(_ => ())
+        _  <- toFuture(t1.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- toFuture(t2.getOrElse(Seq()) mustBe history.eoriPeriods)
+        _  <- repository.collection.drop().toFuture().map(_ => ())
       } yield ())
     }
 
@@ -156,10 +156,10 @@ class HistoricEoriRepositorySpec extends SpecBase {
     "not retrieve trader information for eoris that are not historic eoris in getGbxi" in new Setup {
       await(for {
         eoris1 <- repository.getGbxi(period4.eori)
-        _ <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        _      <- toFuture(eoris1.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
         eoris2 <- repository.getGbxi(period5.eori)
-        _ <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
-        _ <- repository.collection.drop().toFuture().map(_ => ())
+        _      <- toFuture(eoris2.swap.getOrElse(FailedToRetrieveHistoricEori) mustBe FailedToRetrieveHistoricEori)
+        _      <- repository.collection.drop().toFuture().map(_ => ())
       } yield {})
     }
   }

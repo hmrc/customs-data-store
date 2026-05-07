@@ -39,8 +39,7 @@ class SpecBase
     .overrides(
       bind[Metrics].toInstance(new FakeMetrics)
     )
-    .configure("metrics.enabled" -> "false",
-      "play.http.router" -> "app.Routes")
+    .configure("metrics.enabled" -> "false", "play.http.router" -> "app.Routes")
 
   class FakeMetrics extends Metrics {
     override val defaultRegistry: MetricRegistry = new MetricRegistry

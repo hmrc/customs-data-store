@@ -39,7 +39,7 @@ class Sub21Connector @Inject() (appConfig: AppConfig, http: HttpClientV2, metric
 
     metricsReporter.withResponseTimeLogging("mdg.get.eori-history") {
       val url     = gbOnly match {
-        case true => url"${appConfig.sub21EORIHistoryEndpoint}$eori"
+        case true  => url"${appConfig.sub21EORIHistoryEndpoint}$eori"
         case false => url"${appConfig.sub21EORIHistoryEndpoint}$eori"
       }
       val headers = AUTHORIZATION -> appConfig.sub21BearerToken

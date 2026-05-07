@@ -36,20 +36,53 @@ import java.time.LocalDate
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 
-class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
+class Sub24ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
   "EoriHistoryConnector" should {
-    "hit the expected URL" in new Setup {
+    "hit the expected URL if Gbonly equal true and sub24 feature enabled true" in new Setup {
 
       val response: String = Json.toJson(generateResponse(List(someEori))).toString
 
       wireMockServer.stubFor(
-        get(urlPathMatching(url))
+        get(urlPathMatching(sub24UrlGbonlyTrue))
           .willReturn(ok(response))
       )
 
       await(connector.getEoriHistory(someEori))
-      verifyEndPointUrlHit(url)
+      verifyEndPointUrlHit(sub24UrlGbonlyTrue)
+    }
+
+    "hit the expected URL if Gbonly equal true and sub24 feature enabled false" in new Setup {
+
+      val appWithSub24Disabled: Application = application
+        .configure(config)
+        .configure("features.sub24-enabled" -> false)
+        .build()
+
+      val connectorWithSub24Disabled: Sub24Connector = appWithSub24Disabled.injector.instanceOf[Sub24Connector]
+
+      val response: String = Json.toJson(generateResponse(List(someEori))).toString
+
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub21Url))
+          .willReturn(ok(response))
+      )
+
+      await(connectorWithSub24Disabled.getEoriHistory(someEori))
+      verifyEndPointUrlHit(sub21Url)
+    }
+
+    "hit the expected URL if Gbonly equal false and sub24 feature enabled true" in new Setup {
+
+      val response: String = Json.toJson(generateResponse(List(someEori))).toString
+
+      wireMockServer.stubFor(
+        get(urlPathMatching(sub24UrlGbonlyFalse))
+          .willReturn(ok(response))
+      )
+
+      await(connector.getEoriHistory(someEori, false))
+      verifyEndPointUrlHit(sub24UrlGbonlyFalse)
     }
 
     "return a list of EoriPeriod entries" in new Setup {
@@ -89,7 +122,7 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
       val response: String = Json.toJson(Json.parse(jsonResponse).as[HistoricEoriResponse]).toString
 
       wireMockServer.stubFor(
-        get(urlPathMatching(url))
+        get(urlPathMatching(sub24UrlGbonlyTrue))
           .willReturn(ok(response))
       )
 
@@ -102,14 +135,14 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
         EoriPeriod("historicEori3", Some("2019-07-24"), Some("2019-07-23"))
       )
 
-      verifyEndPointUrlHit(url)
+      verifyEndPointUrlHit(sub24UrlGbonlyTrue)
     }
 
     "recoverWith Not Found" in new Setup {
 
       wireMockServer.stubFor(
-        get(urlPathMatching(url))
-          .withHeader(AUTHORIZATION, equalTo(appConfig.sub21BearerToken))
+        get(urlPathMatching(sub24UrlGbonlyTrue))
+          .withHeader(AUTHORIZATION, equalTo(appConfig.sub24BearerToken))
           .willReturn(
             aResponse()
               .withStatus(NOT_FOUND)
@@ -130,6 +163,12 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
          |      protocol = http
          |      host     = $wireMockHost
          |      port     = $wireMockPort
+         |    }
+         |    sub24 {
+         |      host = $wireMockHost
+         |      port = $wireMockPort
+         |      bearer-token = "secret-token"
+         |      historicEoriEndpoint = "customs-financials-hods-stub/gbxieorihistory/"
          |    }
          |    sub21 {
          |      host = $wireMockHost
@@ -172,8 +211,10 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
     implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
     implicit val hc: HeaderCarrier    = HeaderCarrier()
 
-    val url: String      = "/customs-financials-hods-stub/eorihistory/testEori"
-    val someEori: String = "testEori"
+    val sub24UrlGbonlyTrue: String  = "/customs-financials-hods-stub/gbxieorihistory/testEori"
+    val sub24UrlGbonlyFalse: String = "/customs-financials-hods-stub/gbxieorihistory/testEori/1"
+    val sub21Url: String            = "/customs-financials-hods-stub/eorihistory/testEori"
+    val someEori: String            = "testEori"
 
     implicit val implicitHeaderCarrier: HeaderCarrier = HeaderCarrier(
       authorization = Option(Authorization("myAwesomeCrypto")),
@@ -186,7 +227,7 @@ class Sub21ConnectorSpec extends SpecBase with WireMockSupportProvider {
       .configure(config)
       .build()
 
-    val connector: Sub21Connector = app.injector.instanceOf[Sub21Connector]
+    val connector: Sub24Connector = app.injector.instanceOf[Sub24Connector]
     val appConfig: AppConfig      = app.injector.instanceOf[AppConfig]
   }
 }
