@@ -34,14 +34,11 @@ class Sub21Connector @Inject() (appConfig: AppConfig, http: HttpClientV2, metric
   implicit ec: ExecutionContext
 ) extends Logging {
 
-  def getEoriHistory(eori: String, gbOnly: Boolean = true): Future[Seq[EoriPeriod]] = {
+  def getEoriHistory(eori: String): Future[Seq[EoriPeriod]] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging("mdg.get.eori-history") {
-      val url     = gbOnly match {
-        case true  => url"${appConfig.sub21EORIHistoryEndpoint}$eori"
-        case false => url"${appConfig.sub21EORIHistoryEndpoint}$eori"
-      }
+      val url = url"${appConfig.sub21EORIHistoryEndpoint}$eori"
       val headers = AUTHORIZATION -> appConfig.sub21BearerToken
 
       http
