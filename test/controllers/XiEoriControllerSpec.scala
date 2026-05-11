@@ -19,8 +19,9 @@ package controllers
 import actionbuilders.CustomAuthConnector
 import connectors.Sub09Connector
 import models.{XiEoriAddressInformation, XiEoriInformation}
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when
+import play.api.libs.json.Json
 import play.api.{Application, inject}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -87,6 +88,82 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
     }
   }
 
+  "retrieveXiEoriCompanyInformationThirdParty" should {
+
+    "return xi eori information for the eori, if available in the database" in new Setup {
+      when(mockXiEoriInformationRepository.get(eqTo(TEST_EORI_VALUE)))
+        .thenReturn(Future.successful(Some(xiEoriInformation)))
+
+      running(app) {
+        val request = FakeRequest(POST, retrieveXiEoriCompanyInformationThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
+
+        val result = route(app, request).value
+
+        contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
+      }
+    }
+
+    "return xi eori information for the eori, if info is not found in the database but retrieved from Sub09" in new Setup {
+      when(mockXiEoriInformationRepository.get(eqTo(TEST_EORI_VALUE)))
+        .thenReturn(Future.successful(None))
+
+      when(mockSubscriptionInfoConnector.getXiEoriInformation(eqTo(TEST_EORI_VALUE)))
+        .thenReturn(Future.successful(Some(xiEoriInformation)))
+
+      when(mockXiEoriInformationRepository.set(eqTo(TEST_EORI_VALUE), eqTo(xiEoriInformation)))
+        .thenReturn(Future.unit)
+
+      running(app) {
+        val request = FakeRequest(POST, retrieveXiEoriCompanyInformationThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
+
+        val result = route(app, request).value
+
+        contentAsJson(result).as[XiEoriInformation] mustBe xiEoriInformation
+      }
+    }
+
+    "return NotFound if xi eori information is retrieved neither from the database nor from Sub09" in new Setup {
+      when(mockXiEoriInformationRepository.get(eqTo(TEST_EORI_VALUE)))
+        .thenReturn(Future.successful(None))
+
+      when(mockSubscriptionInfoConnector.getXiEoriInformation(eqTo(TEST_EORI_VALUE)))
+        .thenReturn(Future.successful(None))
+
+      when(mockXiEoriInformationRepository.set(eqTo(TEST_EORI_VALUE), eqTo(emptyXiInformation)))
+        .thenReturn(Future.unit)
+
+      running(app) {
+        val request = FakeRequest(POST, retrieveXiEoriCompanyInformationThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
+
+        val result = route(app, request).value
+
+        status(result) mustBe NOT_FOUND
+      }
+    }
+
+    "return 400 with malformed request" in new Setup {
+      when(mockXiEoriInformationRepository.get(any()))
+        .thenReturn(Future.successful(None))
+
+      when(mockSubscriptionInfoConnector.getXiEoriInformation(any()))
+        .thenReturn(Future.successful(Some(xiEoriInformation)))
+
+      when(mockXiEoriInformationRepository.set(TEST_EORI_VALUE, xiEoriInformation)).thenReturn(Future.unit)
+
+      running(app) {
+        val request = FakeRequest(POST, routes.CompanyInformationController.retrieveCompanyInformationThirdParty().url)
+          .withJsonBody(
+            Json.obj("invalidkey" -> TEST_EORI_VALUE)
+          )
+
+        val result = route(app, request).value
+
+        status(result) mustBe BAD_REQUEST
+      }
+    }
+  }
+
+
   trait Setup {
 
     val xiEoriAddressInformation: XiEoriAddressInformation =
@@ -99,6 +176,7 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
     val eori: String = "testEori"
 
     val getXiEoriInformationV2Route: String = routes.XiEoriController.getXiEoriInformationV2().url
+    val retrieveXiEoriCompanyInformationThirdParty: String = routes.XiEoriController.retrieveXiEoriCompanyInformationThirdParty().url
 
     val mockXiEoriInformationRepository: XiEoriInformationRepository = mock[XiEoriInformationRepository]
     val mockSubscriptionInfoConnector: Sub09Connector                = mock[Sub09Connector]
