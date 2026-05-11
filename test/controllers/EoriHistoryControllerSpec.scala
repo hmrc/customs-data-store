@@ -17,13 +17,13 @@
 package controllers
 
 import actionbuilders.CustomAuthConnector
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.{Application, inject}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import connectors.Sub21Connector
+import connectors.Sub24Connector
 import models.EoriPeriod
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson}
 import repositories.{
@@ -38,10 +38,9 @@ import scala.concurrent.Future
 class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
 
   "getEoriHistoryV2" should {
-    "return 200 OK and skip caching is sub21 returns no EORI history (empty Seq)" in new Setup {
+    "return 200 OK and skip caching is sub24 returns no EORI history (empty Seq)" in new Setup {
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)))
-
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(Seq.empty))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(Seq.empty))
 
       running(app) {
         val request = FakeRequest(GET, getRouteV2)
@@ -56,7 +55,24 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
-    "return historic EORI's and not call SUB21 if the trader data has eori history defined" in new Setup {
+    "return 200 OK and skip caching is sub24 returns no EORI history for gbxi (empty Seq)" in new Setup {
+      when(mockHistoricEoriRepository.getGbxi(any())).thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(Seq.empty))
+
+      running(app) {
+        val request = FakeRequest(GET, getGbxiRouteV2)
+
+        val result = route(app, request).value
+
+        status(result) mustBe OK
+
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr()
+        )
+      }
+    }
+
+    "return historic EORI's and not call SUB24 if the trader data has eori history defined" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
 
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Right(eoriPeriods)))
@@ -76,7 +92,50 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
-    "return historic EORI's and not call SUB21 if the trader data has eori history defined no from date" in new Setup {
+    "return historic EORI's and filter out XI EORIs where present in cache - not call SUB24 if the trader data has eori history defined" in new Setup {
+      val eoriPeriods: Seq[EoriPeriod] =
+        Seq(EoriPeriod("GB12345", Some(date), Some(date)), EoriPeriod("XI12345", Some(date), Some(date)))
+
+      when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Right(eoriPeriods)))
+
+      running(app) {
+        val request = FakeRequest(GET, getRouteV2)
+
+        val result = route(app, request).value
+
+        status(result) mustBe OK
+
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr(
+            Json.obj("eori" -> "GB12345", "validFrom" -> date, "validUntil" -> date)
+          )
+        )
+      }
+    }
+
+    "return historic GB and XI EORI's and not call SUB24 if the trader data has eori history defined and call to GB XI is made" in new Setup {
+      val eoriPeriods: Seq[EoriPeriod] =
+        Seq(EoriPeriod("GB12345", Some(date), Some(date)), EoriPeriod("XI12345", Some(date), Some(date)))
+
+      when(mockHistoricEoriRepository.getGbxi(any())).thenReturn(Future.successful(Right(eoriPeriods)))
+
+      running(app) {
+        val request = FakeRequest(GET, getGbxiRouteV2)
+
+        val result = route(app, request).value
+
+        status(result) mustBe OK
+
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr(
+            Json.obj("eori" -> "GB12345", "validFrom" -> date, "validUntil" -> date),
+            Json.obj("eori" -> "XI12345", "validFrom" -> date, "validUntil" -> date)
+          )
+        )
+      }
+    }
+
+    "return historic EORI's and not call SUB24 if the trader data has eori history defined no from date" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", None, Some(date)))
 
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Right(eoriPeriods)))
@@ -96,7 +155,29 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
-    "return historic EORI's and call SUB21 if the trader data has no eori history" in new Setup {
+    "return historic GB and XI EORI's and not call SUB24 if the trader data has eori history defined no from date and call to GB XI is made" in new Setup {
+      val eoriPeriods: Seq[EoriPeriod] =
+        Seq(EoriPeriod("GB12345", None, Some(date)), EoriPeriod("XI12345", None, Some(date)))
+
+      when(mockHistoricEoriRepository.getGbxi(any())).thenReturn(Future.successful(Right(eoriPeriods)))
+
+      running(app) {
+        val request = FakeRequest(GET, getGbxiRouteV2)
+
+        val result = route(app, request).value
+
+        status(result) mustBe OK
+
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr(
+            Json.obj("eori" -> "GB12345", "validUntil" -> date),
+            Json.obj("eori" -> "XI12345", "validUntil" -> date)
+          )
+        )
+      }
+    }
+
+    "return historic EORI's and call SUB24 if the trader data has no eori history" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", None, Some(date)))
 
       when(mockHistoricEoriRepository.get(any()))
@@ -105,9 +186,9 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
           Future.successful(Right(eoriPeriods))
         )
 
-      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(HistoricEoriSuccessful))
+      when(mockHistoricEoriRepository.set(any(), any())).thenReturn(Future.successful(HistoricEoriSuccessful))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
 
       val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRouteV2)
 
@@ -124,15 +205,45 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
+    "return historic GB and XI EORI's and call SUB24 if the trader data has no eori history" in new Setup {
+      val eoriPeriods: Seq[EoriPeriod] =
+        Seq(EoriPeriod("GB12345", Some(date), Some(date)), EoriPeriod("XI12345", Some(date), Some(date)))
+
+      when(mockHistoricEoriRepository.getGbxi(any()))
+        .thenReturn(
+          Future.successful(Left(FailedToRetrieveHistoricEori)),
+          Future.successful(Right(eoriPeriods))
+        )
+
+      when(mockHistoricEoriRepository.set(any(), any())).thenReturn(Future.successful(HistoricEoriSuccessful))
+
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
+
+      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getGbxiRouteV2)
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe OK
+
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr(
+            Json.obj("eori" -> "GB12345", "validFrom" -> date, "validUntil" -> date),
+            Json.obj("eori" -> "XI12345", "validFrom" -> date, "validUntil" -> date)
+          )
+        )
+      }
+    }
+
     "return internal server error if the update to historic eori's failed" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
 
       when(mockHistoricEoriRepository.get(any()))
         .thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)), Future.successful(Right(eoriPeriods)))
 
-      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(FailedToUpdateHistoricEori))
+      when(mockHistoricEoriRepository.set(any(), any())).thenReturn(Future.successful(FailedToUpdateHistoricEori))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
 
       val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRouteV2)
 
@@ -152,10 +263,10 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
           Future.successful(Left(FailedToRetrieveHistoricEori))
         )
 
-      when(mockHistoricEoriRepository.set(any()))
+      when(mockHistoricEoriRepository.set(any(), any()))
         .thenReturn(Future.successful(HistoricEoriSuccessful))
 
-      when(mockHistoryService.getEoriHistory(any()))
+      when(mockHistoryService.getEoriHistory(any(), any()))
         .thenReturn(Future.successful(eoriPeriods))
 
       val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, getRouteV2)
@@ -169,10 +280,10 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
   }
 
   "retrieveEoriHistoryThirdParty" should {
-    "return 200 OK and skip caching if sub21 returns no EORI history (empty Seq)" in new Setup {
+    "return 200 OK and skip caching if sub24 returns no EORI history (empty Seq)" in new Setup {
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(Seq.empty))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(Seq.empty))
 
       running(app) {
         val request: FakeRequest[AnyContentAsJson] =
@@ -188,7 +299,26 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
-    "return historic EORI's and not call SUB21 if the trader data has eori history defined" in new Setup {
+    "return 200 OK and skip caching if sub24 returns no EORI history for gbxi (empty Seq)" in new Setup {
+      when(mockHistoricEoriRepository.getGbxi(any())).thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)))
+
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(Seq.empty))
+
+      running(app) {
+        val request: FakeRequest[AnyContentAsJson] =
+          FakeRequest(POST, getGbxiRouteThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
+
+        val result = route(app, request).value
+
+        status(result) mustBe OK
+
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr()
+        )
+      }
+    }
+
+    "return historic EORI's and not call SUB24 if the trader data has eori history defined" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
 
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Right(eoriPeriods)))
@@ -209,7 +339,30 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
-    "return historic EORI's and not call SUB21 if the trader data has eori history defined no from date" in new Setup {
+    "return historic GB and XI EORI's and not call SUB24 if the trader data has eori history defined and call to GB XI is made" in new Setup {
+      val eoriPeriods: Seq[EoriPeriod] =
+        Seq(EoriPeriod("GB12345", Some(date), Some(date)), EoriPeriod("XI12345", Some(date), Some(date)))
+
+      when(mockHistoricEoriRepository.getGbxi(any())).thenReturn(Future.successful(Right(eoriPeriods)))
+
+      running(app) {
+        val request: FakeRequest[AnyContentAsJson] =
+          FakeRequest(POST, getGbxiRouteThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
+
+        val result = route(app, request).value
+
+        status(result) mustBe OK
+
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr(
+            Json.obj("eori" -> "GB12345", "validFrom" -> date, "validUntil" -> date),
+            Json.obj("eori" -> "XI12345", "validFrom" -> date, "validUntil" -> date)
+          )
+        )
+      }
+    }
+
+    "return historic EORI's and not call SUB24 if the trader data has eori history defined no from date" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", None, Some(date)))
 
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Right(eoriPeriods)))
@@ -230,15 +383,15 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
-    "return historic EORI's and call SUB21 if the trader data has no eori history" in new Setup {
+    "return historic EORI's and call SUB24 if the trader data has no eori history" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", None, Some(date)))
 
       when(mockHistoricEoriRepository.get(any()))
         .thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)), Future.successful(Right(eoriPeriods)))
 
-      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(HistoricEoriSuccessful))
+      when(mockHistoricEoriRepository.set(any(), any())).thenReturn(Future.successful(HistoricEoriSuccessful))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
 
       val request: FakeRequest[AnyContentAsJson] =
         FakeRequest(POST, getRouteThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
@@ -256,15 +409,46 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
       }
     }
 
+    "return historic GB and XI EORI's and call SUB24 if the trader data has no eori history" in new Setup {
+      val eoriPeriods: Seq[EoriPeriod] =
+        Seq(EoriPeriod("GB12345", Some(date), Some(date)), EoriPeriod("XI12345", Some(date), Some(date)))
+
+      when(mockHistoricEoriRepository.getGbxi(any()))
+        .thenReturn(
+          Future.successful(Left(FailedToRetrieveHistoricEori)),
+          Future.successful(Right(eoriPeriods))
+        )
+
+      when(mockHistoricEoriRepository.set(any(), any())).thenReturn(Future.successful(HistoricEoriSuccessful))
+
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
+
+      val request: FakeRequest[AnyContentAsJson] =
+        FakeRequest(POST, getGbxiRouteThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe OK
+
+        contentAsJson(result) mustBe Json.obj(
+          "eoriHistory" -> Json.arr(
+            Json.obj("eori" -> "GB12345", "validFrom" -> date, "validUntil" -> date),
+            Json.obj("eori" -> "XI12345", "validFrom" -> date, "validUntil" -> date)
+          )
+        )
+      }
+    }
+
     "return internal server error if the update to historic eori's failed" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
 
       when(mockHistoricEoriRepository.get(any()))
         .thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)), Future.successful(Right(eoriPeriods)))
 
-      when(mockHistoricEoriRepository.set(any())).thenReturn(Future.successful(FailedToUpdateHistoricEori))
+      when(mockHistoricEoriRepository.set(any(), any())).thenReturn(Future.successful(FailedToUpdateHistoricEori))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
 
       val request: FakeRequest[AnyContentAsJson] =
         FakeRequest(POST, getRouteThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
@@ -285,10 +469,10 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
           Future.successful(Left(FailedToRetrieveHistoricEori))
         )
 
-      when(mockHistoricEoriRepository.set(any()))
+      when(mockHistoricEoriRepository.set(any(), any()))
         .thenReturn(Future.successful(HistoricEoriSuccessful))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
 
       val request: FakeRequest[AnyContentAsJson] =
         FakeRequest(POST, getRouteThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
@@ -305,7 +489,7 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
     "return 404 NOT_FOUND and skip caching if sub21 returns no EORI history (empty Seq)" in new Setup {
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(Seq.empty))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(Seq.empty))
 
       running(app) {
         val body: JsObject                         = Json.obj("eori" -> "")
@@ -320,9 +504,9 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
     "return 204 if the update to historic EORI was successful" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
 
-      when(mockHistoricEoriRepository.set(any()))
+      when(mockHistoricEoriRepository.set(any(), any()))
         .thenReturn(Future.successful(HistoricEoriSuccessful))
         .thenReturn(Future.successful(HistoricEoriSuccessful))
 
@@ -342,9 +526,9 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
     "return InternalServerError if the update did not succeed the second time" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
 
-      when(mockHistoricEoriRepository.set(any()))
+      when(mockHistoricEoriRepository.set(any(), any()))
         .thenReturn(Future.successful(HistoricEoriSuccessful))
         .thenReturn(Future.successful(FailedToUpdateHistoricEori))
 
@@ -364,9 +548,9 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
     "return InternalServerError if the update did not succeed the first time" in new Setup {
       val eoriPeriods: Seq[EoriPeriod] = Seq(EoriPeriod("testEori", Some(date), Some(date)))
 
-      when(mockHistoryService.getEoriHistory(any())).thenReturn(Future.successful(eoriPeriods))
+      when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(eoriPeriods))
 
-      when(mockHistoricEoriRepository.set(any()))
+      when(mockHistoricEoriRepository.set(any(), any()))
         .thenReturn(Future.successful(FailedToUpdateHistoricEori))
 
       when(mockHistoricEoriRepository.get(any()))
@@ -383,7 +567,7 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
     }
 
     "return InternalServerError if error (other than NotFound) occurs while retrieving an EORI" in new Setup {
-      when(mockHistoryService.getEoriHistory(any()))
+      when(mockHistoryService.getEoriHistory(any(), any()))
         .thenReturn(Future.failed(new RuntimeException("Error Occurred")))
 
       val body: JsObject                         = Json.obj("eori" -> eori)
@@ -402,17 +586,19 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
     val date: String = LocalDate.now().toString
     val eori         = "test_eori"
 
-    val getRouteV2: String         = routes.EoriHistoryController.getEoriHistoryV2().url
-    val getRouteThirdParty: String = routes.EoriHistoryController.retrieveEoriHistoryThirdParty().url
-    val postRoute: String          = routes.EoriHistoryController.updateEoriHistory().url
+    val getRouteV2: String             = routes.EoriHistoryController.getEoriHistoryV2(true).url
+    val getGbxiRouteV2: String         = routes.EoriHistoryController.getEoriHistoryV2(false).url
+    val getRouteThirdParty: String     = routes.EoriHistoryController.retrieveEoriHistoryThirdParty(true).url
+    val getGbxiRouteThirdParty: String = routes.EoriHistoryController.retrieveEoriHistoryThirdParty(false).url
+    val postRoute: String              = routes.EoriHistoryController.updateEoriHistory().url
 
     val mockHistoricEoriRepository: HistoricEoriRepository = mock[HistoricEoriRepository]
-    val mockHistoryService: Sub21Connector                 = mock[Sub21Connector]
+    val mockHistoryService: Sub24Connector                 = mock[Sub24Connector]
 
     val app: Application = application
       .overrides(
         inject.bind[HistoricEoriRepository].toInstance(mockHistoricEoriRepository),
-        inject.bind[Sub21Connector].toInstance(mockHistoryService),
+        inject.bind[Sub24Connector].toInstance(mockHistoryService),
         inject.bind[CustomAuthConnector].toInstance(mockAuthConnector)
       )
       .build()

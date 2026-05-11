@@ -16,12 +16,13 @@
 
 package repositories
 
+import com.mongodb.client.model
 import com.mongodb.client.model.Indexes.ascending
 import models.EoriPeriod
-import org.mongodb.scala.model.Filters.{equal, in}
-import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions, Updates}
+import org.mongodb.scala.model.Filters.{and, equal, in, notEqual}
+import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, UpdateOptions, Updates}
 import play.api.Configuration
-import play.api.libs.functional.syntax._
+import play.api.libs.functional.syntax.*
 import play.api.libs.json.{Format, Json, Reads, __}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
@@ -62,12 +63,22 @@ class DefaultHistoricEoriRepository @Inject() ()(
         case None        => Left(FailedToRetrieveHistoricEori)
       })
 
-  override def set(eoriHistory: Seq[EoriPeriod]): Future[HistoricEoriRepositoryResult] = {
+  override def getGbxi(id: String): Future[Either[HistoricEoriRepositoryResult, Seq[EoriPeriod]]] =
+    collection
+      .find(and(equal("eoriHistory.eori", id), notEqual("gbOnly", true)))
+      .toFuture()
+      .map(_.headOption match {
+        case Some(value) => Right(value.eoriPeriods)
+        case None        => Left(FailedToRetrieveHistoricEori)
+      })
+
+  override def set(eoriHistory: Seq[EoriPeriod], gbOnly: Boolean): Future[HistoricEoriRepositoryResult] = {
     val query = in("eoriHistory.eori", eoriHistory.map(_.eori)*)
 
     val update = Updates.combine(
       Updates.set("eoriHistory", eoriHistory.map(Codecs.toBson(_))),
-      Updates.set("lastUpdated", LocalDateTime.now())
+      Updates.set("lastUpdated", LocalDateTime.now()),
+      Updates.set("gbOnly", gbOnly)
     )
 
     collection
@@ -84,15 +95,17 @@ class DefaultHistoricEoriRepository @Inject() ()(
 
 trait HistoricEoriRepository {
   def get(id: String): Future[Either[HistoricEoriRepositoryResult, Seq[EoriPeriod]]]
-  def set(eoriHistory: Seq[EoriPeriod]): Future[HistoricEoriRepositoryResult]
+  def getGbxi(id: String): Future[Either[HistoricEoriRepositoryResult, Seq[EoriPeriod]]]
+  def set(eoriHistory: Seq[EoriPeriod], gbOnly: Boolean): Future[HistoricEoriRepositoryResult]
 }
 
-case class EoriHistory(eoriPeriods: Seq[EoriPeriod], lastUpdated: LocalDateTime)
+case class EoriHistory(eoriPeriods: Seq[EoriPeriod], gbOnly: Boolean, lastUpdated: LocalDateTime)
 
 object EoriHistory {
   implicit lazy val reads: Reads[EoriHistory] =
     (
       (__ \ "eoriHistory").read[Seq[EoriPeriod]] and
+        (__ \ "gbOnly").readWithDefault[Boolean](true) and
         (__ \ "lastUpdated").read(MongoJavatimeFormats.localDateTimeReads)
     )(EoriHistory.apply)
   implicit val format: Format[EoriHistory]    = Format(reads, Json.writes[EoriHistory])

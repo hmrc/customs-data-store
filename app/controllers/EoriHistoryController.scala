@@ -17,7 +17,7 @@
 package controllers
 
 import actionbuilders.{AuthorisedRequest, RequestWithEori}
-import connectors.Sub21Connector
+import connectors.Sub24Connector
 import models.EoriPeriod
 import models.requests.EoriRequest
 import play.api.libs.json.{Json, OFormat}
@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EoriHistoryController @Inject() (
   historicEoriRepository: HistoricEoriRepository,
-  eoriHistoryConnector: Sub21Connector,
+  eoriHistoryConnector: Sub24Connector,
   cc: ControllerComponents,
   authorisedRequest: AuthorisedRequest
 )(implicit executionContext: ExecutionContext)
@@ -39,24 +39,36 @@ class EoriHistoryController @Inject() (
 
   val log: LoggerLike = Logger(this.getClass)
 
-  def getEoriHistoryV2: Action[AnyContent] = authorisedRequest async { implicit request: RequestWithEori[AnyContent] =>
-    val eori = request.eori.value
-
-    historicEoriRepository.get(eori).flatMap {
-      case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
-        Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
-      case _                                                                   => retrieveAndStoreHistoricEoris(eori)
-    }
+  def getEoriHistoryV2(gbOnly: Boolean): Action[AnyContent] = authorisedRequest async {
+    implicit request: RequestWithEori[AnyContent] =>
+      val eori           = request.eori.value
+      val getEoriHistory = gbOnly match {
+        case true  => historicEoriRepository.get(eori)
+        case false => historicEoriRepository.getGbxi(eori)
+      }
+      getEoriHistory.flatMap {
+        case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) && gbOnly =>
+          Future.successful(Ok(Json.toJson(EoriHistoryResponse(filterOutXiEoris(eoriPeriods)))))
+        case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates)           =>
+          Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
+        case _                                                                             => retrieveAndStoreHistoricEoris(eori, gbOnly)
+      }
   }
 
-  def retrieveEoriHistoryThirdParty: Action[EoriRequest] = Action.async(parse.json[EoriRequest]) { implicit request =>
-    val eori = request.body.eori
-
-    historicEoriRepository.get(eori).flatMap {
-      case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) =>
-        Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
-      case _                                                                   => retrieveAndStoreHistoricEoris(eori)
-    }
+  def retrieveEoriHistoryThirdParty(gbOnly: Boolean): Action[EoriRequest] = Action.async(parse.json[EoriRequest]) {
+    implicit request =>
+      val eori           = request.body.eori
+      val getEoriHistory = gbOnly match {
+        case true  => historicEoriRepository.get(eori)
+        case false => historicEoriRepository.getGbxi(eori)
+      }
+      getEoriHistory.flatMap {
+        case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates) && gbOnly =>
+          Future.successful(Ok(Json.toJson(EoriHistoryResponse(filterOutXiEoris(eoriPeriods)))))
+        case Right(eoriPeriods) if eoriPeriods.headOption.exists(_.definedDates)           =>
+          Future.successful(Ok(Json.toJson(EoriHistoryResponse(eoriPeriods))))
+        case _                                                                             => retrieveAndStoreHistoricEoris(eori, gbOnly)
+      }
   }
 
   def updateEoriHistory(): Action[EoriPeriod] = Action.async(parse.json[EoriPeriod]) { implicit request =>
@@ -69,9 +81,9 @@ class EoriHistoryController @Inject() (
 
         case eoriHistory =>
           for {
-            updateEoriSucceeded        <- historicEoriRepository.set(Seq(request.body))
+            updateEoriSucceeded        <- historicEoriRepository.set(Seq(request.body), true)
             updateEoriHistorySucceeded <- updateEoriSucceeded match {
-                                            case HistoricEoriSuccessful => historicEoriRepository.set(eoriHistory)
+                                            case HistoricEoriSuccessful => historicEoriRepository.set(eoriHistory, true)
                                             case _                      => Future.successful(FailedToUpdateHistoricEori)
                                           }
           } yield updateEoriHistorySucceeded match {
@@ -89,9 +101,9 @@ class EoriHistoryController @Inject() (
       }
   }
 
-  private def retrieveAndStoreHistoricEoris(eori: String): Future[Result] =
+  private def retrieveAndStoreHistoricEoris(eori: String, gbOnly: Boolean = true): Future[Result] =
     eoriHistoryConnector
-      .getEoriHistory(eori)
+      .getEoriHistory(eori, gbOnly)
       .flatMap {
         case Nil =>
           log.warn("No EORI history found for EORI - skipping cache update")
@@ -99,10 +111,14 @@ class EoriHistoryController @Inject() (
 
         case eoriHistory =>
           for {
-            updateResult <- historicEoriRepository.set(eoriHistory)
+            updateResult <- historicEoriRepository.set(eoriHistory, gbOnly)
             result       <- updateResult match {
                               case HistoricEoriSuccessful =>
-                                historicEoriRepository.get(eori).flatMap {
+                                val getEoriHistory = gbOnly match {
+                                  case true  => historicEoriRepository.get(eori)
+                                  case false => historicEoriRepository.getGbxi(eori)
+                                }
+                                getEoriHistory.flatMap {
                                   case Left(_)      => Future.successful(InternalServerError)
                                   case Right(value) => Future.successful(Ok(Json.toJson(EoriHistoryResponse(value))))
                                 }
@@ -114,6 +130,9 @@ class EoriHistoryController @Inject() (
         log.error("Unexpected error retrieving or storing EORI")
         InternalServerError
       }
+
+  private def filterOutXiEoris(eoriPeriods: Seq[EoriPeriod]): Seq[EoriPeriod] =
+    eoriPeriods.filterNot(_.eori.startsWith("XI"))
 
   case class EoriHistoryResponse(eoriHistory: Seq[EoriPeriod])
 

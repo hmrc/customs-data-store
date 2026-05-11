@@ -2,12 +2,14 @@
 
 GET         /eori/verified-email                        controllers.VerifiedEmailController.getVerifiedEmailV2()
 GET         /eori/company-information                   controllers.CompanyInformationController.getCompanyInformationV2()
-GET         /eori/eori-history                          controllers.EoriHistoryController.getEoriHistoryV2()
+GET         /eori/eori-history                          controllers.EoriHistoryController.getEoriHistoryV2(gbOnly: Boolean = true)
+GET         /eori/gbxi-eori-history                     controllers.EoriHistoryController.getEoriHistoryV2(gbOnly: Boolean = false)
 GET         /eori/xieori-information                    controllers.XiEoriController.getXiEoriInformationV2()
 
 POST        /eori/verified-email-third-party            controllers.VerifiedEmailController.retrieveVerifiedEmailThirdParty()
 POST        /eori/company-information-third-party       controllers.CompanyInformationController.retrieveCompanyInformationThirdParty()
-POST        /eori/eori-history-third-party              controllers.EoriHistoryController.retrieveEoriHistoryThirdParty()
+POST        /eori/eori-history-third-party              controllers.EoriHistoryController.retrieveEoriHistoryThirdParty(gbOnly: Boolean = true)
+POST        /eori/gbxi-eori-history-third-party         controllers.EoriHistoryController.retrieveEoriHistoryThirdParty(gbOnly: Boolean = false)
 
 POST        /update-email                               controllers.VerifiedEmailController.updateVerifiedEmail()
 POST        /update-undeliverable-email                 controllers.UndeliverableEmailController.makeUndeliverable()
