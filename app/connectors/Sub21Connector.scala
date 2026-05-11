@@ -38,7 +38,7 @@ class Sub21Connector @Inject() (appConfig: AppConfig, http: HttpClientV2, metric
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     metricsReporter.withResponseTimeLogging("mdg.get.eori-history") {
-      val url = url"${appConfig.sub21EORIHistoryEndpoint}$eori"
+      val url     = url"${appConfig.sub21EORIHistoryEndpoint}$eori"
       val headers = AUTHORIZATION -> appConfig.sub21BearerToken
 
       http
