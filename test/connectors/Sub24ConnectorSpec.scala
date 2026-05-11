@@ -193,6 +193,9 @@ class Sub24ConnectorSpec extends SpecBase with WireMockSupportProvider {
          |    }
          |  }
          |}
+         |features {
+         |sub24-enabled: true
+         |}
          |""".stripMargin
     )
   )
