@@ -95,7 +95,9 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
         .thenReturn(Future.successful(Some(xiEoriInformation)))
 
       running(app) {
-        val request = FakeRequest(POST, retrieveXiEoriCompanyInformationThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
+        val request = FakeRequest(POST, retrieveXiEoriCompanyInformationThirdParty).withJsonBody(
+          Json.obj("eori" -> TEST_EORI_VALUE)
+        )
 
         val result = route(app, request).value
 
@@ -114,7 +116,9 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
         .thenReturn(Future.unit)
 
       running(app) {
-        val request = FakeRequest(POST, retrieveXiEoriCompanyInformationThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
+        val request = FakeRequest(POST, retrieveXiEoriCompanyInformationThirdParty).withJsonBody(
+          Json.obj("eori" -> TEST_EORI_VALUE)
+        )
 
         val result = route(app, request).value
 
@@ -133,7 +137,9 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
         .thenReturn(Future.unit)
 
       running(app) {
-        val request = FakeRequest(POST, retrieveXiEoriCompanyInformationThirdParty).withJsonBody(Json.obj("eori" -> TEST_EORI_VALUE))
+        val request = FakeRequest(POST, retrieveXiEoriCompanyInformationThirdParty).withJsonBody(
+          Json.obj("eori" -> TEST_EORI_VALUE)
+        )
 
         val result = route(app, request).value
 
@@ -163,7 +169,6 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
     }
   }
 
-
   trait Setup {
 
     val xiEoriAddressInformation: XiEoriAddressInformation =
@@ -175,8 +180,9 @@ class XiEoriControllerSpec extends SpecBase with MockAuthConnector {
 
     val eori: String = "testEori"
 
-    val getXiEoriInformationV2Route: String = routes.XiEoriController.getXiEoriInformationV2().url
-    val retrieveXiEoriCompanyInformationThirdParty: String = routes.XiEoriController.retrieveXiEoriCompanyInformationThirdParty().url
+    val getXiEoriInformationV2Route: String                = routes.XiEoriController.getXiEoriInformationV2().url
+    val retrieveXiEoriCompanyInformationThirdParty: String =
+      routes.XiEoriController.retrieveXiEoriCompanyInformationThirdParty().url
 
     val mockXiEoriInformationRepository: XiEoriInformationRepository = mock[XiEoriInformationRepository]
     val mockSubscriptionInfoConnector: Sub09Connector                = mock[Sub09Connector]

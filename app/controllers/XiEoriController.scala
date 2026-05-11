@@ -54,7 +54,7 @@ class XiEoriController @Inject() (
 
       retrieveXiEoriInfoAndStore(eori).flatMap {
         case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
-        case None                    => storeEmptyXiInfoInDBAndReturn404(eori)
+        case None                     => storeEmptyXiInfoInDBAndReturn404(eori)
       }
   }
 
