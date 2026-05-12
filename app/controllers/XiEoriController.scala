@@ -19,6 +19,7 @@ package controllers
 import actionbuilders.{AuthorisedRequest, RequestWithEori}
 import cats.data.OptionT
 import connectors.Sub09Connector
+import models.requests.EoriRequest
 import models.{XiEoriAddressInformation, XiEoriInformation}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -44,6 +45,16 @@ class XiEoriController @Inject() (
       retrieveXiEoriInfoAndStore(eori).flatMap {
         case Some(xiEoriInformation) => Future.successful(Ok(Json.toJson(xiEoriInformation)))
         case None                    => storeEmptyXiInfoInDBAndReturn404(eori)
+      }
+  }
+
+  def retrieveXiEoriCompanyInformationThirdParty(): Action[EoriRequest] = Action.async(parse.json[EoriRequest]) {
+    implicit request =>
+      val eori = request.body.eori
+
+      retrieveXiEoriInfoAndStore(eori).flatMap {
+        case Some(companyInformation) => Future.successful(Ok(Json.toJson(companyInformation)))
+        case None                     => storeEmptyXiInfoInDBAndReturn404(eori)
       }
   }
 
