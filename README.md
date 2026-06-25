@@ -39,21 +39,24 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 
 ## Available routes
 
-| Path                                                           | Description                                                                                            | Comments |
-|----------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|
-| GET /customs-data-store/eori/verified-email                    | Retrieves a verified email address for the logged-in EORI either from cache or SUB09                   |          |
-| GET /customs-data-store/eori/company-information               | Retrieves the business full name and address for the logged-in EORI either from cache or SUB09         |          |
-| GET /customs-data-store/eori/eori-history                      | Retrieves a list of all historic EORI's associated with the logged-in EORI either from cache or SUB09  |          |
-| GET /customs-data-store/eori/xieori-information                | Retrieves XI EORI information for the logged-in EORI either from cache or SUB09                        |          |
-| POST /customs-data-store/eori/verified-email-third-party       | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09 |          |
-| POST /customs-data-store/eori/company-information-third-party  | Retrieves the business full name for the EORI specified in request body either from cache or SUB09     |          |
-| POST /customs-data-store/eori/eori-history-third-party         | Retrieves the historic EORIs for the EORI specified in request body from cache or SUB21                |          |
-| POST /customs-data-store/update-email                          | Populates a new verified email address in the cache and removes undeliverable information              |          |
-| POST /customs-data-store/update-eori-history                   | Updates the eori history for a given EORI in the cache                                                 |          |
-| POST /customs-data-store/update-undeliverable-email            | Updates undeliverable information for a given enrolmentValue                                           |          |
-| GET /customs-data-store/subscriptions/subscriptionsdisplay     | Internal Use Only                                                                                      |          |
-| GET /customs-data-store/subscriptions/unverified-email-display | Internal Use Only                                                                                      |          |
-| GET /customs-data-store/subscriptions/email-display            | Internal Use Only                                                                                      |          |
+| Path                                                            | Description                                                                                                     | Comments |
+|-----------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|----------|
+| GET /customs-data-store/eori/verified-email                     | Retrieves a verified email address for the logged-in EORI either from cache or SUB09                            |          |
+| GET /customs-data-store/eori/company-information                | Retrieves the business full name and address for the logged-in EORI either from cache or SUB09                  |          |
+| GET /customs-data-store/eori/eori-history                       | Retrieves a list of all historic GB EORI's associated with the logged-in EORI either from cache or SUB09        |          |
+| GET /customs-data-store/eori/gbxi-eori-history                  | Retrieves a list of all historic GB and XI EORI's associated with the logged-in EORI either from cache or SUB09 |          |
+| GET /customs-data-store/eori/xieori-information                 | Retrieves XI EORI information for the logged-in EORI either from cache or SUB09                                 |          |
+| POST /customs-data-store/eori/verified-email-third-party        | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09          |          |
+| POST /customs-data-store/eori/company-information-third-party   | Retrieves the business full name for the EORI specified in request body either from cache or SUB09              |          |
+| POST /customs-data-store/eori/xieori-information-third-party    | Retrieves XI EORI information for the EORI specified in request body either from cache or SUB09                 |          |
+| POST /customs-data-store/eori/eori-history-third-party          | Retrieves the historic GB EORIs for the EORI specified in request body from cache or SUB24                      |          |
+| POST /customs-data-store/eori/gbxi-eori-history-third-party     | Retrieves the historic GB and XI EORIs for the EORI specified in request body from cache or SUB24               |          |
+| POST /customs-data-store/update-email                           | Populates a new verified email address in the cache and removes undeliverable information                       |          |
+| POST /customs-data-store/update-eori-history                    | Updates the eori history for a given EORI in the cache                                                          |          |
+| POST /customs-data-store/update-undeliverable-email             | Updates undeliverable information for a given enrolmentValue                                                    |          |
+| GET /customs-data-store/subscriptions/subscriptionsdisplay      | Internal Use Only                                                                                               |          |
+| GET /customs-data-store/subscriptions/unverified-email-display  | Internal Use Only                                                                                               |          |
+| GET /customs-data-store/subscriptions/email-display             | Internal Use Only                                                                                               |          |
 
 ## Feature switches
 
@@ -68,9 +71,45 @@ An endpoint to retrieve a verified email address for logged-in EORI.
 ```json
 {
   "address": "test@email.com",
-  "timestamp": "2020-03-20T01:02:03Z"
+  "timestamp": "2020-03-20T01:02:03Z",
+  "undeliverable": {
+    "subject": "test_sub",
+    "eventId": "test_event_id",
+    "groupId": "test_group_id",
+    "timestamp": "2020-03-20T01:02:03Z",
+    "event": {
+      "id": "test_id",
+      "event": "circuit_breaker",
+      "emailAddress": "test@email.com",
+      "detected": "test",
+      "code": "1",
+      "reason": "test",
+      "enrolment": "test_enrol",
+      "source": "test"
+    }
+  }
 }
 ```
+### Fields
+
+| Field                   | Required  | Type          |
+|-------------------------|-----------|---------------|
+| address                 | Mandatory | String        |
+| timestamp               | Mandatory  | LocalDateTime |
+| undeliverable           | Optional | Object        |
+| undeliverable.subject   | Mandatory | String        |
+| undeliverable.eventId   | Mandatory | String        |
+| undeliverable.groupId   | Mandatory  | String        |
+| undeliverable.timestamp | Mandatory | LocalDateTime |
+| undeliverable.event     | Mandatory | Object        |
+| undeliverable.event.id  | Mandatory | String        |
+| undeliverable.event.event  | Mandatory | String        |
+| undeliverable.event.emailAddress  | Mandatory | String        |
+| undeliverable.event.detected  | Mandatory | String        |
+| undeliverable.event.code  | Optional | Int           |
+| undeliverable.event.reason  | Optional | String        |
+| undeliverable.event.enrolment  | Mandatory | String        |
+| undeliverable.event.source  | Optional | String        |
 
 ### Response codes
 
@@ -140,6 +179,14 @@ An endpoint that retrieves a list of all historic EORI's associated with logged-
   ]
 }
 ```
+### Fields
+
+| Field            | Required  | Type   |
+|------------------|-----------|--------|
+| eoriHistory      | Mandatory | Array  |
+| eoriHistory.eori | Mandatory | String |
+| eoriHistory.validFrom | Optional  | String |
+| eoriHistory.validTo | Optional | String |
 
 ### Response codes
 
@@ -147,6 +194,40 @@ An endpoint that retrieves a list of all historic EORI's associated with logged-
 |--------|-----------------------------------------------|
 | 200    | A sequence of historic eori's returned        |
 | 500    | An unexpected failure happened in the service |
+
+## GET /eori/gbxi-eori-history
+
+An endpoint that retrieves a list of all historic EORI's associated with logged-in EORI.
+
+### Response body
+
+```json
+{
+  "eoriHistory": [
+    {
+      "eori": "GBhistoricEori1",
+      "validFrom": "2001-01-20T00:00:00Z",
+      "validTo": "2001-01-20T00:00:00Z"
+    },
+    {
+      "eori": "XIhistoricEori2",
+      "validFrom": "2001-01-20T00:00:00Z",
+      "validTo": "2001-01-20T00:00:00Z"
+    }
+  ]
+}
+```
+### Fields
+
+see [Response fields example](#get-eorieori-history)
+
+### Response codes
+
+| Status | Description                                   |
+|--------|-----------------------------------------------|
+| 200    | A sequence of historic eori's returned        |
+| 500    | An unexpected failure happened in the service |
+
 
 ## GET /eori/xieori-information
 
@@ -166,6 +247,16 @@ An endpoint that retrieves XI EORI information for the requested EORI.
   }
 }
 ```
+| Field    | Required  | Type   |
+|----------|-----------|--------|
+| xiEori   | Mandatory | String |
+| consent  | Mandatory | String |
+| address  | Mandatory | Object |
+| address.pbeAddressLine1 | Mandatory | String |
+| address.pbeAddressLine2 | Optional | String |
+| address.pbeAddressLine3 | Optional | String |
+| address.pbeAddressLine4 | Optional | String |
+| address.pbePostCode | Optional  | String |
 
 ### Response codes
 
@@ -194,12 +285,11 @@ An endpoint to retrieve a verified email address for EORI specified in request b
 
 ### Response body
 
-```json
-{
-  "address": "test@email.com",
-  "timestamp": "2020-03-20T01:02:03Z"
-}
-```
+see [Response body example](#get-eoriverified-email)
+
+### Fields
+
+see [Response fields example](#get-eoriverified-email)
 
 ### Response codes
 
@@ -264,6 +354,40 @@ An endpoint to retrieve the business full name and address for EORI specified in
 | 404    | No verified email has been found for the specified eori |
 | 500    | An unexpected failure happened in the service           |
 
+
+## POST /eori/xieori-information-third-party
+
+An endpoint that retrieves XI EORI information for the requested EORI.
+
+### Example request
+
+```json
+{
+  "eori": "testEori"
+}
+```
+
+### Fields
+
+| Field | Required  | Description                                    |
+|-------|-----------|------------------------------------------------|
+| eori  | Mandatory | The eori used to provide a company information |
+
+### Response body
+see [Response body example](#get-eorixieori-information)
+
+### Fields
+
+see [Response fields example](#get-eorixieori-information)
+
+### Response codes
+
+| Status | Description                                                   |
+|--------|---------------------------------------------------------------|
+| 200    | XI EORI information is returned                               |
+| 404    | XI EORI information is retrieved neither from cache nor SUB09 |
+
+
 ## POST /eori/eori-history-third-party
 
 An endpoint to retrieve the historic EORIs of a given third party EORI (not the logged-in user's EORI).
@@ -300,6 +424,40 @@ An endpoint to retrieve the historic EORIs of a given third party EORI (not the 
   ]
 }
 ```
+### Fields
+see [Response fields example](#get-eorieori-history)
+
+### Response codes
+
+| Status | Description                                   |
+|--------|-----------------------------------------------|
+| 200    | A sequence of historic eori's returned        |
+| 500    | An unexpected failure happened in the service |
+
+## POST /eori/gbxi-eori-history-third-party
+
+An endpoint to retrieve the historic EORIs of a given third party EORI (not the logged-in user's EORI).
+
+### Example request
+
+```json
+{
+  "eori": "testEori"
+}
+```
+
+### Fields
+
+| Field | Required  | Description                                                          |
+|-------|-----------|----------------------------------------------------------------------|
+| eori  | Mandatory | The eori for which historically associated EORIs are to be retrieved |
+
+### Response body
+
+see [Response fields example](#get-eorigbxi-eori-history)
+
+### Fields
+see [Response fields example](#get-eorieori-history)
 
 ### Response codes
 
