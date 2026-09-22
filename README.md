@@ -39,32 +39,24 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 
 ## Available routes
 
-| Path                                                            | Description                                                                                                  | Comments                                                          |
-|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
-| GET /customs-data-store/eori/verified-email                    | Retrieves a verified email address for the logged-in EORI either from cache or SUB09                        | Requires an EORI enrolment                                        |
-| GET /customs-data-store/eori/company-information               | Retrieves the business full name and address for the logged-in EORI either from cache or SUB09              | Requires an EORI enrolment                                        |
-| GET /customs-data-store/eori/eori-history                      | Retrieves a list of all historic GB EORI's associated with the logged-in EORI either from cache or SUB21/24 | Requires an EORI enrolment; excludes XI EORIs                     |
-| GET /customs-data-store/eori/gbxi-eori-history                  | Retrieves a list of all historic GB and XI EORI's associated with the logged-in EORI either from cache or SUB24 | Requires an EORI enrolment; includes XI EORIs                  |
-| GET /customs-data-store/eori/xieori-information                | Retrieves XI EORI information for the logged-in EORI either from cache or SUB09                             | Requires an EORI enrolment; see caching note below                |
-| POST /customs-data-store/eori/verified-email-third-party        | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09      | No enrolment required — EORI is supplied in the request body      |
-| POST /customs-data-store/eori/company-information-third-party   | Retrieves the business full name for the EORI specified in request body either from cache or SUB09          | No enrolment required — EORI is supplied in the request body      |
-| POST /customs-data-store/eori/xieori-information-third-party    | Retrieves XI EORI information for the EORI specified in request body either from cache or SUB09             | No enrolment required — see caching note below                    |
-| POST /customs-data-store/eori/eori-history-third-party           | Retrieves the historic GB EORIs for the EORI specified in request body from cache or SUB21/24               | No enrolment required; excludes XI EORIs                          |
-| POST /customs-data-store/eori/gbxi-eori-history-third-party      | Retrieves the historic GB and XI EORIs for the EORI specified in request body from cache or SUB24            | No enrolment required; includes XI EORIs                          |
-| POST /customs-data-store/update-email                          | Populates a new verified email address in the cache and removes undeliverable information                   |                                                                    |
-| POST /customs-data-store/update-eori-history                   | Updates the eori history for a given EORI in the cache from the upstream service                          | |
-| POST /customs-data-store/update-undeliverable-email             | Updates undeliverable information for a given enrolmentValue                                                 |                                                                    |
-| GET /customs-data-store/subscriptions/subscriptionsdisplay     | Internal Use Only                                                                                            |                                                                    |
-| GET /customs-data-store/subscriptions/unverified-email-display | Internal Use Only                                                                                            |                                                                    |
-| GET /customs-data-store/subscriptions/email-display             | Internal Use Only                                                                                            |                                                                    |
-
-## Feature switches
-
-| Flag                      | Default (`conf/application.conf`) | Description                                                                                                                                                                                                                                                                                             |
-|---------------------------|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `features.sub24-enabled`  | `false`                            | Controls which upstream service is used for GB-only EORI history lookups (`GET /eori/eori-history` and `POST /eori/eori-history-third-party`). When `true`, these call SUB24; when `false` (the default), they fall back to the legacy SUB21 service. `GET /eori/gbxi-eori-history` and `POST /eori/gbxi-eori-history-third-party` always call SUB24, regardless of this flag. |
-
-Can be overridden locally, e.g. `sbt "run -Dfeatures.sub24-enabled=true"`.
+| Path                                                            | Description                                                                                                  | Comments                                                    |
+|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| GET /customs-data-store/eori/verified-email                    | Retrieves a verified email address for the logged-in EORI either from cache or SUB09                        | Requires an EORI enrolment                                  |
+| GET /customs-data-store/eori/company-information               | Retrieves the business full name and address for the logged-in EORI either from cache or SUB09              | Requires an EORI enrolment                                  |
+| GET /customs-data-store/eori/eori-history                      | Retrieves a list of all historic GB EORI's associated with the logged-in EORI either from cache or SUB24 | Requires an EORI enrolment; excludes XI EORIs               |
+| GET /customs-data-store/eori/gbxi-eori-history                  | Retrieves a list of all historic GB and XI EORI's associated with the logged-in EORI either from cache or SUB24 | Requires an EORI enrolment; includes XI EORIs               |
+| GET /customs-data-store/eori/xieori-information                | Retrieves XI EORI information for the logged-in EORI either from cache or SUB09                             | Requires an EORI enrolment                                  |
+| POST /customs-data-store/eori/verified-email-third-party        | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09      | No enrolment required — EORI is supplied in the request body |
+| POST /customs-data-store/eori/company-information-third-party   | Retrieves the business full name for the EORI specified in request body either from cache or SUB09          | No enrolment required — EORI is supplied in the request body |
+| POST /customs-data-store/eori/xieori-information-third-party    | Retrieves XI EORI information for the EORI specified in request body either from cache or SUB09             | No enrolment required                                       |
+| POST /customs-data-store/eori/eori-history-third-party           | Retrieves the historic GB EORIs for the EORI specified in request body from cache or SUB24               | No enrolment required; excludes XI EORIs                    |
+| POST /customs-data-store/eori/gbxi-eori-history-third-party      | Retrieves the historic GB and XI EORIs for the EORI specified in request body from cache or SUB24            | No enrolment required; includes XI EORIs                    |
+| POST /customs-data-store/update-email                          | Populates a new verified email address in the cache and removes undeliverable information                   |                                                             |
+| POST /customs-data-store/update-eori-history                   | Updates the eori history for a given EORI in the cache from the upstream service                          |                                                             |
+| POST /customs-data-store/update-undeliverable-email             | Updates undeliverable information for a given enrolmentValue                                                 |                                                             |
+| GET /customs-data-store/subscriptions/subscriptionsdisplay     | Internal Use Only                                                                                            |                                                             |
+| GET /customs-data-store/subscriptions/unverified-email-display | Internal Use Only                                                                                            |                                                             |
+| GET /customs-data-store/subscriptions/email-display             | Internal Use Only                                                                                            |                                                             |
 
 ## GET /eori/verified-email
 
@@ -446,7 +438,7 @@ previously held for it.
 ## POST /update-eori-history
 
 An endpoint that refreshes the historic EORI's for a given EORI in the cache. The `eori` in the request body is
-used to look up the EORI's full history from the upstream service (SUB21/SUB24) — that fresh upstream history is
+used to look up the EORI's full history from the upstream service (SUB24) — that fresh upstream history is
 what gets cached.
 
 ### Example request
