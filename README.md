@@ -39,31 +39,31 @@ The minimum requirement for test coverage is 90%. Builds will fail when the proj
 
 ## Available routes
 
-| Path                                                            | Description                                                                                                  | Comments                                                    |
-|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| GET /customs-data-store/eori/verified-email                    | Retrieves a verified email address for the logged-in EORI either from cache or SUB09                        | Requires an EORI enrolment                                  |
-| GET /customs-data-store/eori/company-information               | Retrieves the business full name and address for the logged-in EORI either from cache or SUB09              | Requires an EORI enrolment                                  |
-| GET /customs-data-store/eori/eori-history                      | Retrieves a list of all historic GB EORI's associated with the logged-in EORI either from cache or SUB24 | Requires an EORI enrolment; excludes XI EORIs               |
-| GET /customs-data-store/eori/gbxi-eori-history                  | Retrieves a list of all historic GB and XI EORI's associated with the logged-in EORI either from cache or SUB24 | Requires an EORI enrolment; includes XI EORIs               |
-| GET /customs-data-store/eori/xieori-information                | Retrieves XI EORI information for the logged-in EORI either from cache or SUB09                             | Requires an EORI enrolment                                  |
-| POST /customs-data-store/eori/verified-email-third-party        | Retrieves the verified email address for the EORI specified in request body either from cache or SUB09      | No enrolment required — EORI is supplied in the request body |
-| POST /customs-data-store/eori/company-information-third-party   | Retrieves the business full name for the EORI specified in request body either from cache or SUB09          | No enrolment required — EORI is supplied in the request body |
-| POST /customs-data-store/eori/xieori-information-third-party    | Retrieves XI EORI information for the EORI specified in request body either from cache or SUB09             | No enrolment required                                       |
-| POST /customs-data-store/eori/eori-history-third-party           | Retrieves the historic GB EORIs for the EORI specified in request body from cache or SUB24               | No enrolment required; excludes XI EORIs                    |
-| POST /customs-data-store/eori/gbxi-eori-history-third-party      | Retrieves the historic GB and XI EORIs for the EORI specified in request body from cache or SUB24            | No enrolment required; includes XI EORIs                    |
-| POST /customs-data-store/update-email                          | Populates a new verified email address in the cache and removes undeliverable information                   |                                                             |
-| POST /customs-data-store/update-eori-history                   | Updates the eori history for a given EORI in the cache from the upstream service                          |                                                             |
-| POST /customs-data-store/update-undeliverable-email             | Updates undeliverable information for a given enrolmentValue                                                 |                                                             |
-| GET /customs-data-store/subscriptions/subscriptionsdisplay     | Internal Use Only                                                                                            |                                                             |
-| GET /customs-data-store/subscriptions/unverified-email-display | Internal Use Only                                                                                            |                                                             |
-| GET /customs-data-store/subscriptions/email-display             | Internal Use Only                                                                                            |                                                             |
+| Path                                                            | Description                                                                                                                        | Comments                                                                      |
+|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| GET /customs-data-store/eori/verified-email                    | Retrieves a verified email address for the logged-in EORI, either from cache or SUB09                                              | Requires an EORI enrolment for 'HMRC-CUS-ORG'                                 |
+| GET /customs-data-store/eori/company-information               | Retrieves the business full name and address for the logged-in EORI, either from cache or SUB09                                    | Requires an EORI enrolment for 'HMRC-CUS-ORG'                                 |
+| GET /customs-data-store/eori/eori-history                      | Retrieves a list of all historic GB EORI's associated with the logged-in EORI, either from cache or SUB24                          | Requires an EORI enrolment for 'HMRC-CUS-ORG'                                 |
+| GET /customs-data-store/eori/gbxi-eori-history                  | Retrieves a list of all historic GB and XI EORI's associated with the logged-in EORI, either from cache or SUB24                   | Requires an EORI enrolment for 'HMRC-CUS-ORG'; includes XI EORIs if available |
+| GET /customs-data-store/eori/xieori-information                | Retrieves XI EORI information for the logged-in EORI, either from cache or SUB09                                                   | Requires an EORI enrolment for 'HMRC-CUS-ORG'                                 |
+| POST /customs-data-store/eori/verified-email-third-party        | Retrieves the verified email address for the EORI specified in request body, either from cache or SUB09                            | The EORI provided in the request body must have an 'HMRC-CUS-ORG' enrolment.              |
+| POST /customs-data-store/eori/company-information-third-party   | Retrieves the business full name for the EORI specified in request body, either from cache or SUB09                                | The EORI provided in the request body must have an 'HMRC-CUS-ORG' enrolment.                 |
+| POST /customs-data-store/eori/xieori-information-third-party    | Retrieves XI EORI information for the EORI specified in request body, either from cache or SUB09                                   |                                                         |
+| POST /customs-data-store/eori/eori-history-third-party           | Retrieves the historic GB EORIs for the EORI specified in request body from cache or SUB24                                         |                                      |
+| POST /customs-data-store/eori/gbxi-eori-history-third-party      | Retrieves the historic GB and XI EORIs for the EORI specified in request body from cache or SUB24                                  |                                      |
+| POST /customs-data-store/update-email                          | Populates a new verified email address in the cache and removes undeliverable information (cache write only, no upstream SUB call) |                                                                               |
+| POST /customs-data-store/update-eori-history                   | Updates the eori history for a given EORI in the cache from the upstream service (calls SUB24)                                     |                                                                               |
+| POST /customs-data-store/update-undeliverable-email             | Updates undeliverable information for a given enrolmentValue (calls SUB22 to propagate the bounce upstream)                        |                                                                               |
+| GET /customs-data-store/subscriptions/subscriptionsdisplay     | Internal Use Only                                                                                                                  |                                                                               |
+| GET /customs-data-store/subscriptions/unverified-email-display | Internal Use Only                                                                                                                  |                                                                               |
+| GET /customs-data-store/subscriptions/email-display             | Internal Use Only                                                                                                                  |                                                                               |
 
 ## GET /eori/verified-email
 
 An endpoint to retrieve a verified email address for the logged-in EORI (taken from the caller's EORI enrolment). If the email is not already cached it is retrieved from SUB09 and cached
 before being returned.
 
-The caller must be authenticated with an EORI enrolment (`HMRC-CUS-ORG` / `EORINumber`).
+The user/trader must be subscribed to CDS and have an `HMRC-CUS-ORG` enrolment on their EORI.
 
 ### Response body
 
@@ -82,19 +82,19 @@ also present in the response.
 | Status | Description                                                                                |
 |--------|--------------------------------------------------------------------------------------------|
 | 200    | A verified email has been found for the specified eori                                     |
-| 403    | The caller does not have a valid EORI enrolment                                            |
+| 403    | The user/trader does not have a valid EORI enrolment                                            |
 | 404    | No verified email has been found for the specified eori, either in the cache or from SUB09 |
 | 500    | An unexpected failure happened in the service (e.g. the cache could not be read/written)   |
 
-Note: if the upstream SUB09 call itself fails (times out, errors, or returns an unparsable response), this is
-treated as 404 error, **not** a 500 error.
+**Note:** if the upstream SUB09 call itself fails (times out, errors, or returns an unparsable response), this is
+treated as a 404 error, **not** a 500 error.
 
 ## GET /eori/company-information
 
 An endpoint to retrieve the business full name and address for the logged-in EORI (taken from the caller's EORI
 enrolment). If not already cached, this is retrieved from SUB09 and cached before being returned.
 
-The caller must be authenticated with an EORI enrolment (`HMRC-CUS-ORG` / `EORINumber`).
+The user/trader must be subscribed to CDS and have an `HMRC-CUS-ORG` enrolment on their EORI.
 
 ### Response body
 
@@ -128,7 +128,7 @@ The caller must be authenticated with an EORI enrolment (`HMRC-CUS-ORG` / `EORIN
 | Status | Description                                                                                |
 |--------|----------------------------------------------------------------------------------------------|
 | 200    | Company information found and returned                                                      |
-| 403    | The caller does not have a valid EORI enrolment                                             |
+| 403    | The user/trader does not have a valid EORI enrolment                                             |
 | 404    | Company information not found in the cache or from SUB09 (this also covers a failed SUB09 call) |
 | 500    | An unexpected failure happened in the service                                               |
 
@@ -137,11 +137,12 @@ The caller must be authenticated with an EORI enrolment (`HMRC-CUS-ORG` / `EORIN
 Two endpoints retrieve a list of all historic EORI's associated with the logged-in EORI (taken from the caller's
 EORI enrolment), either from cache or from the upstream EORI history service:
 
-- `GET /eori/eori-history` returns **GB EORIs only** — any historic EORIs prefixed with `XI` are removed from
-  the list.
+- `GET /eori/eori-history` returns **GB EORIs only**. Cached responses have any `XI`-prefixed EORIs explicitly
+  filtered out; a fresh fetch from the upstream service relies on SUB24 not returning XI-associated EORIs
+  when queried without `association=1`.
 - `GET /eori/gbxi-eori-history` returns the full history, **including** any `XI`-prefixed EORIs.
 
-Both require the caller to be authenticated with an EORI enrolment (`HMRC-CUS-ORG` / `EORINumber`).
+Both require the user/trader to be authenticated with an EORI enrolment (`HMRC-CUS-ORG` / `EORINumber`).
 
 ### Response body
 
@@ -166,14 +167,14 @@ Both require the caller to be authenticated with an EORI enrolment (`HMRC-CUS-OR
 | Status | Description                                                                          |
 |--------|----------------------------------------------------------------------------------------|
 | 200    | The eori history has been returned. If none is found, an empty `eoriHistory` array is returned with a 200 |
-| 403    | The caller does not have a valid EORI enrolment                                       |
+| 403    | The user/trader does not have a valid EORI enrolment                                       |
 | 500    | An unexpected failure happened in the service                                         |
 
 ## GET /eori/xieori-information
 
 An endpoint that retrieves XI EORI information for the logged-in EORI (taken from the caller's EORI enrolment).
 
-The caller must be authenticated with an EORI enrolment (`HMRC-CUS-ORG` / `EORINumber`).
+The user/trader must be subscribed to CDS and have an `HMRC-CUS-ORG` enrolment on their EORI.
 
 
 ### Response body
@@ -210,7 +211,7 @@ The caller must be authenticated with an EORI enrolment (`HMRC-CUS-ORG` / `EORIN
 | Status | Description                                                                        |
 |--------|--------------------------------------------------------------------------------------|
 | 200    | XI EORI information is returned  |
-| 403    | The caller does not have a valid EORI enrolment                                     |
+| 403    | The user/trader does not have a valid EORI enrolment                                     |
 | 404    | XI EORI information is retrieved neither from cache nor SUB09                       |
 | 500    | An unexpected failure happened in the service                                       |
 
@@ -360,8 +361,9 @@ An endpoint that retrieves XI EORI information for the EORI specified in the req
 Two endpoints retrieve the historic EORIs of a given third party EORI (not the caller's own EORI, and no EORI
 enrolment is required):
 
-- `POST /eori/eori-history-third-party` returns **GB EORIs only** — any historic EORIs prefixed with `XI` are
-  removed from the list.
+- `POST /eori/eori-history-third-party` returns **GB EORIs only**. Cached responses have any `XI`-prefixed
+  EORIs explicitly filtered out; a fresh fetch from the upstream service relies on SUB24 not returning
+  XI-associated EORIs when queried without `association=1`.
 - `POST /eori/gbxi-eori-history-third-party` returns the full history, **including** any `XI`-prefixed EORIs.
 
 ### Example request
@@ -407,7 +409,7 @@ enrolment is required):
 ## POST /update-email
 
 An endpoint to update the verified email address for a given EORI and remove any undeliverable information
-previously held for it.
+previously held for it. This is a cache write only — it does not call any upstream SUB service.
 
 ### Example request
 
@@ -460,7 +462,8 @@ what gets cached.
 
 ## POST /update-undeliverable-email
 
-An endpoint to update undeliverable information for an enrolmentValue.
+An endpoint to update undeliverable information for an enrolmentValue. Once the cache is updated, it also calls
+SUB22 to propagate the undeliverable/bounce information upstream.
 
 ### Request parameters
 
