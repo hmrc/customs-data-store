@@ -369,15 +369,10 @@ Example unverified email response:
 
 ## Developer Notes
 
-### Feature Flags
+### EORI History
 
-This service has a feature flag named `sub24-enabled`, which defaults to `false` in `application.conf`. It controls the configured SUB24/SUB21 integration behaviour for EORI history requests.
-
-Do not enable feature flags in `application.conf`, as this can apply globally by default. To enable the flag locally without changing the configuration file, run:
-
-```bash
-sbt "run -Dfeatures.sub24-enabled=true"
-```
+EORI history requests use SUB24. GB-only requests send the `eori` query parameter;
+GB and XI requests also send `association=1`.
 
 ### Scalafmt
 

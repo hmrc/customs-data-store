@@ -77,15 +77,15 @@ class AppConfigSpec extends SpecBase {
     }
   }
 
-  "sub21EORIHistoryEndpoint" should {
+  "sub24EORIHistoryEndpoint" should {
     "return correct value" in new Setup {
-      appConfig.sub21EORIHistoryEndpoint mustBe "http://localhost:9753/customs-financials-hods-stub/eorihistory/"
+      appConfig.sub24EORIHistoryEndpoint mustBe "http://localhost:9753/customs-financials-hods-stub/gbxieorihistory/"
     }
   }
 
-  "sub21BearerToken" should {
+  "sub24BearerToken" should {
     "return correct value" in new Setup {
-      appConfig.sub21BearerToken mustBe "Bearer secret-token"
+      appConfig.sub24BearerToken mustBe "Bearer secret-token"
     }
   }
 
