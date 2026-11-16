@@ -44,22 +44,17 @@ class Sub24Connector @Inject() (appConfig: AppConfig, http: HttpClientV2, metric
 
     metricsReporter.withResponseTimeLogging("mdg.get.eori-history") {
       val url = gbOnly match {
-        case true  =>
-          if (appConfig.sub24Enabled) url"${appConfig.sub24EORIHistoryEndpoint}?eori=$eori"
-          else url"${appConfig.sub21EORIHistoryEndpoint}$eori"
+        case true  => url"${appConfig.sub24EORIHistoryEndpoint}?eori=$eori"
         case false => url"${appConfig.sub24EORIHistoryEndpoint}?eori=$eori&association=1"
       }
 
-      val sub21Headers = Seq(AUTHORIZATION -> appConfig.sub21BearerToken)
-      val sub24Headers = Seq(
+      val headers = Seq(
         AUTHORIZATION    -> appConfig.sub24BearerToken,
         DATE             -> localDate,
         X_CORRELATION_ID -> randomUUID,
         X_FORWARDED_HOST -> "MDTP",
         ACCEPT           -> "application/json"
       )
-
-      val headers = if (appConfig.sub24Enabled) sub24Headers else sub21Headers
 
       http
         .get(url)

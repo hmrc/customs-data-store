@@ -17,10 +17,11 @@
 package connectors
 
 import config.AppConfig
+import config.Headers.{DATE, X_CORRELATION_ID, X_FORWARDED_HOST}
 import models.*
 import models.responses.{GetEORIHistoryResponse, ResponseCommon, ResponseDetail}
 import org.mockito.ArgumentCaptor
-import play.api.http.Status.NOT_FOUND
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, NOT_FOUND}
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.*
 import uk.gov.hmrc.http.HttpErrorFunctions.notFoundMessage
@@ -29,7 +30,7 @@ import play.api.http.HeaderNames.AUTHORIZATION
 import com.typesafe.config.ConfigFactory
 import play.api.{Application, Configuration}
 import com.github.tomakehurst.wiremock.client.WireMock.{
-  aResponse, equalTo, get, getRequestedFor, ok, urlPathEqualTo, urlPathMatching, verify
+  aResponse, absent, equalTo, get, getRequestedFor, matching, ok, urlPathEqualTo, urlPathMatching, verify
 }
 import org.scalatest.concurrent.ScalaFutures.*
 
@@ -40,8 +41,8 @@ import scala.concurrent.ExecutionContext
 
 class Sub24ConnectorSpec extends SpecBase with WireMockSupportProvider {
 
-  "EoriHistoryConnector" should {
-    "hit the expected URL if Gbonly equal true and sub24 feature enabled true" in new Setup {
+  "Sub24Connector" should {
+    "call SUB24 with the EORI and required headers for GB-only history" in new Setup {
 
       val response: String = Json.toJson(generateResponse(List(someEori))).toString
 
@@ -56,32 +57,16 @@ class Sub24ConnectorSpec extends SpecBase with WireMockSupportProvider {
       verify(
         getRequestedFor(urlPathEqualTo(sub24Url))
           .withQueryParam("eori", equalTo(someEori))
+          .withQueryParam("association", absent())
+          .withHeader(AUTHORIZATION, equalTo(appConfig.sub24BearerToken))
+          .withHeader(DATE, matching(".+"))
+          .withHeader(X_CORRELATION_ID, matching("[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
       )
     }
 
-    "hit the expected URL if Gbonly equal true and sub24 feature enabled false" in new Setup {
-
-      val appWithSub24Disabled: Application = application
-        .configure(config)
-        .configure("features.sub24-enabled" -> false)
-        .build()
-
-      val connectorWithSub24Disabled: Sub24Connector = appWithSub24Disabled.injector.instanceOf[Sub24Connector]
-
-      val response: String = Json.toJson(generateResponse(List(someEori))).toString
-
-      wireMockServer.stubFor(
-        get(urlPathEqualTo(sub21Url))
-          .willReturn(ok(response))
-      )
-
-      await(connectorWithSub24Disabled.getEoriHistory(someEori))
-      verify(
-        getRequestedFor(urlPathEqualTo(sub21Url))
-      )
-    }
-
-    "hit the expected URL if Gbonly equal false and sub24 feature enabled true" in new Setup {
+    "call SUB24 with the EORI, association and required headers for GB and XI history" in new Setup {
 
       val response: String = Json.toJson(generateResponse(List(someEori))).toString
 
@@ -97,6 +82,11 @@ class Sub24ConnectorSpec extends SpecBase with WireMockSupportProvider {
         getRequestedFor(urlPathEqualTo(sub24Url))
           .withQueryParam("eori", equalTo(someEori))
           .withQueryParam("association", equalTo("1"))
+          .withHeader(AUTHORIZATION, equalTo(appConfig.sub24BearerToken))
+          .withHeader(DATE, matching(".+"))
+          .withHeader(X_CORRELATION_ID, matching("[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"))
+          .withHeader(X_FORWARDED_HOST, equalTo(MDTP))
+          .withHeader(ACCEPT, equalTo(CONTENT_TYPE_APPLICATION_JSON))
       )
     }
 
@@ -167,6 +157,19 @@ class Sub24ConnectorSpec extends SpecBase with WireMockSupportProvider {
       val result: Seq[EoriPeriod] = await(connector.getEoriHistory(someEori))
       result mustBe empty
     }
+
+    "propagate unexpected upstream errors" in new Setup {
+      wireMockServer.stubFor(
+        get(urlPathEqualTo(sub24Url))
+          .willReturn(aResponse().withStatus(INTERNAL_SERVER_ERROR))
+      )
+
+      val error: UpstreamErrorResponse = intercept[UpstreamErrorResponse] {
+        await(connector.getEoriHistory(someEori))
+      }
+
+      error.statusCode mustBe INTERNAL_SERVER_ERROR
+    }
   }
 
   override def config: Configuration = Configuration(
@@ -185,16 +188,7 @@ class Sub24ConnectorSpec extends SpecBase with WireMockSupportProvider {
          |      bearer-token = "secret-token"
          |      historicEoriEndpoint = "customs-financials-hods-stub/gbxieorihistory/"
          |    }
-         |    sub21 {
-         |      host = $wireMockHost
-         |      port = $wireMockPort
-         |      bearer-token = "secret-token"
-         |      historicEoriEndpoint = "customs-financials-hods-stub/eorihistory/"
-         |    }
          |  }
-         |}
-         |features {
-         |sub24-enabled: true
          |}
          |""".stripMargin
     )
@@ -230,7 +224,6 @@ class Sub24ConnectorSpec extends SpecBase with WireMockSupportProvider {
     implicit val hc: HeaderCarrier    = HeaderCarrier()
 
     val sub24Url: String = "/customs-financials-hods-stub/gbxieorihistory/"
-    val sub21Url: String = "/customs-financials-hods-stub/eorihistory/testEori"
     val someEori: String = "testEori"
 
     implicit val implicitHeaderCarrier: HeaderCarrier = HeaderCarrier(

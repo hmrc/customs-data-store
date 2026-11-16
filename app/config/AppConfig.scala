@@ -38,12 +38,6 @@ class AppConfig @Inject() (val configuration: Configuration, servicesConfig: Ser
   lazy val sub09BearerToken: String =
     s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub09.bearer-token")}"
 
-  lazy val sub21EORIHistoryEndpoint: String =
-    servicesConfig.baseUrl("sub21") / configuration.get[String]("microservice.services.sub21.historicEoriEndpoint")
-
-  lazy val sub21BearerToken: String =
-    s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub21.bearer-token")}"
-
   lazy val sub22UpdateVerifiedEmailEndpoint: String =
     servicesConfig.baseUrl("sub22") / configuration.get[String](
       "microservice.services.sub22.updateVerifiedEmailEndpoint"
@@ -57,8 +51,6 @@ class AppConfig @Inject() (val configuration: Configuration, servicesConfig: Ser
 
   lazy val sub24BearerToken: String =
     s"$bearerTokenPrefix$singleSpace${configuration.get[String]("microservice.services.sub24.bearer-token")}"
-
-  var sub24Enabled: Boolean = configuration.get[Boolean]("features.sub24-enabled")
 
   implicit class URLSyntacticSugar(left: String) {
     def /(right: String): String = removeTrailingSlash(left) + "/" + removeLeadingSlash(right)

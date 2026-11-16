@@ -486,7 +486,7 @@ class EoriHistoryControllerSpec extends SpecBase with MockAuthConnector {
   }
 
   "updateEoriHistory" should {
-    "return 404 NOT_FOUND and skip caching if sub21 returns no EORI history (empty Seq)" in new Setup {
+    "return 404 NOT_FOUND and skip caching if sub24 returns no EORI history (empty Seq)" in new Setup {
       when(mockHistoricEoriRepository.get(any())).thenReturn(Future.successful(Left(FailedToRetrieveHistoricEori)))
 
       when(mockHistoryService.getEoriHistory(any(), any())).thenReturn(Future.successful(Seq.empty))
